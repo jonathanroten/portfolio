@@ -1,0 +1,165 @@
+---
+import Icon from "@/components/Media/Icon.astro";
+import logo from "@/assets/logo/logo-wordmark.svg";
+import Grid from "@/components/Wrapper/Grid.astro";
+import Heading from "../Typography/Heading.astro";
+import Paragraph from "../Typography/Paragraph.astro";
+import Button from "@/components/Button.astro";
+import ButtonWrapper from "@/components/Wrapper/ButtonWrapper.astro";
+import FooterItem from "@/components/Custom/FooterItem.astro";
+import webflowCertificate from "@/assets/documents/webflow.pdf";
+import javascriptCertificate from "@/assets/documents/javascript.pdf";
+import { SITE_NAME } from "@/consts.ts";
+
+const currentYear = new Date().getFullYear();
+
+interface Props {
+  /** Set to `false` to skip rendering this component and its children. */
+  render?: boolean;
+}
+
+const { render = true } = Astro.props;
+---
+
+{
+  render && (
+    <footer class="footer_wrap">
+      <div class="footer_inner">
+        <Grid xsmall={1} medium={3} class="gap-row-8">
+          <div>
+            <Heading tag="h2" class="text-style-h5">
+              My Approach
+            </Heading>
+          </div>
+          <div class="footer_intro">
+            <Paragraph class="text-style-h4">
+              I’m motivated by a genuine love of learning and artistic
+              expression. I hope to make a positive impact on the world around
+              me, and I work toward that through design. I believe creativity is
+              interpersonal and that it’s most fulfilling when recognized as a
+              shared experience.
+            </Paragraph>
+            <ButtonWrapper>
+              <Button variant="link" element="link" href="/docs">
+                Say Hello
+              </Button>
+            </ButtonWrapper>
+          </div>
+        </Grid>
+        <Grid xsmall={1} small={2} medium={3} class="gap-row-8" role="list">
+          <FooterItem
+            heading="Experience"
+            variant="list-stacked"
+            items={[
+              { label: "Elephant In The Room: June 2021 – Present" },
+              { label: "Novant Health: Oct 2020 – June 2021" },
+              { label: "Airtype Studio: Aug 2014 – Oct 2020" },
+              { label: "Woodbine: Jan 2013 – July 2014" },
+              { label: "MullenLowe: June 2010 – Aug 2012" },
+            ]}
+          />
+          <FooterItem
+            heading="Services"
+            variant="list-inline"
+            items={[
+              { label: "Branding" },
+              { label: "Design Systems" },
+              { label: "Editorial and Print Design" },
+              { label: "Front-End Development" },
+              { label: "Identity Design" },
+              { label: "Illustration" },
+              { label: "Interactive Design" },
+              { label: "Lettering" },
+              { label: "Merchandising" },
+              { label: "Webflow" },
+            ]}
+          />
+          <FooterItem
+            heading="Education"
+            variant="list-stacked"
+            items={[
+              { label: "Appalachian State University, 2010" },
+              { label: "BS, Communication" },
+              { label: "Summa Cum Laude" },
+            ]}
+          />
+          <FooterItem
+            heading="Profile"
+            variant="list-stacked"
+            items={[
+              { label: "Favorite Food: Mom's Mac + Cheese" },
+              { label: "Childhood Hero: Mugsy Bogues" },
+              { label: "Go-To Karaoke: Kiss From A Rose" },
+            ]}
+          />
+          <FooterItem
+            heading="Certifications"
+            variant="list-stacked"
+            items={[
+              { label: "Webflow Practitioner", href: webflowCertificate },
+              {
+                label: "Javascript Masterclass",
+                href: javascriptCertificate,
+              },
+            ]}
+          />
+          <FooterItem
+            heading="Additional Info"
+            variant="list-stacked"
+            items={[
+              {
+                label: "Visit Instagram Profile",
+                href: "https://www.instagram.com/jonathan.roten",
+              },
+              { label: `© ${currentYear} Copyright. All Rights Reserved.` },
+            ]}
+          />
+        </Grid>
+
+        <div class="footer_bottom">
+          <div class="footer_logo" aria-label={SITE_NAME}>
+            <Icon src={logo} variant="full-width" />
+          </div>
+        </div>
+      </div>
+    </footer>
+  )
+}
+
+<style is:global>
+  @layer components {
+    .footer_wrap {
+      display: flex;
+      justify-content: center;
+      padding: var(--site-margin);
+      background-color: var(--background);
+      color: var(--text);
+    }
+
+    .footer_inner {
+      width: 100%;
+      max-width: var(--max-width-full);
+      display: flex;
+      flex-direction: column;
+      gap: var(--section-space-medium);
+    }
+
+    .footer_bottom {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      width: 100%;
+    }
+
+    .footer_logo {
+      display: block;
+      width: 100%;
+    }
+
+    .footer_intro {
+      @media (width >= 48rem) {
+        grid-column: auto / span 2;
+      }
+    }
+  }
+</style>

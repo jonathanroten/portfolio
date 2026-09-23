@@ -1,0 +1,114 @@
+---
+import Layout from "@/layouts/BaseLayout.astro";
+import Section from "@/components/Wrapper/Section.astro";
+import ContentWrapper from "@/components/Wrapper/ContentWrapper.astro";
+import Heading from "@/components/Typography/Heading.astro";
+import Paragraph from "@/components/Typography/Paragraph.astro";
+import FormattedDate from "@/components/Utility/FormattedDate.astro";
+import LiveClock from "@/components/Utility/LiveClock.astro";
+import ImageTrail from "@/components/Custom/ImageTrail.astro";
+import ProjectFeature from "@/components/Custom/ProjectFeature.astro";
+import Img from "@/components/Media/Img.astro";
+import placeholderImage from "@/assets/graphics/placeholder.svg";
+import Accordion from "@/components/Interactive/Accordion.astro";
+import AccordionItem from "@/components/Interactive/AccordionItem.astro";
+import ProjectSlider from "@/components/Custom/ProjectSlider.astro";
+
+const today = new Date();
+---
+
+<Layout theme="dark">
+  <Section
+    paddingBottom="even"
+    containerClass="flex-grow max-width-full"
+    paddingTop="large"
+    class="flex-grow"
+    style="min-height: calc(100dvh - var(--nav-total-height));"
+  >
+    <ContentWrapper class="flex-grow justify-content-end zindex-2">
+      <Heading tag="h1" class="sr-only">Jonathan Roten's Portfolio</Heading>
+      <Paragraph variant="h2" class="text-accent"
+        >Hi, I&apos;m <span>Jonathan</span>.</Paragraph
+      >
+      <Paragraph variant="h2" maxWidth={30} class="text-accent margin-block-8"
+        >A <span>multidisciplinary</span> creative designing <span
+          >brand experiences</span
+        > in digital and physical spaces.</Paragraph
+      >
+      <div class="width-full display-inline-flex justify-content-between">
+        <span id="date" class="text-style-h6"
+          ><FormattedDate
+            date={today}
+            format={{ month: "long", day: "2-digit", year: "numeric" }}
+          /></span
+        ><span id="time" class="text-style-h6"><LiveClock /></span>
+      </div>
+    </ContentWrapper>
+    <ImageTrail>
+      <Img src={placeholderImage} loading="eager" fetchPriority="high" />
+      <Img src={placeholderImage} loading="eager" />
+      <Img src={placeholderImage} loading="eager" />
+      <Img src={placeholderImage} loading="eager" />
+      <Img src={placeholderImage} loading="eager" />
+    </ImageTrail>
+  </Section>
+  <Section
+    paddingTop="none"
+    paddingBottom="none"
+    containerClass="flex-grow max-width-full align-items-stretch"
+    style="counter-reset: project;"
+  >
+    <div role="list">
+      <ProjectFeature
+        heading="Brand identity, reimagined"
+        services={["Branding", "Art Direction", "Web Design", "Motion"]}
+        text="Lorem ipsum dolor sit amet consectetur adipisicing elit. Doloribus amet, culpa autem obcaecati minus, soluta, vero quo fugiat placeat neque laudantium inventore quaerat."
+      >
+        <Img slot="column2" class="full-width" src={placeholderImage} />
+        <Img slot="column2" src={placeholderImage} />
+        <Img slot="column2" src={placeholderImage} />
+        <Img slot="column2" src={placeholderImage} />
+        <Img slot="column2" src={placeholderImage} />
+      </ProjectFeature>
+      <ProjectFeature
+        heading="Systems that scale with the brand"
+        services={["Design Systems", "Front-End Development", "Consulting"]}
+        text="Animi cupiditate quisquam quidem neque, maxime rerum. Doloribus amet, culpa autem obcaecati minus, soluta, vero quo fugiat placeat neque laudantium."
+      >
+        <Img
+          slot="column2"
+          class="full-width"
+          src="src/assets/graphics/lumos-background.svg"
+        />
+        <Img slot="column2" src={placeholderImage} />
+      </ProjectFeature>
+    </div>
+  </Section>
+  <Section
+    paddingTop="large"
+    paddingBottom="large"
+    containerClass="flex-grow max-width-full"
+    class="flex-grow"
+  >
+    <Accordion single openFirst>
+      <AccordionItem variant="bleed" heading="Placeholder One">
+        <ProjectSlider
+          images={[
+            { src: placeholderImage },
+            { src: placeholderImage },
+            { src: placeholderImage },
+          ]}
+          heading="Project details"
+          text="Lorem ipsum dolor sit amet consectetur."
+        />
+      </AccordionItem>
+      <AccordionItem heading="Placeholder Two">
+        <Paragraph
+          >Animi cupiditate quisquam quidem neque, maxime rerum. Doloribus amet,
+          culpa autem obcaecati minus, soluta, vero quo fugiat placeat neque
+          laudantium.</Paragraph
+        >
+      </AccordionItem>
+    </Accordion>
+  </Section>
+</Layout>
