@@ -1,5 +1,5 @@
 <p align="center">
-  <img src=".github/assets/banner.png" alt="Lumos For Astro" width="720">
+Lumos For Astro
 </p>
 
 <p align="center">
