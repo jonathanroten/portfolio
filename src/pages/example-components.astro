@@ -1,36 +1,36 @@
 ---
 import Layout from "@/layouts/BaseLayout.astro";
-import Section from "@/components/Wrapper/Section.astro";
-import ContentWrapper from "@/components/Wrapper/ContentWrapper.astro";
-import Eyebrow from "@/components/Typography/Eyebrow.astro";
-import Heading from "@/components/Typography/Heading.astro";
-import Paragraph from "@/components/Typography/Paragraph.astro";
-import ButtonWrapper from "@/components/Wrapper/ButtonWrapper.astro";
+import Section from "@/components/wrapper/Section.astro";
+import ContentWrapper from "@/components/wrapper/ContentWrapper.astro";
+import Eyebrow from "@/components/typography/Eyebrow.astro";
+import Heading from "@/components/typography/Heading.astro";
+import Paragraph from "@/components/typography/Paragraph.astro";
+import ButtonWrapper from "@/components/wrapper/ButtonWrapper.astro";
 import Button from "@/components/Button.astro";
-import Img from "@/components/Media/Img.astro";
+import Img from "@/components/media/Img.astro";
 import lumos_background from "@/assets/graphics/lumos-background.svg";
 import logo_icon from "@/assets/logo/logo-icon.svg";
-import Grid from "@/components/Wrapper/Grid.astro";
-import Card from "@/components/Item/Card.astro";
-import Form from "@/components/Form/Form.astro";
-import Fieldset from "@/components/Form/Fieldset.astro";
-import Input from "@/components/Form/Input.astro";
-import Select from "@/components/Form/Select.astro";
-import Choice from "@/components/Form/Choice.astro";
-import Range from "@/components/Form/Range.astro";
-import Textarea from "@/components/Form/Textarea.astro";
-import Tabs from "@/components/Interactive/Tabs.astro";
-import TabLink from "@/components/Interactive/TabLink.astro";
-import Dropdown from "@/components/Interactive/Dropdown.astro";
-import Overlay from "@/components/Media/Overlay.astro";
-import Modal from "@/components/Interactive/Modal.astro";
-import Slider from "@/components/Interactive/Slider.astro";
-import Accordion from "@/components/Interactive/Accordion.astro";
-import Marquee from "@/components/Interactive/Marquee.astro";
-import AccordionItem from "@/components/Interactive/AccordionItem.astro";
-import Video from "@/components/Media/Video.astro";
-import Icon from "@/components/Media/Icon.astro";
-import RichText from "@/components/Typography/RichText.astro";
+import Grid from "@/components/wrapper/Grid.astro";
+import Card from "@/components/item/Card.astro";
+import Form from "@/components/form/Form.astro";
+import Fieldset from "@/components/form/Fieldset.astro";
+import Input from "@/components/form/Input.astro";
+import Select from "@/components/form/Select.astro";
+import Choice from "@/components/form/Choice.astro";
+import Range from "@/components/form/Range.astro";
+import Textarea from "@/components/form/Textarea.astro";
+import Tabs from "@/components/interactive/Tabs.astro";
+import TabLink from "@/components/interactive/TabLink.astro";
+import Dropdown from "@/components/interactive/Dropdown.astro";
+import Overlay from "@/components/media/Overlay.astro";
+import Modal from "@/components/interactive/Modal.astro";
+import Slider from "@/components/interactive/Slider.astro";
+import Accordion from "@/components/interactive/Accordion.astro";
+import Marquee from "@/components/interactive/Marquee.astro";
+import AccordionItem from "@/components/interactive/AccordionItem.astro";
+import Video from "@/components/media/Video.astro";
+import Icon from "@/components/media/Icon.astro";
+import RichText from "@/components/typography/RichText.astro";
 import arrow from "@/assets/icons/arrow.svg";
 import play from "@/assets/icons/play.svg";
 import close from "@/assets/icons/close.svg";
@@ -244,7 +244,6 @@ const lorem =
         text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod."
         buttonHref="/about"
         buttonLabel="Button Text"
-        theme="dark"
         variant="cover"
         image={lumos_background}
       />
@@ -265,7 +264,7 @@ const lorem =
     </ContentWrapper>
     <Form name="contact">
       <Fieldset legend="Contact Details" variant="columns">
-        <Input variant="first-name" required />
+        <Input required variant="first-name" />
         <Input variant="last-name" required />
         <Input
           variant="email"

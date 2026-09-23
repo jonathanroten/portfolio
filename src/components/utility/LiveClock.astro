@@ -1,0 +1,52 @@
+---
+import { SITE_LOCALE } from "@/consts.ts";
+
+interface Props {
+  /** Set to `false` to omit the component. */
+  render?: boolean;
+  /** BCP 47 locale. Defaults to `SITE_LOCALE`. */
+  locale?: string;
+  /** IANA time zone. Defaults to the visitor's time zone. */
+  timeZone?: string;
+  /** `Intl.DateTimeFormat` options. Defaults to hour and minute. */
+  format?: Intl.DateTimeFormatOptions;
+}
+
+const {
+  render = true,
+  locale = SITE_LOCALE,
+  timeZone,
+  format = { hour: "numeric", minute: "2-digit" },
+} = Astro.props;
+
+const options = { ...format, timeZone };
+const now = new Date();
+const formatted = new Intl.DateTimeFormat(locale, options).format(now);
+const config = JSON.stringify({ locale, options });
+---
+
+{
+  render && (
+    <time class="live-clock_wrap" datetime={now.toISOString()} data-live-clock={config}>
+      {formatted}
+    </time>
+  )
+}
+
+<script>
+  for (const el of document.querySelectorAll<HTMLTimeElement>(
+    "[data-live-clock]",
+  )) {
+    const { locale, options } = JSON.parse(el.dataset.liveClock ?? "{}");
+    const formatter = new Intl.DateTimeFormat(locale, options);
+
+    const tick = () => {
+      const now = new Date();
+      el.textContent = formatter.format(now);
+      el.dateTime = now.toISOString();
+    };
+
+    tick();
+    setInterval(tick, 1000);
+  }
+</script>

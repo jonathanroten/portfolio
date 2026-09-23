@@ -1,0 +1,172 @@
+---
+import type { HTMLAttributes } from "astro/types";
+
+import Heading from "@/components/typography/Heading.astro";
+import Paragraph from "@/components/typography/Paragraph.astro";
+
+type FooterListItem = {
+  /** Item text. */
+  label: string;
+  /** Item destination. Omit for plain text. */
+  href?: string;
+};
+
+type Base = HTMLAttributes<"div"> & {
+  /** Set to `false` to omit the component. */
+  render?: boolean;
+  /** Item heading. Supports inline markup. */
+  heading?: string;
+  /** Heading level. */
+  headingTag?: "h2" | "h3" | "h4" | "h5" | "h6";
+  /** Content layout. */
+  variant?: "default" | "list-inline" | "list-stacked";
+};
+
+type Props = Base &
+  (
+    | {
+        variant?: "default";
+        /** Body text. Supports inline markup. */
+        text?: string;
+        items?: never;
+      }
+    | {
+        variant: "list-inline" | "list-stacked";
+        text?: never;
+        /** List items. */
+        items?: FooterListItem[];
+      }
+  );
+
+type AllProps = Base & {
+  text?: string;
+  items?: FooterListItem[];
+};
+
+const {
+  render = true,
+  heading,
+  headingTag = "h3",
+  variant = "default",
+  text,
+  items,
+  class: className,
+  ...rest
+} = Astro.props as AllProps;
+
+const hasText = variant === "default" && !!text;
+const hasList = variant !== "default" && !!items?.length;
+const hasContent = !!(heading || hasText || hasList);
+
+if (import.meta.env.DEV && render) {
+  if (variant === "default" && items) {
+    console.warn(
+      '[lumos] <FooterItem variant="default"> renders a paragraph, so `items` was dropped. Use the list-inline or list-stacked variant to show it.',
+    );
+  }
+  if (variant !== "default" && text) {
+    console.warn(
+      `[lumos] <FooterItem variant="${variant}"> renders a list, so \`text\` was dropped. Use the default variant to show a paragraph.`,
+    );
+  }
+}
+---
+
+{
+  render && hasContent && (
+    <div
+      class:list={[
+        "footer-item_wrap",
+        variant !== "default" && variant,
+        className,
+      ]}
+      role="listitem"
+      {...rest}
+    >
+      <div class="footer-item_element">
+        <div class="footer-item_header margin-trim">
+          <Heading tag={headingTag} variant="h5">
+            <Fragment set:html={heading} />
+          </Heading>
+        </div>
+        <div class="footer-item_content margin-trim">
+          {hasText && (
+            <Paragraph>
+              <Fragment set:html={text} />
+            </Paragraph>
+          )}
+          {hasList && (
+            <ul class="footer-item_list">
+              {items!.map((item) => (
+                <li class="text-style-main">
+                  {item.href ? (
+                    <a
+                      class="footer-item_link"
+                      href={item.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {item.label}
+                    </a>
+                  ) : (
+                    item.label
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+<style is:global>
+  @layer components {
+    .footer-item_wrap {
+      width: 100%;
+    }
+
+    .footer-item_element {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+
+    .footer-item_header {
+      padding-bottom: var(--space-3);
+      border-bottom: var(--border-width-large) solid var(--text);
+    }
+
+    .footer-item_list {
+      list-style: none;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75ch;
+
+      li:not(:last-child)::after {
+        content: ",";
+        display: inline;
+      }
+
+      .list-stacked & {
+        flex-direction: column;
+        flex-wrap: nowrap;
+
+        li:not(:last-child)::after {
+          content: none;
+        }
+      }
+    }
+    .footer-item_link {
+      color: var(--text);
+      text-decoration: none;
+      transition: color var(--hover-duration) var(--hover-ease);
+      @media (hover: hover) {
+        &:hover {
+          color: var(--text-2);
+        }
+      }
+    }
+  }
+</style>

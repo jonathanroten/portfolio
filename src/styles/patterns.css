@@ -198,11 +198,11 @@
 }
 
 .field-control {
-  --field-pad-block: 0.75em;
-  --field-pad-inline: 1em;
+  --_field-pad-block: 0.75em;
+  --_field-pad-inline: 1em;
   width: 100%;
-  min-height: calc(1lh + var(--field-pad-block) * 2 + var(--border-width) * 2);
-  padding: var(--field-pad-block) var(--field-pad-inline);
+  min-height: calc(1lh + var(--_field-pad-block) * 2 + var(--border-width) * 2);
+  padding: var(--_field-pad-block) var(--_field-pad-inline);
   background-color: var(--background-2);
   color: inherit;
   border: var(--border-width) solid transparent;

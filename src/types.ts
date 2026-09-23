@@ -1,19 +1,13 @@
-/** Page metadata accepted by `BaseHead` and by every layout that renders it. */
+/** Page metadata for `BaseHead` and layouts. */
 export interface SeoProps {
-  /** Page title. Rendered as `{title} | {SITE_NAME}`; omit for `SITE_NAME` alone. */
+  /** Page title. The site name is appended. */
   title?: string;
-  /** Meta description, also used for `og:description` and `twitter:description`. Defaults to `SITE_DESCRIPTION`. */
+  /** Page and social description. Defaults to `SITE_DESCRIPTION`. */
   description?: string;
-  /** Social share image. Defaults to `/og-image.jpg`. Relative paths resolve against `site` in `astro.config.mjs`. */
+  /** Social image. Defaults to `/og-image.jpg`. */
   image?: string;
-  /** Open Graph type. Defaults to `website`; use `article` for posts and news pages. */
+  /** Open Graph type. */
   type?: "website" | "article";
-  /**
-   * Force `robots: noindex, nofollow` on or off for this page.
-   *
-   * Leave unset to inherit from `NOINDEX_ROUTES`, which also drives sitemap
-   * exclusion. Setting it here only affects the robots tag — a page kept out of
-   * search results should be listed in `NOINDEX_ROUTES` so it leaves the sitemap too.
-   */
+  /** Override `NOINDEX_ROUTES` for this page's robots tag. */
   noindex?: boolean;
 }

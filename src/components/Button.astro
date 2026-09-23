@@ -1,6 +1,6 @@
 ---
 import type { HTMLAttributes } from "astro/types";
-import Icon from "@/components/Media/Icon.astro";
+import Icon from "@/components/media/Icon.astro";
 import arrow from "@/assets/icons/arrow-full.svg";
 import close from "@/assets/icons/close.svg";
 import play from "@/assets/icons/play.svg";
@@ -11,16 +11,17 @@ type Emphasis = "primary" | "secondary";
 
 type Tag =
   | (HTMLAttributes<"button"> & {
-      /** What it renders as. Defaults to `button`. */
+      /** Rendered element. */
       element?: "button";
+      /** Native button type. */
       type?: "button" | "submit" | "reset";
-      /** Greys it out and stops it responding. */
+      /** Disable the button. */
       disabled?: boolean;
       href?: never;
     })
   | (Omit<HTMLAttributes<"a">, "type"> & {
       element: "link";
-      /** Where the link goes. */
+      /** Link destination. */
       href?: string;
       type?: never;
       disabled?: never;
@@ -28,21 +29,9 @@ type Tag =
 
 type Kind =
   | {
-      /**
-       * What kind of button it is.
-       *
-       * - `main` — a labelled button (default)
-       * - `link` — text on a rule that travels across on hover
-       * - `play`, `close`, `arrow` — a mark on its own, with a label for
-       *   anyone who cannot see it
-       */
+      /** Button type. */
       variant?: "main";
-      /**
-       * How much weight the button carries.
-       *
-       * - `primary` — filled, for the main action (default)
-       * - `secondary` — outlined, for anything sitting beside a primary
-       */
+      /** Visual emphasis. */
       emphasis?: Emphasis;
       label?: never;
       pressed?: never;
@@ -59,16 +48,16 @@ type Kind =
   | {
       variant: "play";
       emphasis?: Emphasis;
-      /** What the control does, for anyone who cannot see its mark. Defaults to `Play`, or `Pause` when pressed is `true`. */
+      /** Accessible label. Defaults to `Play` or `Pause`. */
       label?: string;
-      /** Whether it is playing: shows the pause mark, and reads as pressed. Defaults to `false`. */
+      /** Show the pause icon and pressed state. */
       pressed?: boolean;
       direction?: never;
     }
   | {
       variant: "close";
       emphasis?: Emphasis;
-      /** What the control does, for anyone who cannot see its mark. Defaults to `Close`. */
+      /** Accessible label. Defaults to `Close`. */
       label?: string;
       pressed?: never;
       direction?: never;
@@ -76,15 +65,15 @@ type Kind =
   | {
       variant: "arrow";
       emphasis?: Emphasis;
-      /** What the control does, for anyone who cannot see its mark. Defaults to `Next`, or `Previous` when direction is `back`. */
+      /** Accessible label. Defaults to `Next` or `Previous`. */
       label?: string;
       pressed?: never;
-      /** Which way the arrow points. Defaults to `forward`. */
+      /** Arrow direction. */
       direction?: "forward" | "back";
     };
 
 type Props = {
-  /** Set to `false` to skip rendering this component and its children. */
+  /** Set to `false` to omit the component. */
   render?: boolean;
 } & Tag &
   Kind;
