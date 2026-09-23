@@ -1,6 +1,4 @@
-<p align="center">
-Lumos For Astro
-</p>
+## Lumos For Astro
 
 <p align="center">
   <a href="https://www.npmjs.com/package/create-lumos"><img alt="npm version" src="https://img.shields.io/npm/v/create-lumos?labelColor=1E1E1E&color=C6FB50"></a>
