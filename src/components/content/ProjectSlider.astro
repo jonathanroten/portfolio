@@ -41,7 +41,7 @@ const label = heading?.replace(/<[^>]*>/g, "") || "Project images";
       loop
       xsmall={1.2}
       large={1.7}
-      class:list={["project-slider_wrap", "gap-1", "gap-row-4", className]}
+      class:list={["project-slider_wrap", "gap-1", "gap-row-5", className]}
       {...rest}
     >
       {images.map(({ src, alt }) => (
@@ -56,7 +56,7 @@ const label = heading?.replace(/<[^>]*>/g, "") || "Project images";
       {(heading || text) && (
         <Fragment slot="caption">
           {heading && (
-            <Heading tag={headingTag} variant="h6">
+            <Heading tag={headingTag} variant="h5" class="margin-bottom-3">
               <Fragment set:html={heading} />
             </Heading>
           )}
@@ -70,3 +70,23 @@ const label = heading?.replace(/<[^>]*>/g, "") || "Project images";
     </Slider>
   )
 }
+
+<style is:global>
+  @layer components {
+    .project-slider_wrap .slider_list {
+      --_edge: calc((100vw - 100cqw) / 2);
+      --_fade: calc(var(--_edge) + var(--_center));
+      mask-image: linear-gradient(
+        to right,
+        transparent,
+        black var(--_fade),
+        black calc(100% - var(--_fade)),
+        transparent
+      );
+
+      &:focus-visible {
+        outline-offset: var(--focus-offset-inner);
+      }
+    }
+  }
+</style>
