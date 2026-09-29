@@ -76,12 +76,10 @@ const { render = true } = Astro.props;
           />
           <FooterItem
             heading="Education"
-            variant="list-stacked"
-            items={[
-              { label: "Appalachian State University, 2010" },
-              { label: "BS, Communication" },
-              { label: "Summa Cum Laude" },
-            ]}
+            variant="default"
+            text={
+              "Appalachian State University, 2010<br/>BS, Communication<br/>Summa Cum Laude"
+            }
           />
           <FooterItem
             heading="Profile"
