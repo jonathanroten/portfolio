@@ -10,8 +10,8 @@ type Props = HTMLAttributes<"details"> & {
   render?: boolean;
   /** Item heading. */
   heading?: string;
-  /** Content overflow. */
-  variant?: "default" | "bleed";
+  /** Item style. */
+  variant?: "default" | "alternate";
   /** Heading level. */
   headingTag?: "h2" | "h3" | "h4" | "h5" | "h6";
   /** Open on load. */
@@ -44,10 +44,18 @@ const content = await slotContent(Astro.slots);
       {...rest}
     >
       <summary class="accordion_toggle">
-        <Heading tag={headingTag} variant="h5" class="accordion_title">
+        <Heading
+          tag={headingTag}
+          variant={variant === "alternate" ? "h1" : "h5"}
+          class="accordion_title"
+        >
           {heading}
         </Heading>
-        <Icon class="accordion_icon" src={arrow} variant="small" />
+        {variant === "alternate" ? (
+          <span class="accordion_marker" aria-hidden="true" />
+        ) : (
+          <Icon class="accordion_icon" src={arrow} variant="small" />
+        )}
       </summary>
 
       <div class="accordion_body margin-trim">
@@ -97,6 +105,76 @@ const content = await slotContent(Astro.slots);
       rotate: -90deg;
     }
 
+    .accordion_item.alternate {
+      --_border-width: var(--border-width-huge);
+      --_title-size: var(--h1);
+      border-bottom: none;
+      @media (width < 48rem) {
+        --_border-width: var(--border-width-large);
+        --_title-size: var(--h2);
+      }
+      & + & {
+        margin-top: var(--space-3);
+      }
+      & .accordion_toggle {
+        --_marker-size: calc(var(--_title-size) * 0.8);
+        display: grid;
+        grid-template-columns: var(--_marker-size) minmax(0, 1fr) var(
+            --_marker-size
+          );
+        padding: var(--space-5);
+        border: var(--_border-width) solid currentcolor;
+        border-radius: var(--radius-small);
+        transition: background-color var(--hover-duration) var(--hover-ease);
+        @media (hover: hover) {
+          &:hover {
+            background-color: var(--background-accent);
+          }
+        }
+      }
+      & .accordion_title {
+        grid-column: 2;
+        font-size: var(--_title-size);
+        text-align: center;
+        text-transform: uppercase;
+      }
+      & .accordion_body {
+        padding-top: var(--space-5);
+      }
+    }
+
+    .accordion_item.alternate:is([open], .stacki-opened) .accordion_toggle,
+    .stacki-designer
+      .accordion_wrap.preview
+      .accordion_item.alternate
+      .accordion_toggle {
+      background-color: var(--background-accent);
+    }
+
+    .accordion_marker {
+      position: relative;
+      inline-size: var(--_marker-size);
+      aspect-ratio: 1;
+      &::before,
+      &::after {
+        content: "";
+        position: absolute;
+        inset: 50% 0 auto;
+        block-size: var(--_border-width);
+        translate: 0 -50%;
+        background-color: currentcolor;
+      }
+      &::after {
+        rotate: 90deg;
+        transition: rotate var(--open-duration) var(--open-ease);
+      }
+    }
+
+    .accordion_item:is([open], .stacki-opened) .accordion_marker::after,
+    .stacki-designer .accordion_wrap.preview .accordion_marker::after {
+      rotate: 0deg;
+    }
+
     .accordion_item::details-content {
       block-size: 0;
       overflow: hidden;
@@ -106,7 +184,7 @@ const content = await slotContent(Astro.slots);
         content-visibility var(--open-duration) var(--open-ease) allow-discrete;
     }
 
-    .accordion_item.bleed::details-content {
+    .accordion_item.alternate::details-content {
       overflow: visible clip;
     }
 

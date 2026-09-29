@@ -862,18 +862,18 @@
 }
 
 .weight-regular {
-  font-family: var(--primary-family);
-  font-weight: var(--primary-regular);
+  font-family: var(--sans-family);
+  font-weight: var(--sans-regular);
 }
 
 .weight-medium {
-  font-family: var(--primary-family);
-  font-weight: var(--primary-medium);
+  font-family: var(--sans-family);
+  font-weight: var(--sans-medium);
 }
 
 .weight-bold {
-  font-family: var(--primary-family);
-  font-weight: var(--primary-bold);
+  font-family: var(--sans-family);
+  font-weight: var(--sans-bold);
 }
 
 .text-transform-none {

@@ -13,20 +13,6 @@ export default defineConfig({
   ],
   fonts: [
     {
-      name: "Inter",
-      cssVariable: "--font-inter",
-      provider: fontProviders.local(),
-      options: {
-        variants: [
-          {
-            weight: 400,
-            style: "normal",
-            src: ["./src/assets/fonts/inter-regular.woff2"],
-          },
-        ],
-      },
-    },
-    {
       name: "Apfel Grotezk",
       cssVariable: "--font-apfel-grotezk",
       provider: fontProviders.local(),
