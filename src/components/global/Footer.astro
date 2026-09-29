@@ -159,5 +159,125 @@ const { render = true } = Astro.props;
         grid-column: auto / span 2;
       }
     }
+
+    :root[data-theme-fade] {
+      --_theme-timing: var(--theme-duration) var(--theme-ease);
+      transition:
+        --background var(--_theme-timing),
+        --background-2 var(--_theme-timing),
+        --background-3 var(--_theme-timing),
+        --text var(--_theme-timing),
+        --heading-accent var(--_theme-timing),
+        --button-background var(--_theme-timing),
+        --button-text var(--_theme-timing),
+        --button-background-hover var(--_theme-timing),
+        --button-text-hover var(--_theme-timing),
+        --button-2-background-hover var(--_theme-timing),
+        --button-2-text-hover var(--_theme-timing);
+    }
+
+    :root[data-theme-fading] {
+      *,
+      ::before,
+      ::after {
+        transition: none !important;
+      }
+    }
+  }
+
+  /* Theme tokens registered so the theme swap can fade */
+  @property --background {
+    syntax: "<color>";
+    inherits: true;
+    initial-value: transparent;
+  }
+  @property --background-2 {
+    syntax: "<color>";
+    inherits: true;
+    initial-value: transparent;
+  }
+  @property --background-3 {
+    syntax: "<color>";
+    inherits: true;
+    initial-value: transparent;
+  }
+  @property --text {
+    syntax: "<color>";
+    inherits: true;
+    initial-value: transparent;
+  }
+  @property --heading-accent {
+    syntax: "<color>";
+    inherits: true;
+    initial-value: transparent;
+  }
+  @property --button-background {
+    syntax: "<color>";
+    inherits: true;
+    initial-value: transparent;
+  }
+  @property --button-text {
+    syntax: "<color>";
+    inherits: true;
+    initial-value: transparent;
+  }
+  @property --button-background-hover {
+    syntax: "<color>";
+    inherits: true;
+    initial-value: transparent;
+  }
+  @property --button-text-hover {
+    syntax: "<color>";
+    inherits: true;
+    initial-value: transparent;
+  }
+  @property --button-2-background-hover {
+    syntax: "<color>";
+    inherits: true;
+    initial-value: transparent;
+  }
+  @property --button-2-text-hover {
+    syntax: "<color>";
+    inherits: true;
+    initial-value: transparent;
   }
 </style>
+
+<script>
+  const root = document.documentElement;
+  const logo = document.querySelector<HTMLElement>(".footer_logo");
+  const theme = [...root.classList].find((name) => name.startsWith("theme-"));
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)");
+
+  if (logo && theme !== "theme-brand") {
+    let reached = false;
+
+    const apply = () => {
+      const active = reached && !reduce.matches;
+      if (root.classList.contains("theme-brand") === active) return;
+      if ("themeFade" in root.dataset && !reduce.matches) {
+        root.dataset.themeFading = "";
+      }
+      if (theme) root.classList.toggle(theme, !active);
+      root.classList.toggle("theme-brand", active);
+    };
+
+    root.addEventListener("transitionend", (event) => {
+      if (event.target === root && event.propertyName === "--background") {
+        delete root.dataset.themeFading;
+      }
+    });
+
+    new IntersectionObserver(([entry]) => {
+      reached = entry.isIntersecting || entry.boundingClientRect.top < 0;
+      apply();
+      if (!("themeFade" in root.dataset)) {
+        requestAnimationFrame(() =>
+          requestAnimationFrame(() => (root.dataset.themeFade = "")),
+        );
+      }
+    }).observe(logo);
+
+    reduce.addEventListener("change", apply);
+  }
+</script>
