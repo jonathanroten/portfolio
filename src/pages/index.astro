@@ -86,7 +86,7 @@ const today = new Date();
   </Section>
   <Section
     paddingTop="large"
-    paddingBottom="large"
+    paddingBottom="medium"
     containerClass="flex-grow max-width-full"
     class="flex-grow"
   >
@@ -102,12 +102,38 @@ const today = new Date();
           text="Lorem ipsum dolor sit amet consectetur."
         />
       </AccordionItem>
-      <AccordionItem heading="Placeholder Two">
-        <Paragraph
-          >Animi cupiditate quisquam quidem neque, maxime rerum. Doloribus amet,
-          culpa autem obcaecati minus, soluta, vero quo fugiat placeat neque
-          laudantium.</Paragraph
-        >
+      <AccordionItem variant="alternate" heading="Placeholder Two">
+        <ProjectSlider
+          images={[
+            { src: placeholderImage },
+            { src: placeholderImage },
+            { src: placeholderImage },
+          ]}
+          heading="Project details"
+          text="Lorem ipsum dolor sit amet consectetur."
+        />
+      </AccordionItem>
+      <AccordionItem variant="alternate" heading="Placeholder Three">
+        <ProjectSlider
+          images={[
+            { src: placeholderImage },
+            { src: placeholderImage },
+            { src: placeholderImage },
+          ]}
+          heading="Project details"
+          text="Lorem ipsum dolor sit amet consectetur."
+        />
+      </AccordionItem>
+      <AccordionItem variant="alternate" heading="Placeholder Four">
+        <ProjectSlider
+          images={[
+            { src: placeholderImage },
+            { src: placeholderImage },
+            { src: placeholderImage },
+          ]}
+          heading="Project details"
+          text="Lorem ipsum dolor sit amet consectetur."
+        />
       </AccordionItem>
     </Accordion>
   </Section>
