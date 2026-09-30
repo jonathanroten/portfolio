@@ -63,6 +63,10 @@
   --theme-duration: 600ms;
   --theme-ease: var(--hover-ease);
 
+  /* Scroll motion */
+  --scroll-duration: 800ms;
+  --scroll-ease: cubic-bezier(0.65, 0, 0.35, 1);
+
   /* Radius */
   --radius-small: 0.5rem;
   --radius-main: 1rem;
