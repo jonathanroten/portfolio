@@ -87,6 +87,136 @@ const items = (
       watcher.observe(accordion, { ...settings, subtree: true });
     }
   }
+
+  const items = document.querySelectorAll<HTMLDetailsElement>(
+    ".accordion_item.alternate",
+  );
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)");
+  const animated = CSS.supports("selector(::details-content)");
+  const pending = new WeakSet<HTMLDetailsElement>();
+  const root = document.documentElement;
+  let gliding: AbortController | undefined;
+
+  const toMs = (time: string) =>
+    parseFloat(time) * (time.trim().endsWith("ms") ? 1 : 1000) || 0;
+
+  // Scroll to `top` over --scroll-duration with --scroll-ease. An empty
+  // animation supplies the eased progress, so any CSS easing works. Stops if
+  // the user takes over.
+  const glide = (top: number) => {
+    gliding?.abort();
+    const goal = Math.min(Math.max(0, top), root.scrollHeight - innerHeight);
+    const style = getComputedStyle(root);
+    const duration = toMs(style.getPropertyValue("--scroll-duration"));
+
+    if (reduced.matches || !duration) {
+      scrollTo({ top: goal, behavior: "instant" });
+      return;
+    }
+
+    const controller = new AbortController();
+    const { signal } = controller;
+    const start = scrollY;
+    let timing: Animation;
+    try {
+      timing = root.animate([], {
+        duration,
+        easing: style.getPropertyValue("--scroll-ease").trim() || "ease",
+      });
+    } catch {
+      timing = root.animate([], { duration, easing: "ease" });
+    }
+
+    gliding = controller;
+    signal.addEventListener("abort", () => timing.cancel());
+    for (const type of ["wheel", "touchstart", "pointerdown", "keydown"]) {
+      addEventListener(type, () => controller.abort(), {
+        passive: true,
+        signal,
+      });
+    }
+
+    const step = () => {
+      if (signal.aborted) return;
+      const finished = timing.playState === "finished";
+      const progress = finished
+        ? 1
+        : (timing.effect?.getComputedTiming().progress ?? 0);
+      scrollTo({ top: start + (goal - start) * progress, behavior: "instant" });
+      if (finished) controller.abort();
+      else requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  };
+
+  // Center the body below the sticky nav, or pin the toggle under it when
+  // the body is too tall to fit.
+  const refocus = (item: HTMLDetailsElement) => {
+    const toggle = item.querySelector<HTMLElement>(".accordion_toggle");
+    const body = item.querySelector<HTMLElement>(".accordion_body");
+    if (!toggle || !body) return;
+
+    const nav = document.querySelector(".nav_wrap");
+    const offset = Math.max(0, nav?.getBoundingClientRect().bottom ?? 0);
+    const room = innerHeight - offset;
+    const rect = body.getBoundingClientRect();
+    const top =
+      rect.height <= room
+        ? rect.top - offset - (room - rect.height) / 2
+        : toggle.getBoundingClientRect().top - offset;
+
+    glide(scrollY + top);
+  };
+
+  const duration = (item: HTMLDetailsElement) => {
+    if (!animated) return 0;
+    const times = getComputedStyle(item, "::details-content")
+      .transitionDuration.split(",")
+      .map(toMs);
+    return Math.max(0, ...times);
+  };
+
+  // Wait for the open animation, since closing siblings shift the layout.
+  const settle = (item: HTMLDetailsElement) => {
+    const wait = duration(item);
+    if (!wait) {
+      requestAnimationFrame(() => refocus(item));
+      return;
+    }
+
+    const controller = new AbortController();
+    const finish = () => {
+      if (controller.signal.aborted) return;
+      controller.abort();
+      clearTimeout(timer);
+      refocus(item);
+    };
+    const timer = setTimeout(finish, wait + 50);
+
+    item.addEventListener(
+      "transitionend",
+      (event) => {
+        if (
+          event.target === item &&
+          event.pseudoElement === "::details-content" &&
+          event.propertyName === "block-size"
+        ) {
+          finish();
+        }
+      },
+      { signal: controller.signal },
+    );
+  };
+
+  for (const item of items) {
+    item.querySelector(".accordion_toggle")?.addEventListener("click", () => {
+      if (!item.open) pending.add(item);
+    });
+
+    item.addEventListener("toggle", () => {
+      if (item.open && pending.delete(item)) settle(item);
+    });
+  }
 </script>
 
 <style is:global>
