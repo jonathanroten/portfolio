@@ -1,16 +1,26 @@
 // @ts-check
 import { defineConfig, fontProviders } from "astro/config";
 import sitemap from "@astrojs/sitemap";
+import sanity from "@sanity/astro";
 import { SITE_URL } from "./src/consts.ts";
 import { isNoindexRoute } from "./src/utils/seo.ts";
 
 export default defineConfig({
   site: SITE_URL,
   integrations: [
+    sanity({
+      projectId: "fk2vli4s",
+      dataset: "production",
+      useCdn: false, // static build: always fetch fresh content
+    }),
     sitemap({
       filter: (page) => !isNoindexRoute(new URL(page).pathname),
     }),
   ],
+  image: {
+    // Sanity-hosted images (project covers and galleries)
+    domains: ["cdn.sanity.io"],
+  },
   fonts: [
     {
       name: "Apfel Grotezk",

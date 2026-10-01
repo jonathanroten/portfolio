@@ -113,6 +113,13 @@ const hasContent = !!(heading || hasServices || text || column2);
         .grid > .full-width {
           grid-column: 1 / -1;
         }
+        /* Gallery ratios: 8:9 by default, 16:9 when full width */
+        .grid > .image {
+          aspect-ratio: 8 / 9;
+        }
+        .grid > .image.full-width {
+          aspect-ratio: 16 / 9;
+        }
       }
       .project-feature_counter {
         border: var(--border-width-medium) solid var(--text);
