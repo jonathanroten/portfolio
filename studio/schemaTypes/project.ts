@@ -11,24 +11,26 @@ export const project = defineType({
     defineField({
       name: 'title',
       type: 'string',
+      options: {aiAssist: {exclude: true}},
       validation: (rule) => rule.required(),
     }),
     defineField({
       name: 'slug',
       type: 'slug',
-      options: {source: 'title'},
+      options: {source: 'title', aiAssist: {exclude: true}},
       validation: (rule) => rule.required(),
     }),
     defineField({
       name: 'services',
       type: 'array',
       of: [defineArrayMember({type: 'string'})],
-      options: {layout: 'tags'},
+      options: {layout: 'tags', aiAssist: {exclude: true}},
     }),
     defineField({
       name: 'description',
       type: 'text',
       rows: 4,
+      options: {aiAssist: {exclude: true}},
     }),
     defineField({
       name: 'gallery',
