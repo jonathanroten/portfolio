@@ -1,6 +1,6 @@
 # Portfolio
 
-- `web/` — Astro site (Lumos). `cd web && npm install && npm run dev`
-- `studio/` — Sanity Studio (project `fk2vli4s`, dataset `production`). `cd studio && npm install && npm run dev`
+- `web` Astro site with Lumos
+- `studio` Sanity Studio
 
-Each folder manages its own dependencies. The site's GROQ queries live in `web/src/utils/sanity.ts`; update them together with any schema change in `studio/schemaTypes/`.
+Run npm install and npm run dev inside each folder. When you change a field in studio/schemaTypes, update the queries in web/src/utils/sanity.ts to match.
