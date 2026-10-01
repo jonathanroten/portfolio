@@ -14,7 +14,10 @@ import Accordion from "@/components/interactive/Accordion.astro";
 import AccordionItem from "@/components/interactive/AccordionItem.astro";
 import ProjectSlider from "@/components/content/ProjectSlider.astro";
 
+import { escapeHtml, getProjects, imageUrl } from "@/utils/sanity.ts";
+
 const today = new Date();
+const projects = await getProjects();
 ---
 
 <Layout theme="dark">
@@ -59,29 +62,30 @@ const today = new Date();
     style="counter-reset: project;"
   >
     <div role="list">
-      <ProjectFeature
-        heading="Brand identity, reimagined"
-        services={["Branding", "Art Direction", "Web Design", "Motion"]}
-        text="Lorem ipsum dolor sit amet consectetur adipisicing elit. Doloribus amet, culpa autem obcaecati minus, soluta, vero quo fugiat placeat neque laudantium inventore quaerat."
-      >
-        <Img slot="column2" class="full-width" src={placeholderImage} />
-        <Img slot="column2" src={placeholderImage} />
-        <Img slot="column2" src={placeholderImage} />
-        <Img slot="column2" src={placeholderImage} />
-        <Img slot="column2" src={placeholderImage} />
-      </ProjectFeature>
-      <ProjectFeature
-        heading="Systems that scale with the brand"
-        services={["Design Systems", "Front-End Development", "Consulting"]}
-        text="Animi cupiditate quisquam quidem neque, maxime rerum. Doloribus amet, culpa autem obcaecati minus, soluta, vero quo fugiat placeat neque laudantium."
-      >
-        <Img
-          slot="column2"
-          class="full-width"
-          src="src/assets/graphics/lumos-background.svg"
-        />
-        <Img slot="column2" src={placeholderImage} />
-      </ProjectFeature>
+      {
+        projects.map((project) => (
+          <ProjectFeature
+            heading={escapeHtml(project.title)}
+            services={project.services ?? undefined}
+            text={
+              project.description ? escapeHtml(project.description) : undefined
+            }
+          >
+            {project.gallery?.map((image) => (
+              <Img
+                slot="column2"
+                class={image.layout === "fullWidth" ? "full-width" : undefined}
+                src={
+                  image.layout === "fullWidth"
+                    ? imageUrl(image, 1600, 16 / 9)
+                    : imageUrl(image, 960, 8 / 9)
+                }
+                alt={image.alt}
+              />
+            ))}
+          </ProjectFeature>
+        ))
+      }
     </div>
   </Section>
   <Section
