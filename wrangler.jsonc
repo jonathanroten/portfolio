@@ -1,6 +1,6 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "folio",
+  "name": "portfolio",
   "compatibility_date": "2026-08-13",
 
   // The built site. There is no `main`, so this deploys as an assets-only
@@ -11,7 +11,7 @@
   },
 
   // Add a `routes` entry to serve this on your own domain. Until then it is
-  // reachable at https://folio.<your-subdomain>.workers.dev.
+  // reachable at https://portfolio.<your-subdomain>.workers.dev.
 
   "observability": {
     "enabled": true,
