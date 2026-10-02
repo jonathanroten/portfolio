@@ -4,6 +4,7 @@ import {visionTool} from '@sanity/vision'
 import {assist} from '@sanity/assist'
 import {schemaTypes} from './schemaTypes'
 import {structure} from './structure'
+import {useGalleryAltTextActions} from './assist/galleryAltText'
 
 export default defineConfig({
   name: 'default',
@@ -12,7 +13,11 @@ export default defineConfig({
   projectId: 'fk2vli4s',
   dataset: 'production',
 
-  plugins: [structureTool({structure}), visionTool(), assist()],
+  plugins: [
+    structureTool({structure}),
+    visionTool(),
+    assist({fieldActions: {title: 'Gallery', useFieldActions: useGalleryAltTextActions}}),
+  ],
 
   schema: {
     types: schemaTypes,
