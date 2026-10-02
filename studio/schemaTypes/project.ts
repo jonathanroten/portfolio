@@ -21,16 +21,19 @@ export const project = defineType({
       validation: (rule) => rule.required(),
     }),
     defineField({
-      name: 'services',
-      type: 'array',
-      of: [defineArrayMember({type: 'string'})],
-      options: {layout: 'tags', aiAssist: {exclude: true}},
-    }),
-    defineField({
       name: 'description',
       type: 'text',
       rows: 4,
       options: {aiAssist: {exclude: true}},
+    }),
+    defineField({
+      name: 'services',
+      type: 'array',
+      description:
+        'Pick from existing services, or create a new one. Renaming a service updates every project.',
+      of: [defineArrayMember({type: 'reference', to: [{type: 'service'}]})],
+      options: {aiAssist: {exclude: true}},
+      validation: (rule) => rule.unique(),
     }),
     defineField({
       name: 'gallery',

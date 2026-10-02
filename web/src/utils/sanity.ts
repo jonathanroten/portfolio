@@ -21,13 +21,30 @@ const PROJECTS_QUERY =
   _id,
   title,
   "slug": slug.current,
-  services,
+  "services": services[defined(@->title)]->title,
   description,
   gallery[] { alt, asset, layout }
 }`);
 
+const SERVICES_QUERY = defineQuery(
+  `*[_type == "service" && defined(title)] | order(title asc).title`,
+);
+
 export async function getProjects(): Promise<Project[]> {
   return sanityClient.fetch(PROJECTS_QUERY);
+}
+
+let servicesRequest: Promise<string[]> | undefined;
+
+/**
+ * Titles of every service, A-Z. Memoized in builds: the footer calls this on
+ * every page of the static build, so it only hits Sanity once. Not memoized in
+ * dev, where a long-lived server would keep serving stale services.
+ */
+export function getServices(): Promise<string[]> {
+  if (import.meta.env.DEV) return sanityClient.fetch(SERVICES_QUERY);
+  servicesRequest ??= sanityClient.fetch(SERVICES_QUERY);
+  return servicesRequest;
 }
 
 /**

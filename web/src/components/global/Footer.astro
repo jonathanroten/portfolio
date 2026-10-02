@@ -10,8 +10,10 @@ import FooterItem from "@/components/global/FooterItem.astro";
 import webflowCertificate from "@/assets/documents/webflow.pdf";
 import javascriptCertificate from "@/assets/documents/javascript.pdf";
 import { SITE_NAME } from "@/consts.ts";
+import { getServices } from "@/utils/sanity";
 
 const currentYear = new Date().getFullYear();
+const services = await getServices();
 
 interface Props {
   /** Set to `false` to omit the component. */
@@ -58,22 +60,15 @@ const { render = true } = Astro.props;
               { label: "MullenLowe: June 2010 – Aug 2012" },
             ]}
           />
-          <FooterItem
-            heading="Services"
-            variant="list-inline"
-            items={[
-              { label: "Branding" },
-              { label: "Design Systems" },
-              { label: "Editorial and Print Design" },
-              { label: "Front-End Development" },
-              { label: "Identity Design" },
-              { label: "Illustration" },
-              { label: "Interactive Design" },
-              { label: "Lettering" },
-              { label: "Merchandising" },
-              { label: "Webflow" },
-            ]}
-          />
+          {
+            services.length > 0 && (
+              <FooterItem
+                heading="Services"
+                variant="list-inline"
+                items={services.map((label) => ({ label }))}
+              />
+            )
+          }
           <FooterItem
             heading="Education"
             variant="default"
