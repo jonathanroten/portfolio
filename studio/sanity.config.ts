@@ -2,7 +2,7 @@ import {defineConfig} from 'sanity'
 import {structureTool} from 'sanity/structure'
 import {visionTool} from '@sanity/vision'
 import {assist} from '@sanity/assist'
-import {media} from 'sanity-plugin-media'
+import {media, mediaAssetSource} from 'sanity-plugin-media'
 import {schemaTypes} from './schemaTypes'
 import {structure} from './structure'
 import {createBulkAltTextActions} from './assist/bulkAltText'
@@ -29,5 +29,13 @@ export default defineConfig({
 
   schema: {
     types: schemaTypes,
+  },
+
+  // "Select" on image fields opens the Media browser only (folders, tags, search) instead of the
+  // built-in flat list. It opens on the all-assets grid; folders are behind the folder view button.
+  form: {
+    image: {
+      assetSources: (sources) => sources.filter((source) => source === mediaAssetSource),
+    },
   },
 })
