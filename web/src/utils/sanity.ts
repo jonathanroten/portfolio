@@ -7,6 +7,9 @@ const builder = createImageUrlBuilder(sanityClient);
 /** Sanity image source (asset reference) as returned by the queries below. */
 type SanityImage = { alt?: string; asset?: { _ref: string } };
 
+/** Values of the Studio's `projectType` field on a project. */
+export type ProjectType = "brand" | "interactive";
+
 export type Project = {
   _id: string;
   title: string;
@@ -17,7 +20,7 @@ export type Project = {
 };
 
 const PROJECTS_QUERY =
-  defineQuery(`*[_type == "project" && defined(slug.current)] | order(orderRank) {
+  defineQuery(`*[_type == "project" && projectType == $projectType && defined(slug.current)] | order(orderRank) {
   _id,
   title,
   "slug": slug.current,
@@ -30,8 +33,11 @@ const SERVICES_QUERY = defineQuery(
   `*[_type == "service" && defined(title)] | order(title asc).title`,
 );
 
-export async function getProjects(): Promise<Project[]> {
-  return sanityClient.fetch(PROJECTS_QUERY);
+/** Published projects of one type, in the order set in the Studio. */
+export async function getProjects(
+  projectType: ProjectType,
+): Promise<Project[]> {
+  return sanityClient.fetch(PROJECTS_QUERY, { projectType });
 }
 
 let servicesRequest: Promise<string[]> | undefined;
