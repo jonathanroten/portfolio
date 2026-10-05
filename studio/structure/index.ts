@@ -6,17 +6,38 @@ const AI_CONTEXT_TYPE = 'assist.instruction.context'
 // plugin's tags and folders are managed in its Media tool rather than edited as documents
 const HIDDEN_TYPES = ['project', AI_CONTEXT_TYPE, 'media.tag', 'media.folder']
 
-export const structure: StructureResolver = (S, context) =>
-  S.list()
+export const structure: StructureResolver = (S, context) => {
+  // A drag-to-order list of projects narrowed by a GROQ filter. Each list needs its own id
+  const projectList = (id: string, title: string, filter: string, params?: {projectType: string}) =>
+    orderableDocumentListDeskItem({
+      type: 'project',
+      id: `orderable-${id}-projects`,
+      title,
+      filter,
+      params,
+      S,
+      context,
+    })
+
+  return S.list()
     .title('Content')
     .items([
-      orderableDocumentListDeskItem({
-        type: 'project',
-        title: 'Projects',
-        S,
-        context,
-      }),
+      S.listItem()
+        .title('Project')
+        .child(
+          S.list()
+            .title('Project')
+            .items([
+              projectList('brand', 'Brand', 'projectType == $projectType', {
+                projectType: 'brand',
+              }),
+              projectList('interactive', 'Interactive', 'projectType == $projectType', {
+                projectType: 'interactive',
+              }),
+            ]),
+        ),
       ...S.documentTypeListItems().filter((item) => !HIDDEN_TYPES.includes(item.getId() ?? '')),
       S.divider(),
       ...S.documentTypeListItems().filter((item) => item.getId() === AI_CONTEXT_TYPE),
     ])
+}

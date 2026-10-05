@@ -1,4 +1,5 @@
 import {defineField, defineType} from 'sanity'
+import {UlistIcon} from '@sanity/icons/Ulist'
 
 export const service = defineType({
   name: 'service',
@@ -24,4 +25,5 @@ export const service = defineType({
   preview: {
     select: {title: 'title'},
   },
+  icon: UlistIcon,
 })

@@ -17,7 +17,7 @@ import ProjectSlider from "@/components/content/ProjectSlider.astro";
 import { escapeHtml, getProjects, imageUrl } from "@/utils/sanity.ts";
 
 const today = new Date();
-const projects = await getProjects();
+const brandProjects = await getProjects("brand");
 ---
 
 <Layout theme="dark">
@@ -63,7 +63,7 @@ const projects = await getProjects();
   >
     <div role="list">
       {
-        projects.map((project) => (
+        brandProjects.map((project) => (
           <ProjectFeature
             heading={escapeHtml(project.title)}
             services={project.services ?? undefined}
