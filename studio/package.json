@@ -9,6 +9,7 @@
     "deploy": "sanity deploy",
     "deploy-graphql": "sanity graphql deploy",
     "dev": "sanity dev",
+    "organize-media": "sanity exec scripts/organize-media.ts --with-user-token --",
     "start": "sanity start"
   },
   "keywords": [
@@ -23,6 +24,7 @@
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "sanity": "^6.17.0",
+    "sanity-plugin-media": "^6.3.2",
     "styled-components": "^6.1.18"
   },
   "devDependencies": {
