@@ -1,5 +1,5 @@
 import {defineField, defineType} from 'sanity'
-import {TagsIcon} from '@sanity/icons/Tags'
+import {OkHandIcon} from '@sanity/icons/OkHand'
 
 export const service = defineType({
   name: 'service',
@@ -25,5 +25,5 @@ export const service = defineType({
   preview: {
     select: {title: 'title'},
   },
-  icon: TagsIcon,
+  icon: OkHandIcon,
 })

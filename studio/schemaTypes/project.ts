@@ -1,6 +1,6 @@
 import {defineArrayMember, defineField, defineType} from 'sanity'
 import {orderRankField} from '@sanity/orderable-document-list'
-import {ProjectsIcon} from '@sanity/icons/Projects'
+import {PresentationIcon} from '@sanity/icons/Presentation'
 
 export const project = defineType({
   name: 'project',
@@ -47,5 +47,5 @@ export const project = defineType({
   preview: {
     select: {title: 'title', media: 'gallery.0'},
   },
-  icon: ProjectsIcon,
+  icon: PresentationIcon,
 })
