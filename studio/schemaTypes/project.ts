@@ -21,6 +21,18 @@ export const project = defineType({
       validation: (rule) => rule.required(),
     }),
     defineField({
+      name: 'projectType',
+      type: 'string',
+      options: {
+        list: [
+          {title: 'Brand', value: 'brand'},
+          {title: 'Interactive', value: 'interactive'},
+        ],
+        aiAssist: {exclude: true},
+      },
+      validation: (rule) => rule.required(),
+    }),
+    defineField({
       name: 'description',
       type: 'text',
       rows: 4,
