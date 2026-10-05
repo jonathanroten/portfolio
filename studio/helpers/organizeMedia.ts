@@ -10,11 +10,11 @@
  * when the folder is first created; after that the name is yours to change in the Media tool.
  * Images already in a folder are never moved, so moves made by hand in the Media tool stick.
  * Every gallery image gets the "Project" tag, which makes its Alt Text read-only in the Media tool
- * (see media/AssetDetails.tsx). Images no project uses stay unfiled and untagged, and folders and
+ * (see assetDetails.tsx). Images no project uses stay unfiled and untagged, and folders and
  * tags are never deleted.
  */
 import {getCliClient} from 'sanity/cli'
-import {PROJECT_TAG_NAME} from '../media/projectTag'
+import {PROJECT_TAG_NAME} from './projectTag'
 
 // The Studio doesn't ship @types/node; this script only needs these members
 declare const process: {argv: string[]; exitCode?: number}

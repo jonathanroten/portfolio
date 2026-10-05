@@ -5,8 +5,8 @@ import {assist} from '@sanity/assist'
 import {media, mediaAssetSource} from 'sanity-plugin-media'
 import {schemaTypes} from './schemaTypes'
 import {structure} from './structure'
-import {createBulkAltTextActions} from './assist/bulkAltText'
-import {AssetDetails} from './media/AssetDetails'
+import {createBulkAltTextActions} from './helpers/bulkAltText'
+import {AssetDetails} from './helpers/assetDetails'
 
 export default defineConfig({
   name: 'default',
