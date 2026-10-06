@@ -9,7 +9,6 @@ import LiveClock from "@/components/utility/LiveClock.astro";
 import ImageTrail from "@/components/content/ImageTrail.astro";
 import ProjectFeature from "@/components/content/ProjectFeature.astro";
 import Img from "@/components/media/Img.astro";
-import placeholderImage from "@/assets/graphics/placeholder.svg";
 import Accordion from "@/components/interactive/Accordion.astro";
 import AccordionItem from "@/components/interactive/AccordionItem.astro";
 import ProjectSlider from "@/components/content/ProjectSlider.astro";
@@ -23,6 +22,7 @@ import {
 
 const today = new Date();
 const brandProjects = await getProjects("brand");
+const interactiveProjects = await getProjects("interactive");
 const heroImages = await getHeroImages();
 ---
 
@@ -105,50 +105,24 @@ const heroImages = await getHeroImages();
     class="flex-grow"
   >
     <Accordion single openFirst>
-      <AccordionItem variant="alternate" heading="Placeholder One">
-        <ProjectSlider
-          images={[
-            { src: placeholderImage },
-            { src: placeholderImage },
-            { src: placeholderImage },
-          ]}
-          heading="Project details"
-          text="Lorem ipsum dolor sit amet consectetur."
-        />
-      </AccordionItem>
-      <AccordionItem variant="alternate" heading="Placeholder Two">
-        <ProjectSlider
-          images={[
-            { src: placeholderImage },
-            { src: placeholderImage },
-            { src: placeholderImage },
-          ]}
-          heading="Project details"
-          text="Lorem ipsum dolor sit amet consectetur."
-        />
-      </AccordionItem>
-      <AccordionItem variant="alternate" heading="Placeholder Three">
-        <ProjectSlider
-          images={[
-            { src: placeholderImage },
-            { src: placeholderImage },
-            { src: placeholderImage },
-          ]}
-          heading="Project details"
-          text="Lorem ipsum dolor sit amet consectetur."
-        />
-      </AccordionItem>
-      <AccordionItem variant="alternate" heading="Placeholder Four">
-        <ProjectSlider
-          images={[
-            { src: placeholderImage },
-            { src: placeholderImage },
-            { src: placeholderImage },
-          ]}
-          heading="Project details"
-          text="Lorem ipsum dolor sit amet consectetur."
-        />
-      </AccordionItem>
+      {
+        interactiveProjects.map((project) => (
+          <AccordionItem variant="alternate" heading={project.title}>
+            <ProjectSlider
+              images={project.gallery?.map((image) => ({
+                src: imageUrl(image, 1920, 16 / 9),
+                alt: image.alt,
+              }))}
+              heading="Services Provided"
+              text={
+                project.services?.length
+                  ? escapeHtml(project.services.join(", "))
+                  : undefined
+              }
+            />
+          </AccordionItem>
+        ))
+      }
     </Accordion>
   </Section>
 </Layout>
