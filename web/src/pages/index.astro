@@ -109,6 +109,7 @@ const heroImages = await getHeroImages();
         interactiveProjects.map((project) => (
           <AccordionItem variant="alternate" heading={project.title}>
             <ProjectSlider
+              label={`${project.title} project images`}
               images={project.gallery?.map((image) => ({
                 src: imageUrl(image, 1920, 16 / 9),
                 alt: image.alt,

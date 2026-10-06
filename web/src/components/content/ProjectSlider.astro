@@ -10,6 +10,8 @@ type ImageSource = ImageMetadata | string;
 type Props = HTMLAttributes<"div"> & {
   /** Set to `false` to omit the component. */
   render?: boolean;
+  /** Accessible label. Defaults to the heading, or `Project images`. */
+  label?: string;
   /** Slide images, cropped to 16:9. Omit `alt` for decorative images. */
   images?: { src: ImageSource; alt?: string }[];
   /** Project title. Supports inline markup. */
@@ -22,6 +24,7 @@ type Props = HTMLAttributes<"div"> & {
 
 const {
   render = true,
+  label: labelProp,
   images,
   heading,
   text,
@@ -30,7 +33,7 @@ const {
   ...rest
 } = Astro.props;
 
-const label = heading?.replace(/<[^>]*>/g, "") || "Project images";
+const label = labelProp || heading?.replace(/<[^>]*>/g, "") || "Project images";
 ---
 
 {
