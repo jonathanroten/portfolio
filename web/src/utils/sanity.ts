@@ -5,7 +5,12 @@ import { defineQuery } from "groq";
 const builder = createImageUrlBuilder(sanityClient);
 
 /** Sanity image source (asset reference) as returned by the queries below. */
-type SanityImage = { alt?: string; asset?: { _ref: string } };
+type SanityImage = {
+  alt?: string;
+  asset?: { _ref: string };
+  hotspot?: { x: number; y: number; width: number; height: number } | null;
+  crop?: { top: number; bottom: number; left: number; right: number } | null;
+};
 
 /** Values of the Studio's `projectType` field on a project. */
 export type ProjectType = "brand" | "interactive";
@@ -26,8 +31,17 @@ const PROJECTS_QUERY =
   "slug": slug.current,
   "services": services[defined(@->title)]->title,
   description,
-  gallery[] { alt, asset, layout }
+  gallery[defined(asset)] { alt, asset, hotspot, crop, layout }
 }`);
+
+const HERO_IMAGES_QUERY = defineQuery(
+  `*[_id == "homePage"][0].heroImages[defined(asset)] { asset, hotspot, crop }`,
+);
+
+/** Hero trail images, in the order set in the Studio. */
+export async function getHeroImages(): Promise<SanityImage[]> {
+  return (await sanityClient.fetch(HERO_IMAGES_QUERY)) ?? [];
+}
 
 const SERVICES_QUERY = defineQuery(
   `*[_type == "service" && defined(title)] | order(title asc).title`,

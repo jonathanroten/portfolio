@@ -1,10 +1,11 @@
+import {HomeIcon} from '@sanity/icons/Home'
 import {orderableDocumentListDeskItem} from '@sanity/orderable-document-list'
 import type {StructureResolver} from 'sanity/structure'
 
 const AI_CONTEXT_TYPE = 'assist.instruction.context'
-// Left out of the generated list: projects and AI context are placed by hand, and the Media
+// Left out of the generated list: projects, home, and AI context are placed by hand, and the Media
 // plugin's tags and folders are managed in its Media tool rather than edited as documents
-const HIDDEN_TYPES = ['project', AI_CONTEXT_TYPE, 'media.tag', 'media.folder']
+const HIDDEN_TYPES = ['project', 'homePage', AI_CONTEXT_TYPE, 'media.tag', 'media.folder']
 
 export const structure: StructureResolver = (S, context) => {
   // A drag-to-order list of projects narrowed by a GROQ filter. Each list needs its own id
@@ -22,6 +23,11 @@ export const structure: StructureResolver = (S, context) => {
   return S.list()
     .title('Content')
     .items([
+      S.listItem()
+        .title('Home')
+        .icon(HomeIcon)
+        .child(S.document().title('Home').schemaType('homePage').documentId('homePage')),
+      S.divider(),
       S.listItem()
         .title('Project')
         .child(
