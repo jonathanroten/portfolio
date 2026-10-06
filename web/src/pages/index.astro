@@ -14,10 +14,16 @@ import Accordion from "@/components/interactive/Accordion.astro";
 import AccordionItem from "@/components/interactive/AccordionItem.astro";
 import ProjectSlider from "@/components/content/ProjectSlider.astro";
 
-import { escapeHtml, getProjects, imageUrl } from "@/utils/sanity.ts";
+import {
+  escapeHtml,
+  getHeroImages,
+  getProjects,
+  imageUrl,
+} from "@/utils/sanity.ts";
 
 const today = new Date();
 const brandProjects = await getProjects("brand");
+const heroImages = await getHeroImages();
 ---
 
 <Layout theme="dark">
@@ -48,11 +54,15 @@ const brandProjects = await getProjects("brand");
       </div>
     </ContentWrapper>
     <ImageTrail>
-      <Img src={placeholderImage} loading="eager" fetchPriority="high" />
-      <Img src={placeholderImage} loading="eager" />
-      <Img src={placeholderImage} loading="eager" />
-      <Img src={placeholderImage} loading="eager" />
-      <Img src={placeholderImage} loading="eager" />
+      {
+        heroImages.map((image, i) => (
+          <Img
+            src={imageUrl(image, 800, 4 / 5)}
+            loading="eager"
+            fetchPriority={i === 0 ? "high" : undefined}
+          />
+        ))
+      }
     </ImageTrail>
   </Section>
   <Section
