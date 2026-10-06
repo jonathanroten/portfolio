@@ -108,6 +108,9 @@ const { render = true, overlap = false } = Astro.props;
       background-color: transparent;
       color: var(--text);
       padding-block: var(--nav-padding);
+      /* The bar is transparent and sticks over the page, so its empty space
+         lets clicks through to the content beneath; only its controls catch them. */
+      pointer-events: none;
 
       &.overlap {
         position: fixed;
@@ -123,6 +126,12 @@ const { render = true, overlap = false } = Astro.props;
       justify-content: space-between;
       gap: 0 var(--space-6);
       height: var(--nav-height);
+    }
+
+    .nav_logo,
+    .nav_toggle,
+    .nav_menu {
+      pointer-events: auto;
     }
 
     .nav_logo {
@@ -283,7 +292,6 @@ const { render = true, overlap = false } = Astro.props;
         align-items: center;
         padding: 0;
         gap: var(--space-4);
-        font-size: var(--text-small);
         & > li + li {
           border-top: 0;
         }

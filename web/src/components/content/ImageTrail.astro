@@ -37,6 +37,11 @@ const items = await slotContent(Astro.slots);
     // effect only runs while the cursor is over that section (and never
     // while it's scrolled out of view).
     const scope = trail.closest<HTMLElement>(".section") ?? trail;
+    // When the section opens the page right below an in-flow nav, the image
+    // bounds extend up over the nav so the trail can reach the logo's line.
+    const nav = scope.matches("main > :first-child")
+      ? document.querySelector<HTMLElement>(".nav_wrap:not(.overlap)")
+      : null;
 
     const config = { threshold: 32, life: 750, flipMs: 1500 };
     const total = images.length;
@@ -68,11 +73,36 @@ const items = await slotContent(Astro.slots);
     // ---- Trail mode (wide): hard-cut image at the cursor ----
     const showImage = () => {
       const img = images[index];
+      // Keep the whole image inside the section (plus the nav above it, when
+      // there is one), inset on every side, so it never covers the section
+      // below. The registered property resolves the fluid inset to pixels.
+      const inset =
+        parseFloat(
+          getComputedStyle(trail).getPropertyValue("--_bounds-inset"),
+        ) || 0;
+      const bounds = scope.getBoundingClientRect();
+      // Measured from the section rather than the sticky nav itself, so the
+      // bounds scroll with the section.
+      const top = bounds.top - (nav?.offsetHeight ?? 0);
+      const halfW = img.offsetWidth / 2;
+      const halfH = img.offsetHeight / 2;
+      const clamp = (value: number, min: number, max: number) =>
+        Math.max(min, Math.min(value, max));
+      const x = clamp(
+        pointer.x,
+        bounds.left + inset + halfW,
+        bounds.right - inset - halfW,
+      );
+      const y = clamp(
+        pointer.y,
+        top + inset + halfH,
+        bounds.bottom - inset - halfH,
+      );
       // Offsets are measured from the trail's own center, not the viewport's,
       // so the effect stays correct however the trail is laid out on the page.
       const rect = trail.getBoundingClientRect();
-      const offsetX = pointer.x - (rect.left + rect.width / 2);
-      const offsetY = pointer.y - (rect.top + rect.height / 2);
+      const offsetX = x - (rect.left + rect.width / 2);
+      const offsetY = y - (rect.top + rect.height / 2);
       img.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
       img.style.zIndex = String(stackTop);
       stackTop += 1;
@@ -184,11 +214,20 @@ const items = await slotContent(Astro.slots);
 </script>
 
 <style is:global>
+  /* Registered so the inset computes to px, which the script reads. */
+  @property --_bounds-inset {
+    syntax: "<length>";
+    inherits: false;
+    initial-value: 0px;
+  }
+
   @layer components {
     .image-trail_wrap {
       /* Display size of each image. Override from outside for a different fit. */
       --_img-width: 18.75rem;
       --_img-ratio: 4/5;
+      /* Gap kept between trail images and the edges of their bounds (section, plus nav). */
+      --_bounds-inset: var(--site-margin);
       display: flex;
       align-items: center;
       justify-content: center;
