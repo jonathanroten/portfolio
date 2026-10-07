@@ -1,28 +1,31 @@
 import { sanityClient } from "sanity:client";
 import { createImageUrlBuilder } from "@sanity/image-url";
 import { defineQuery } from "groq";
+import type {
+  DESCRIPTION_QUERY_RESULT,
+  HERO_IMAGES_QUERY_RESULT,
+  PROJECTS_QUERY_RESULT,
+  Project,
+  SanityImageAssetReference,
+  SanityImageCrop,
+  SanityImageHotspot,
+  SITE_SETTINGS_QUERY_RESULT,
+} from "@/sanity.types.ts";
 
 const builder = createImageUrlBuilder(sanityClient);
 
-/** Sanity image source (asset reference) as returned by the queries below. */
+/**
+ * An image as the queries below return it. Their `defined(asset)` filters drop
+ * images without an asset, but TypeGen can't narrow a named image type.
+ */
 type SanityImage = {
-  alt?: string;
-  asset?: { _ref: string };
-  hotspot?: { x: number; y: number; width: number; height: number } | null;
-  crop?: { top: number; bottom: number; left: number; right: number } | null;
+  asset: SanityImageAssetReference | null;
+  hotspot: SanityImageHotspot | null;
+  crop: SanityImageCrop | null;
 };
 
 /** Values of the Studio's `projectType` field on a project. */
-export type ProjectType = "brand" | "interactive";
-
-export type Project = {
-  _id: string;
-  title: string;
-  slug: string;
-  services: string[] | null;
-  description: string | null;
-  gallery: (SanityImage & { layout?: "default" | "fullWidth" })[] | null;
-};
+export type ProjectType = Project["projectType"];
 
 const PROJECTS_QUERY =
   defineQuery(`*[_type == "project" && projectType == $projectType && defined(slug.current)] | order(orderRank) {
@@ -39,7 +42,9 @@ const HERO_IMAGES_QUERY = defineQuery(
 );
 
 /** Hero trail images, in the order set in the Studio. */
-export async function getHeroImages(): Promise<SanityImage[]> {
+export async function getHeroImages(): Promise<
+  NonNullable<HERO_IMAGES_QUERY_RESULT>
+> {
   return (await sanityClient.fetch(HERO_IMAGES_QUERY)) ?? [];
 }
 
@@ -50,7 +55,7 @@ const SERVICES_QUERY = defineQuery(
 /** Published projects of one type, in the order set in the Studio. */
 export async function getProjects(
   projectType: ProjectType,
-): Promise<Project[]> {
+): Promise<PROJECTS_QUERY_RESULT> {
   return sanityClient.fetch(PROJECTS_QUERY, { projectType });
 }
 
@@ -67,10 +72,12 @@ export function getServices(): Promise<string[]> {
   return servicesRequest;
 }
 
+type SiteSettingsResult = NonNullable<SITE_SETTINGS_QUERY_RESULT>;
+
 /** Content shown on every page, from the Site Settings document in the Studio. */
 export type SiteSettings = {
-  navigation: { _key: string; label: string; href: string }[];
-  socialLinks: { _key: string; label: string; url: string }[];
+  navigation: NonNullable<SiteSettingsResult["navigation"]>;
+  socialLinks: NonNullable<SiteSettingsResult["socialLinks"]>;
   /** Default meta description for pages that don't set their own. Empty when unset. */
   seoDescription: string;
 };
@@ -106,7 +113,7 @@ export function getSiteSettings(): Promise<SiteSettings> {
 /** The Home description, for the hero and the mobile menu. */
 export type Description = {
   /** Runs of text, flagged where the Studio's Highlight mark is applied. */
-  runs: { text: string; highlight: boolean }[];
+  runs: NonNullable<DESCRIPTION_QUERY_RESULT>;
   /** Plain text. Empty when unset. */
   text: string;
 };
