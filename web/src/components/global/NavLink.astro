@@ -29,7 +29,9 @@ const content = await slotContent(Astro.slots);
         aria-current={current}
         {...rest}
       >
-        <Fragment set:html={content} />
+        <span class="nav_link_text text-style-h3">
+          <Fragment set:html={content} />
+        </span>
       </a>
     </li>
   )
