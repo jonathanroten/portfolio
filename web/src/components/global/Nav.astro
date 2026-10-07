@@ -6,11 +6,10 @@ import LiveClock from "@/components/utility/LiveClock.astro";
 import logo from "@/assets/logo/logomark-stroke.svg";
 import arrow from "@/assets/icons/arrow-full.svg";
 import { SITE_NAME } from "@/consts.ts";
+import { getDescription, getSiteSettings } from "@/utils/sanity.ts";
 
-const socials = [
-  { label: "Instagram", href: "https://www.instagram.com/jonathan.roten" },
-  { label: "GitHub", href: "https://github.com/jonathanroten" },
-];
+const { navigation, socialLinks } = await getSiteSettings();
+const description = await getDescription();
 
 interface Props {
   /** Set to `false` to omit the component. */
@@ -41,36 +40,39 @@ const { render = true, overlap = false } = Astro.props;
         <nav class="nav_menu" id="nav-menu" aria-label="Main">
           <div class="nav_menu_inner">
             <div class="nav_menu_content">
-              <ul class="nav_links">
-                <NavLink href="#">Projects</NavLink>
-                <NavLink href="#">Gallery</NavLink>
-                <NavLink href="#">Collaborate</NavLink>
-              </ul>
-              <ul class="nav_socials">
-                {socials.map((social) => (
-                  <li>
-                    <a
-                      class="nav_social"
-                      href={social.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <Icon
-                        src={arrow}
-                        variant="small"
-                        class="nav_social_icon"
-                      />
-                      <span class="text-style-h6">{social.label}</span>
-                      <span class="sr-only">{" (opens in new tab)"}</span>
-                    </a>
-                  </li>
-                ))}
-              </ul>
+              {navigation.length > 0 && (
+                <ul class="nav_links">
+                  {navigation.map((link) => (
+                    <NavLink href={link.href}>{link.label}</NavLink>
+                  ))}
+                </ul>
+              )}
+              {socialLinks.length > 0 && (
+                <ul class="nav_socials">
+                  {socialLinks.map((social) => (
+                    <li>
+                      <a
+                        class="nav_social"
+                        href={social.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <Icon
+                          src={arrow}
+                          variant="small"
+                          class="nav_social_icon"
+                        />
+                        <span class="text-style-h6">{social.label}</span>
+                        <span class="sr-only">{" (opens in new tab)"}</span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              )}
               <div class="nav_details margin-trim">
                 <Paragraph variant="h6">Hi, I&apos;m Jonathan.</Paragraph>
                 <Paragraph variant="h6" maxWidth={60} class="text-wrap-pretty">
-                  Multidisciplinary creative designing brand experiences in
-                  digital and physical spaces.
+                  {description.text}
                 </Paragraph>
                 <div class="nav_meta">
                   <span class="text-style-h6">

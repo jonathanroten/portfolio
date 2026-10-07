@@ -2,7 +2,7 @@
 export interface SeoProps {
   /** Page title. The site name is appended. */
   title?: string;
-  /** Page and social description. Defaults to `SITE_DESCRIPTION`. */
+  /** Page and social description. Defaults to the Site Settings SEO description. */
   description?: string;
   /** Social image. Defaults to `/og-image.jpg`. */
   image?: string;

@@ -1,8 +1,5 @@
 /** Site name. Appended to every page title and used as `og:site_name`. */
 export const SITE_NAME = "Jonathan Roten";
-/** Fallback meta description for pages that don't set their own. */
-export const SITE_DESCRIPTION =
-  "Jonathan is a multidisciplinary creative designing brand experiences in digital and physical spaces.";
 /** Canonical origin. Resolves canonical URLs, social images, and the sitemap. */
 export const SITE_URL = "https://jonathanroten.com";
 /** BCP 47 locale tag used to format dates and numbers. */
