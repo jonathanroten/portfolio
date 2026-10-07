@@ -31,6 +31,7 @@
 
   /* Letter spacing */
   --letter-spacing-tight: -0.04em;
+  --letter-spacing-normal: 0em;
   --letter-spacing-small: 0.02em;
   --letter-spacing-medium: 0.04em;
   --letter-spacing-large: 0.06em;
@@ -78,7 +79,7 @@
 
   /* Max width */
   --max-width-small: 70rem;
-  --max-width-main: calc(var(--viewport-max) / 16 * 1rem);
+  --max-width-main: 100vw;
   --max-width-full: 100%;
 
   /* Nav */
@@ -152,7 +153,7 @@
   --h4-margin-top: var(--space-6);
   --h4-margin-bottom: var(--space-4);
   --h4-font-family: var(--serif-family);
-  --h4-font-weight: var(--serif-family);
+  --h4-font-weight: var(--serif-regular);
   --h4-trim-top: var(--serif-trim-top);
   --h4-trim-bottom: var(--serif-trim-bottom);
   --h4-text-wrap: balance;

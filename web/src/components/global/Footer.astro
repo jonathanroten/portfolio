@@ -10,7 +10,7 @@ import FooterItem from "@/components/global/FooterItem.astro";
 import webflowCertificate from "@/assets/documents/webflow.pdf";
 import javascriptCertificate from "@/assets/documents/javascript.pdf";
 import { SITE_NAME } from "@/consts.ts";
-import { getServices } from "@/utils/sanity";
+import { getServices } from "@/utils/sanity.ts";
 
 const currentYear = new Date().getFullYear();
 const services = await getServices();
@@ -29,12 +29,12 @@ const { render = true } = Astro.props;
       <div class="footer_inner">
         <Grid xsmall={1} medium={3} class="gap-row-8">
           <div>
-            <Heading tag="h2" class="text-style-h5">
+            <Heading tag="h2" variant="h5">
               My Approach
             </Heading>
           </div>
           <div class="footer_intro">
-            <Paragraph class="text-style-h4">
+            <Paragraph variant="h4">
               I’m motivated by a genuine love of learning and artistic
               expression. I hope to make a positive impact on the world around
               me, and I work toward that through design. I believe creativity is
@@ -42,7 +42,7 @@ const { render = true } = Astro.props;
               shared experience.
             </Paragraph>
             <ButtonWrapper>
-              <Button variant="link" element="link" href="/docs">
+              <Button variant="link" element="link" href="/">
                 Say Hello
               </Button>
             </ButtonWrapper>
@@ -60,15 +60,13 @@ const { render = true } = Astro.props;
               { label: "MullenLowe: June 2010 – Aug 2012" },
             ]}
           />
-          {
-            services.length > 0 && (
-              <FooterItem
-                heading="Services"
-                variant="list-inline"
-                items={services.map((label) => ({ label }))}
-              />
-            )
-          }
+          {services.length > 0 && (
+            <FooterItem
+              heading="Services"
+              variant="list-inline"
+              items={services.map((label) => ({ label }))}
+            />
+          )}
           <FooterItem
             heading="Education"
             variant="default"
@@ -110,7 +108,7 @@ const { render = true } = Astro.props;
         </Grid>
 
         <div class="footer_bottom">
-          <div class="footer_logo" aria-label={SITE_NAME}>
+          <div class="footer_logo" role="img" aria-label={SITE_NAME}>
             <Icon src={logo} variant="full-width" />
           </div>
         </div>

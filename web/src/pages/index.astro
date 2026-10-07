@@ -31,7 +31,7 @@ const description = await getDescription();
 <Layout theme="dark">
   <Section
     paddingBottom="even"
-    containerClass="flex-grow max-width-full"
+    containerClass="flex-grow"
     paddingTop="large"
     class="flex-grow"
     style="min-height: calc(100dvh - var(--nav-total-height));"
@@ -49,12 +49,12 @@ const description = await getDescription();
         }
       </Paragraph>
       <div class="width-full display-inline-flex justify-content-between">
-        <span id="date" class="text-style-h6"
+        <span class="text-style-h6"
           ><FormattedDate
             date={today}
             format={{ month: "long", day: "2-digit", year: "numeric" }}
           /></span
-        ><span id="time" class="text-style-h6"><LiveClock /></span>
+        ><span class="text-style-h6"><LiveClock /></span>
       </div>
     </ContentWrapper>
     <ImageTrail>
@@ -72,7 +72,7 @@ const description = await getDescription();
   <Section
     paddingTop="none"
     paddingBottom="none"
-    containerClass="flex-grow max-width-full align-items-stretch"
+    containerClass="flex-grow align-items-stretch"
     style="counter-reset: project;"
   >
     <div role="list">
@@ -105,13 +105,17 @@ const description = await getDescription();
   <Section
     paddingTop="large"
     paddingBottom="medium"
-    containerClass="flex-grow max-width-full"
+    containerClass="flex-grow"
     class="flex-grow"
   >
     <Accordion single openFirst>
       {
         interactiveProjects.map((project) => (
-          <AccordionItem variant="alternate" heading={project.title}>
+          <AccordionItem
+            variant="alternate"
+            heading={project.title}
+            headingTag="h2"
+          >
             <ProjectSlider
               label={`${project.title} project images`}
               images={project.gallery?.map((image) => ({
@@ -124,6 +128,7 @@ const description = await getDescription();
                   ? escapeHtml(project.services.join(", "))
                   : undefined
               }
+              headingTag="h3"
             />
           </AccordionItem>
         ))
