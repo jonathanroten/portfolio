@@ -67,6 +67,80 @@ export function getServices(): Promise<string[]> {
   return servicesRequest;
 }
 
+/** Content shown on every page, from the Site Settings document in the Studio. */
+export type SiteSettings = {
+  navigation: { _key: string; label: string; href: string }[];
+  socialLinks: { _key: string; label: string; url: string }[];
+  /** Default meta description for pages that don't set their own. Empty when unset. */
+  seoDescription: string;
+};
+
+const SITE_SETTINGS_QUERY = defineQuery(`*[_id == "siteSettings"][0] {
+  "navigation": navigation[defined(label) && defined(href)] { _key, label, href },
+  "socialLinks": socialLinks[defined(label) && defined(url)] { _key, label, url },
+  seoDescription
+}`);
+
+const fetchSiteSettings = async (): Promise<SiteSettings> => {
+  const settings = await sanityClient.fetch(SITE_SETTINGS_QUERY);
+  return {
+    navigation: settings?.navigation ?? [],
+    socialLinks: settings?.socialLinks ?? [],
+    seoDescription: settings?.seoDescription?.trim() ?? "",
+  };
+};
+
+let siteSettingsRequest: Promise<SiteSettings> | undefined;
+
+/**
+ * Site Settings, with empty lists when the document or a field is missing.
+ * Memoized in builds like `getServices`, since the nav and page head call it on
+ * every page.
+ */
+export function getSiteSettings(): Promise<SiteSettings> {
+  if (import.meta.env.DEV) return fetchSiteSettings();
+  siteSettingsRequest ??= fetchSiteSettings();
+  return siteSettingsRequest;
+}
+
+/** The Home description, for the hero and the mobile menu. */
+export type Description = {
+  /** Runs of text, flagged where the Studio's Highlight mark is applied. */
+  runs: { text: string; highlight: boolean }[];
+  /** Plain text. Empty when unset. */
+  text: string;
+};
+
+const DESCRIPTION_QUERY =
+  defineQuery(`*[_id == "homePage"][0].description[0].children[defined(text)] {
+  text,
+  "highlight": "highlight" in coalesce(marks, [])
+}`);
+
+const fetchDescription = async (): Promise<Description> => {
+  const runs: Description["runs"] =
+    (await sanityClient.fetch(DESCRIPTION_QUERY)) ?? [];
+  return {
+    runs,
+    text: runs
+      .map((run) => run.text)
+      .join("")
+      .trim(),
+  };
+};
+
+let descriptionRequest: Promise<Description> | undefined;
+
+/**
+ * The Home description. Memoized in builds like `getServices`, since the nav
+ * calls it on every page.
+ */
+export function getDescription(): Promise<Description> {
+  if (import.meta.env.DEV) return fetchDescription();
+  descriptionRequest ??= fetchDescription();
+  return descriptionRequest;
+}
+
 /**
  * Optimized CDN URL for a Sanity image, cropped to `ratio` (width / height)
  * around its hotspot and resized to `width`.

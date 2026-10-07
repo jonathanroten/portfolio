@@ -8,7 +8,7 @@ import {structure} from './structure'
 import {createBulkAltTextActions} from './helpers/bulkAltText'
 import {AssetDetails} from './helpers/assetDetails'
 
-const SINGLETON_TYPES = ['homePage']
+const SINGLETON_TYPES = ['homePage', 'siteSettings']
 
 export default defineConfig({
   name: 'default',

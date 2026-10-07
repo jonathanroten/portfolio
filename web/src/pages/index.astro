@@ -15,6 +15,7 @@ import ProjectSlider from "@/components/content/ProjectSlider.astro";
 
 import {
   escapeHtml,
+  getDescription,
   getHeroImages,
   getProjects,
   imageUrl,
@@ -24,6 +25,7 @@ const today = new Date();
 const brandProjects = await getProjects("brand");
 const interactiveProjects = await getProjects("interactive");
 const heroImages = await getHeroImages();
+const description = await getDescription();
 ---
 
 <Layout theme="dark">
@@ -39,11 +41,13 @@ const heroImages = await getHeroImages();
       <Paragraph variant="h2" class="text-accent"
         >Hi, I&apos;m <span>Jonathan</span>.</Paragraph
       >
-      <Paragraph variant="h2" maxWidth={30} class="text-accent margin-block-8"
-        >A <span>multidisciplinary</span> creative designing <span
-          >brand experiences</span
-        > in digital and physical spaces.</Paragraph
-      >
+      <Paragraph variant="h2" maxWidth={30} class="text-accent margin-block-8">
+        {
+          description.runs.map((run) =>
+            run.highlight ? <span>{run.text}</span> : run.text,
+          )
+        }
+      </Paragraph>
       <div class="width-full display-inline-flex justify-content-between">
         <span id="date" class="text-style-h6"
           ><FormattedDate
