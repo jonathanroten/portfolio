@@ -169,7 +169,7 @@
 .text-accent span {
   font-family: var(--sans-family);
   font-weight: var(--sans-medium);
-  letter-spacing: var(--letter-spacing-loose);
+  letter-spacing: var(--letter-spacing-medium);
   font-size: 1.077em; /* Apfel Grotezk cap-height (0.65) scaled to match Hedvig Letters Serif (0.70) */
   line-height: 0;
   text-transform: uppercase;

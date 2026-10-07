@@ -74,7 +74,7 @@ const hasContent = !!(heading || hasServices || text || column2);
           </ContentWrapper>
         </div>
         {column2 && (
-          <div class="project-feature_column" slot="column2">
+          <div class="project-feature_column">
             <Grid xsmall={1} medium={2} class="gap-1">
               <Fragment set:html={column2} />
             </Grid>
@@ -137,14 +137,12 @@ const hasContent = !!(heading || hasServices || text || column2);
         }
       }
       @media (width >= 64rem) {
-        min-height: calc(
-          100svh - (var(--nav-height) + (var(--nav-padding) * 2))
-        );
+        min-height: calc(100svh - var(--nav-total-height));
         &:has(.project-feature_content) {
           justify-content: end;
           align-self: start;
           position: sticky;
-          top: calc(var(--nav-height) + (var(--nav-padding) * 2));
+          top: var(--nav-total-height);
         }
         &:not(:has(.project-feature_content)) {
           padding-bottom: var(--space-1);
