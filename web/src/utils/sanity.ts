@@ -10,7 +10,7 @@ import type {
   SanityImageCrop,
   SanityImageHotspot,
   SITE_SETTINGS_QUERY_RESULT,
-} from "@/sanity.types.ts";
+} from "../../sanity.types.ts";
 
 const builder = createImageUrlBuilder(sanityClient);
 
