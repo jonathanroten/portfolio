@@ -1,4 +1,4 @@
 dist
 .astro
 node_modules
-src/sanity.types.ts
+sanity.types.ts
