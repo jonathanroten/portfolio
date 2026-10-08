@@ -354,11 +354,10 @@ const { render = true, overlap = false } = Astro.props;
         }
       }
       @media (width >= 48rem) {
-        padding-block: 0;
-        text-underline-offset: 0.4em;
-        text-decoration-thickness: var(--border-width);
+        padding-block: 0 0.4em;
+        border-bottom: var(--border-width) solid transparent;
         &[aria-current="page"] {
-          text-decoration-line: underline;
+          border-bottom-color: var(--text);
         }
       }
     }
