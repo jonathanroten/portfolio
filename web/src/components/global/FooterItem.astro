@@ -158,16 +158,17 @@ if (import.meta.env.DEV && render) {
           content: none;
         }
       }
+
+      @media (hover: hover) {
+        &:has(.footer-item_link:hover) .footer-item_link:not(:hover) {
+          color: var(--text-2);
+        }
+      }
     }
     .footer-item_link {
       color: var(--text);
       text-decoration: none;
       transition: color var(--hover-duration) var(--hover-ease);
-      @media (hover: hover) {
-        &:hover {
-          color: var(--text-2);
-        }
-      }
     }
   }
 </style>
