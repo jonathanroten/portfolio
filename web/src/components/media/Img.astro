@@ -1,6 +1,7 @@
 ---
-import { Image } from "astro:assets";
+import { Image, imageConfig } from "astro:assets";
 import type { LocalImageProps, RemoteImageProps } from "astro:assets";
+import { isRemoteAllowed } from "astro/assets/utils";
 import type { HTMLAttributes } from "astro/types";
 
 type ImageVariant = "full-width" | "constrained" | "densities";
@@ -123,7 +124,12 @@ if (
 const variantSpecified = (Astro.props as AllProps).variant !== undefined;
 const unoptimizedRemote = isFetchable && !variantSpecified;
 
-if (import.meta.env.DEV && isFetchable && variantSpecified) {
+if (
+  import.meta.env.DEV &&
+  isFetchable &&
+  variantSpecified &&
+  !isRemoteAllowed(src as string, imageConfig)
+) {
   console.warn(
     `[lumos] <Img src="${src}"> generates a srcset for a remote host. Every entry repeats the original URL unless the host is listed in image.remotePatterns or image.domains.`,
   );
@@ -143,7 +149,9 @@ const cropsToRatio =
 
 const cropLimit = cropsToRatio
   ? Math.min(source.width, Math.round(source.height * (width / height)))
-  : undefined;
+  : isFetchable && hasBothDimensions
+    ? width
+    : undefined;
 
 const withinCrop = (widths: number[]) => {
   const limit = cropLimit as number;
@@ -173,7 +181,9 @@ const srcset =
       : variant === "full-width"
         ? {
             layout: variant,
-            ...(cropsToRatio ? { widths: withinCrop(BREAKPOINTS) } : {}),
+            ...(cropLimit !== undefined
+              ? { widths: withinCrop(BREAKPOINTS) }
+              : {}),
             ...(loading === "lazy" ? { sizes: "auto" } : {}),
           }
         : {

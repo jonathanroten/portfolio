@@ -32,7 +32,7 @@ interface Props extends HTMLAttributes<"section"> {
   gap?: ContainerGap;
   /** Content alignment. */
   align?: "start" | "center" | "end";
-  /** Fill the viewport height. */
+  /** Fill the viewport height below the nav. */
   fullHeight?: boolean;
   /** Inner container classes. */
   containerClass?: string;
@@ -77,7 +77,7 @@ const background = await slotContent(Astro.slots, "background");
         "section",
         padClass("top", paddingTop),
         padClass("bottom", paddingBottom),
-        fullHeight && "min-height-screen",
+        fullHeight && "full-height",
         theme !== "inherit" && `theme-${theme}`,
         align && `alignment-${align}`,
         className,

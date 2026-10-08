@@ -14,7 +14,6 @@ import AccordionItem from "@/components/interactive/AccordionItem.astro";
 import ProjectSlider from "@/components/content/ProjectSlider.astro";
 
 import {
-  escapeHtml,
   getDescription,
   getHeroImages,
   getProjects,
@@ -34,7 +33,7 @@ const description = await getDescription();
     containerClass="flex-grow"
     paddingTop="large"
     class="flex-grow"
-    style="min-height: calc(100dvh - var(--nav-total-height));"
+    fullHeight
   >
     <ContentWrapper class="flex-grow justify-content-end zindex-2">
       <Heading tag="h1" class="sr-only">Jonathan Roten's Portfolio</Heading>
@@ -69,38 +68,8 @@ const description = await getDescription();
       }
     </ImageTrail>
   </Section>
-  <Section
-    paddingTop="none"
-    paddingBottom="none"
-    containerClass="flex-grow align-items-stretch"
-    style="counter-reset: project;"
-  >
-    <div role="list">
-      {
-        brandProjects.map((project) => (
-          <ProjectFeature
-            heading={escapeHtml(project.title)}
-            services={project.services ?? undefined}
-            text={
-              project.description ? escapeHtml(project.description) : undefined
-            }
-          >
-            {project.gallery?.map((image) => (
-              <Img
-                slot="column2"
-                class={image.layout === "fullWidth" ? "full-width" : undefined}
-                src={
-                  image.layout === "fullWidth"
-                    ? imageUrl(image, 1600, 16 / 9)
-                    : imageUrl(image, 960, 8 / 9)
-                }
-                alt={image.alt}
-              />
-            ))}
-          </ProjectFeature>
-        ))
-      }
-    </div>
+  <Section paddingTop="none" paddingBottom="none">
+    <ProjectFeature projects={brandProjects} />
   </Section>
   <Section
     paddingTop="large"
@@ -116,20 +85,7 @@ const description = await getDescription();
             heading={project.title}
             headingTag="h2"
           >
-            <ProjectSlider
-              label={`${project.title} project images`}
-              images={project.gallery?.map((image) => ({
-                src: imageUrl(image, 1920, 16 / 9),
-                alt: image.alt,
-              }))}
-              heading="Services Provided"
-              text={
-                project.services?.length
-                  ? escapeHtml(project.services.join(", "))
-                  : undefined
-              }
-              headingTag="h3"
-            />
+            <ProjectSlider project={project} />
           </AccordionItem>
         ))
       }

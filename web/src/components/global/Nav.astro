@@ -173,6 +173,9 @@ const { render = true, overlap = false } = Astro.props;
       &.overlap {
         position: fixed;
         inset-inline: 0;
+        & ~ main .section.full-height {
+          min-height: 100svh;
+        }
       }
       &.open {
         background-color: var(--background);
@@ -344,13 +347,7 @@ const { render = true, overlap = false } = Astro.props;
       display: block;
       padding-block: var(--space-4);
       color: var(--text);
-      text-decoration: none;
-      text-underline-offset: 0.4em;
-      text-decoration-thickness: var(--border-width);
       transition: color var(--hover-duration-gentle) var(--hover-ease);
-      &[aria-current="page"] {
-        text-decoration: underline;
-      }
       @media (hover: hover) {
         &:hover {
           color: var(--text-2);
@@ -358,6 +355,11 @@ const { render = true, overlap = false } = Astro.props;
       }
       @media (width >= 48rem) {
         padding-block: 0;
+        text-underline-offset: 0.4em;
+        text-decoration-thickness: var(--border-width);
+        &[aria-current="page"] {
+          text-decoration-line: underline;
+        }
       }
     }
 
