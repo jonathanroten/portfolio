@@ -22,6 +22,9 @@
   align-items: stretch;
   justify-content: center;
   position: relative;
+  &.full-height {
+    min-height: calc(100svh - var(--nav-total-height));
+  }
 }
 
 .container {

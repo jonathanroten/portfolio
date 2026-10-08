@@ -1,95 +1,107 @@
 ---
 import type { HTMLAttributes } from "astro/types";
-import { slotContent } from "@/utils/slots.ts";
+import { imageUrl, type getProjects } from "@/utils/sanity.ts";
 
 import Heading from "@/components/typography/Heading.astro";
 import Paragraph from "@/components/typography/Paragraph.astro";
 import ContentWrapper from "@/components/wrapper/ContentWrapper.astro";
 import Grid from "@/components/wrapper/Grid.astro";
+import Img from "@/components/media/Img.astro";
 
 interface Props extends HTMLAttributes<"div"> {
   /** Set to `false` to omit the component. */
   render?: boolean;
-  /** Feature title. Supports inline markup. */
-  heading?: string;
-  /** Services shown under the heading. */
-  services?: string[];
-  /** Body text. Supports inline markup. */
-  text?: string;
+  /** Projects to feature, as `getProjects` returns them. */
+  projects?: Awaited<ReturnType<typeof getProjects>>;
 }
 
-const {
-  render = true,
-  heading,
-  services,
-  text,
-  class: className,
-  ...rest
-} = Astro.props;
+const { render = true, projects, class: className, ...rest } = Astro.props;
 
-const hasServices = !!services?.length;
-const column2 = await slotContent(Astro.slots, "column2");
-const hasContent = !!(heading || hasServices || text || column2);
+const crops = {
+  half: { width: 960, ratio: 8 / 9 },
+  full: { width: 1600, ratio: 16 / 9 },
+};
+
+const items = (projects ?? []).filter(
+  (project) =>
+    project.title ||
+    project.services?.length ||
+    project.description ||
+    project.gallery?.length,
+);
 ---
 
 {
-  render && hasContent && (
+  render && items.length > 0 && (
     <div
       class:list={["project-feature_wrap", "width-full", className]}
-      role="listitem"
+      role="list"
       {...rest}
     >
-      <div class="project-feature_layout">
-        <div class="project-feature_column">
-          <div class="project-feature_counter text-style-h6">
-            <span />
-          </div>
-          <ContentWrapper>
-            {heading && (
-              <Heading tag="h2" variant="h3" maxWidth={18}>
-                <Fragment set:html={heading} />
-              </Heading>
-            )}
-            {(hasServices || text) && (
-              <div class="project-feature_content">
-                {hasServices && (
-                  <>
-                    <Heading tag="h3" variant="h5" class="margin-bottom-3">
-                      Services Provided
-                    </Heading>
-                    <ul>
-                      {services!.map((service) => (
-                        <li class="text-style-main">{service}</li>
-                      ))}
-                    </ul>
-                  </>
+      {items.map((project, i) => (
+        <div class="project-feature_item" role="listitem">
+          <div class="project-feature_layout">
+            <div class="project-feature_column">
+              <div class="project-feature_counter text-style-h6">
+                <span>{String(i + 1).padStart(2, "0")}</span>
+              </div>
+              <ContentWrapper>
+                {project.title && (
+                  <Heading tag="h2" variant="h3" maxWidth={18}>
+                    {project.title}
+                  </Heading>
                 )}
-                {text && (
-                  <Paragraph variant="h4" maxWidth={40}>
-                    <Fragment set:html={text} />
-                  </Paragraph>
+                {(project.services?.length || project.description) && (
+                  <div class="project-feature_content">
+                    {!!project.services?.length && (
+                      <>
+                        <Heading tag="h3" variant="h5" class="margin-bottom-3">
+                          Services Provided
+                        </Heading>
+                        <ul>
+                          {project.services.map((service) => (
+                            <li class="text-style-main">{service}</li>
+                          ))}
+                        </ul>
+                      </>
+                    )}
+                    {project.description && (
+                      <Paragraph variant="h4" maxWidth={40}>
+                        {project.description}
+                      </Paragraph>
+                    )}
+                  </div>
                 )}
+              </ContentWrapper>
+            </div>
+            {!!project.gallery?.length && (
+              <div class="project-feature_column">
+                <Grid xsmall={1} medium={2} class="gap-1">
+                  {project.gallery.map((image) => {
+                    const full = image.layout === "fullWidth";
+                    const crop = full ? crops.full : crops.half;
+                    return (
+                      <Img
+                        src={imageUrl(image, crop.width, crop.ratio)}
+                        width={crop.width}
+                        height={Math.round(crop.width / crop.ratio)}
+                        alt={image.alt ?? undefined}
+                        class={full ? "full-width" : undefined}
+                      />
+                    );
+                  })}
+                </Grid>
               </div>
             )}
-          </ContentWrapper>
-        </div>
-        {column2 && (
-          <div class="project-feature_column">
-            <Grid xsmall={1} medium={2} class="gap-1">
-              <Fragment set:html={column2} />
-            </Grid>
           </div>
-        )}
-      </div>
+        </div>
+      ))}
     </div>
   )
 }
 
 <style is:global>
   @layer components {
-    .project-feature_wrap {
-      counter-increment: project;
-    }
     .project-feature_layout {
       width: 100%;
       display: flex;
@@ -113,13 +125,6 @@ const hasContent = !!(heading || hasServices || text || column2);
         .grid > .full-width {
           grid-column: 1 / -1;
         }
-        /* Gallery ratios: 8:9 by default, 16:9 when full width */
-        .grid > .image {
-          aspect-ratio: 8 / 9;
-        }
-        .grid > .image.full-width {
-          aspect-ratio: 16 / 9;
-        }
       }
       .project-feature_counter {
         border: var(--border-width-medium) solid var(--text);
@@ -131,10 +136,6 @@ const hasContent = !!(heading || hasServices || text || column2);
         border-radius: var(--radius-round);
         line-height: 1;
         margin-bottom: var(--space-6);
-
-        span::before {
-          content: counter(project, decimal-leading-zero);
-        }
       }
       @media (width >= 64rem) {
         min-height: calc(100svh - var(--nav-total-height));

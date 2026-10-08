@@ -173,6 +173,9 @@ const { render = true, overlap = false } = Astro.props;
       &.overlap {
         position: fixed;
         inset-inline: 0;
+        & ~ main .section.full-height {
+          min-height: 100svh;
+        }
       }
       &.open {
         background-color: var(--background);
