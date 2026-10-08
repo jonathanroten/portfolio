@@ -27,7 +27,11 @@ const config = JSON.stringify({ locale, options });
 
 {
   render && (
-    <time class="live-clock_wrap" datetime={now.toISOString()} data-live-clock={config}>
+    <time
+      class="live-clock_wrap"
+      datetime={now.toISOString()}
+      data-live-clock={config}
+    >
       {formatted}
     </time>
   )
