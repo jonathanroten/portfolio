@@ -1,43 +1,40 @@
 ---
 import type { HTMLAttributes } from "astro/types";
+import { imageUrl, type getProjects } from "@/utils/sanity.ts";
+
 import Slider from "@/components/interactive/Slider.astro";
 import Img from "@/components/media/Img.astro";
 import Heading from "@/components/typography/Heading.astro";
 import Paragraph from "@/components/typography/Paragraph.astro";
 
-type ImageSource = ImageMetadata | string;
-
-type Props = HTMLAttributes<"div"> & {
+interface Props extends HTMLAttributes<"div"> {
   /** Set to `false` to omit the component. */
   render?: boolean;
-  /** Accessible label. Defaults to the heading, or `Project images`. */
-  label?: string;
-  /** Slide images, cropped to 16:9. Omit `alt` for decorative images. */
-  images?: { src: ImageSource; alt?: string }[];
-  /** Caption heading. Supports inline markup. */
-  heading?: string;
-  /** Body text. Supports inline markup. */
-  text?: string;
+  /** Project to show, as `getProjects` returns it. */
+  project?: Awaited<ReturnType<typeof getProjects>>[number];
   /** Heading level. */
   headingTag?: "h2" | "h3" | "h4" | "h5" | "h6";
-};
+}
 
 const {
   render = true,
-  label: labelProp,
-  images,
-  heading,
-  text,
-  headingTag = "h4",
+  project,
+  headingTag = "h3",
   class: className,
   ...rest
 } = Astro.props;
 
-const label = labelProp || heading?.replace(/<[^>]*>/g, "") || "Project images";
+const crop = { width: 1920, ratio: 16 / 9 };
+
+const images = project?.gallery ?? [];
+const services = project?.services ?? [];
+const label = project?.title
+  ? `${project.title} project images`
+  : "Project images";
 ---
 
 {
-  render && images?.length && (
+  render && images.length > 0 && (
     <Slider
       label={label}
       align="center"
@@ -47,27 +44,21 @@ const label = labelProp || heading?.replace(/<[^>]*>/g, "") || "Project images";
       class:list={["project-slider_wrap", "gap-1", "gap-row-5", className]}
       {...rest}
     >
-      {images.map(({ src, alt }) => (
+      {images.map((image) => (
         <Img
-          src={src}
-          alt={alt}
-          width={1920}
-          height={1080}
-          class="ratio-16-9"
+          src={imageUrl(image, crop.width, crop.ratio)}
+          alt={image.alt}
+          variant="full-width"
+          width={crop.width}
+          height={Math.round(crop.width / crop.ratio)}
         />
       ))}
-      {(heading || text) && (
+      {services.length > 0 && (
         <Fragment slot="caption">
-          {heading && (
-            <Heading tag={headingTag} variant="h5" class="margin-bottom-3">
-              <Fragment set:html={heading} />
-            </Heading>
-          )}
-          {text && (
-            <Paragraph>
-              <Fragment set:html={text} />
-            </Paragraph>
-          )}
+          <Heading tag={headingTag} variant="h5" class="margin-bottom-3">
+            Services Provided
+          </Heading>
+          <Paragraph>{services.join(", ")}</Paragraph>
         </Fragment>
       )}
     </Slider>

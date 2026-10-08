@@ -83,6 +83,7 @@ const items = (projects ?? []).filter(
                     return (
                       <Img
                         src={imageUrl(image, crop.width, crop.ratio)}
+                        variant="full-width"
                         width={crop.width}
                         height={Math.round(crop.width / crop.ratio)}
                         alt={image.alt ?? undefined}

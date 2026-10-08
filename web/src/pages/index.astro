@@ -14,7 +14,6 @@ import AccordionItem from "@/components/interactive/AccordionItem.astro";
 import ProjectSlider from "@/components/content/ProjectSlider.astro";
 
 import {
-  escapeHtml,
   getDescription,
   getHeroImages,
   getProjects,
@@ -86,20 +85,7 @@ const description = await getDescription();
             heading={project.title}
             headingTag="h2"
           >
-            <ProjectSlider
-              label={`${project.title} project images`}
-              images={project.gallery?.map((image) => ({
-                src: imageUrl(image, 1920, 16 / 9),
-                alt: image.alt,
-              }))}
-              heading="Services Provided"
-              text={
-                project.services?.length
-                  ? escapeHtml(project.services.join(", "))
-                  : undefined
-              }
-              headingTag="h3"
-            />
+            <ProjectSlider project={project} />
           </AccordionItem>
         ))
       }

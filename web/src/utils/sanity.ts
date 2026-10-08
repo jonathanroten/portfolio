@@ -165,11 +165,3 @@ export function imageUrl(
     .auto("format")
     .url();
 }
-
-/** Escape plain text for components that render their props with `set:html`. */
-export function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-}
