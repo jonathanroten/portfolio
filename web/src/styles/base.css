@@ -50,6 +50,7 @@
   --focus-width: 0.125rem;
   --focus-offset: 0.1827rem;
   --focus-offset-inner: calc(var(--focus-width) * -1);
+  --link-border-gap: 0.4em;
 
   /* Hover motion */
   --hover-duration: 200ms;

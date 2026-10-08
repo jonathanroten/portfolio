@@ -96,7 +96,7 @@ if (import.meta.env.DEV && render) {
             </Paragraph>
           )}
           {hasList && (
-            <ul class="footer-item_list">
+            <ul class="footer-item_list fade-siblings">
               {items!.map((item) => (
                 <li class="text-style-main">
                   {item.href ? (
@@ -160,14 +160,8 @@ if (import.meta.env.DEV && render) {
       }
     }
     .footer-item_link {
-      color: var(--text);
       text-decoration: none;
       transition: color var(--hover-duration) var(--hover-ease);
-      @media (hover: hover) {
-        &:hover {
-          color: var(--text-2);
-        }
-      }
     }
   }
 </style>

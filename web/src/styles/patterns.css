@@ -185,6 +185,16 @@
   text-align: inherit;
 }
 
+/* Hover */
+.fade-siblings {
+  --_fade-color: var(--text-2);
+  @media (hover: hover) {
+    &:has(a:hover) a:not(:hover) {
+      color: var(--_fade-color);
+    }
+  }
+}
+
 .field {
   display: flex;
   flex-direction: column;
