@@ -42,7 +42,11 @@ const { render = true } = Astro.props;
               shared experience.
             </Paragraph>
             <ButtonWrapper>
-              <Button variant="link" element="link" href="/">
+              <Button
+                variant="link"
+                element="link"
+                href="mailto:jonathanroten@icloud.com?subject=Hello"
+              >
                 Say Hello
               </Button>
             </ButtonWrapper>
@@ -99,7 +103,7 @@ const { render = true } = Astro.props;
             variant="list-stacked"
             items={[
               {
-                label: "Visit Instagram Profile",
+                label: "Follow Me On Instagram",
                 href: "https://www.instagram.com/jonathan.roten",
               },
               { label: `© ${currentYear} Copyright. All Rights Reserved.` },
