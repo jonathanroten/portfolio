@@ -49,7 +49,7 @@ export const project = defineType({
     }),
     defineField({
       name: 'projectGallery',
-      title: 'Project gallery',
+      title: 'Project Gallery',
       type: 'array',
       description: 'Drop multiple images here at once. Drag to reorder.',
       options: {layout: 'grid'},
