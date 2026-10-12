@@ -84,7 +84,6 @@ const images: GalleryImage[] = await Promise.all(
     glide: 280,
     calmEase: 60,
     keySpeed: 1.1,
-    drift: { ease: 160, min: 0, max: 16 },
     click: { distance: 8, time: 400 },
   };
 
@@ -157,11 +156,9 @@ const images: GalleryImage[] = await Promise.all(
       return pool[wrap(tx * strideX + ty * strideY + rank, pool.length)];
     };
 
-    type Tile = { element: HTMLElement; gains: number[] };
-    const tiles = new Map<string, Tile>();
+    const tiles = new Map<string, HTMLElement>();
     const center = { x: 0.5, y: 0.5 };
     const target = { x: 0.5, y: 0.5 };
-    const flow = { x: 0, y: 0 };
     const drag = {
       id: -1,
       x: 0,
@@ -182,7 +179,7 @@ const images: GalleryImage[] = await Promise.all(
     const viewSize = { width: 0, height: 0 };
     const tileSize = { width: 0, height: 0 };
 
-    const createTile = (tx: number, ty: number): Tile => {
+    const createTile = (tx: number, ty: number) => {
       const element = document.createElement("div");
       element.className = "gallery-infinite_tile";
       element.setAttribute("aria-hidden", "true");
@@ -201,16 +198,7 @@ const images: GalleryImage[] = await Promise.all(
         Object.assign(image.style, style);
         element.append(image);
       }
-      const phase = Math.random();
-      const gains = placements
-        .map(
-          (_, index) =>
-            config.drift.min +
-            ((config.drift.max - config.drift.min) * (index + phase)) /
-              placements.length,
-        )
-        .sort(() => Math.random() - 0.5);
-      return { element, gains };
+      return element;
     };
 
     const syncTiles = () => {
@@ -236,14 +224,14 @@ const images: GalleryImage[] = await Promise.all(
           if (!tile) {
             tile = createTile(tx, ty);
             tiles.set(key, tile);
-            gallery.append(tile.element);
+            gallery.append(tile);
           }
-          tile.element.style.translate = `${(tx - left) * tileSize.width}px ${(ty - top) * tileSize.height}px`;
+          tile.style.translate = `${(tx - left) * tileSize.width}px ${(ty - top) * tileSize.height}px`;
         }
       }
       for (const [key, tile] of tiles) {
         if (wanted.has(key)) continue;
-        tile.element.remove();
+        tile.remove();
         tiles.delete(key);
       }
     };
@@ -268,15 +256,6 @@ const images: GalleryImage[] = await Promise.all(
     let frame = 0;
     let lastTime = 0;
 
-    const applyDrift = () => {
-      for (const { element, gains } of tiles.values()) {
-        gains.forEach((gain, index) => {
-          (element.children[index] as HTMLElement).style.translate =
-            `${flow.x * gain}px ${flow.y * gain}px`;
-        });
-      }
-    };
-
     const step = (now: number) => {
       const elapsed = Math.min(now - lastTime, 50);
       lastTime = now;
@@ -288,32 +267,13 @@ const images: GalleryImage[] = await Promise.all(
       }
       const ease = calm.matches ? config.calmEase : config.ease;
       const blend = dragging ? 1 : 1 - Math.exp(-elapsed / ease);
-      const moved = {
-        x: (target.x - center.x) * blend,
-        y: (target.y - center.y) * blend,
-      };
-      center.x += moved.x;
-      center.y += moved.y;
-      const smooth = calm.matches
-        ? 1
-        : 1 - Math.exp(-elapsed / config.drift.ease);
-      const speed = calm.matches
-        ? { x: 0, y: 0 }
-        : {
-            x: (moved.x * tileSize.width) / Math.max(elapsed, 1),
-            y: (moved.y * tileSize.height) / Math.max(elapsed, 1),
-          };
-      flow.x += (speed.x - flow.x) * smooth;
-      flow.y += (speed.y - flow.y) * smooth;
-      const pending = Math.max(
-        Math.hypot(
-          (target.x - center.x) * tileSize.width,
-          (target.y - center.y) * tileSize.height,
-        ),
-        Math.hypot(flow.x, flow.y) * config.drift.max,
-      );
+      center.x += (target.x - center.x) * blend;
+      center.y += (target.y - center.y) * blend;
       syncTiles();
-      applyDrift();
+      const pending = Math.hypot(
+        (target.x - center.x) * tileSize.width,
+        (target.y - center.y) * tileSize.height,
+      );
       if (pending < 0.1 && !dragging && !held.size) {
         center.x = target.x;
         center.y = target.y;
@@ -491,7 +451,6 @@ const images: GalleryImage[] = await Promise.all(
 
     .gallery-infinite_image {
       position: absolute;
-      will-change: translate, scale;
       opacity: 0;
       transition:
         opacity var(--hover-duration-gentle) var(--hover-ease),
