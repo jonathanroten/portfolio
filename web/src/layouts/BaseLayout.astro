@@ -4,6 +4,7 @@ import BaseHead from "@/components/utility/BaseHead.astro";
 import SkipLink from "@/components/global/SkipLink.astro";
 import Nav from "@/components/global/Nav.astro";
 import Footer from "@/components/global/Footer.astro";
+import FooterMinimal from "@/components/global/FooterMinimal.astro";
 import type { SeoProps } from "@/types.ts";
 
 type Props = SeoProps & {
@@ -15,9 +16,19 @@ type Props = SeoProps & {
    * `paddingTop="navoverlap"` to clear the bar.
    */
   overlap?: boolean;
+  /**
+   * Footer under the page. `minimal` is a slim strip fixed to the bottom for
+   * full-bleed pages; `none` leaves it out.
+   */
+  footer?: "full" | "minimal" | "none";
 };
 
-const { theme = "inherit", overlap = false, ...seo } = Astro.props;
+const {
+  theme = "inherit",
+  overlap = false,
+  footer = "full",
+  ...seo
+} = Astro.props;
 ---
 
 <!doctype html>
@@ -32,6 +43,7 @@ const { theme = "inherit", overlap = false, ...seo } = Astro.props;
     <main id="main" tabindex="-1">
       <slot />
     </main>
-    <Footer />
+    {footer === "full" && <Footer />}
+    {footer === "minimal" && <FooterMinimal />}
   </body>
 </html>

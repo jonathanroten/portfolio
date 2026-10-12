@@ -1,0 +1,76 @@
+---
+import { getImage } from "astro:assets";
+import type { ComponentProps } from "astro/types";
+import Section from "@/components/wrapper/Section.astro";
+import type { GalleryItem } from "@/types.ts";
+
+interface Props extends Omit<
+  ComponentProps<typeof Section>,
+  "theme" | "paddingTop" | "paddingBottom" | "fullHeight"
+> {
+  /** Images to scatter through the field. */
+  items: GalleryItem[];
+}
+
+const { render = true, items, class: className, ...rest } = Astro.props;
+
+const TEXTURE_LONG_EDGE = 1024;
+
+const textures = await Promise.all(
+  items.map(async ({ image, alt, caption, href }) => {
+    const scale = Math.min(
+      1,
+      TEXTURE_LONG_EDGE / Math.max(image.width, image.height),
+    );
+    const texture = await getImage({
+      src: image,
+      width: Math.round(image.width * scale),
+      format: "webp",
+    });
+    return {
+      src: texture.src,
+      width: texture.attributes.width,
+      height: texture.attributes.height,
+      alt,
+      caption,
+      href,
+    };
+  }),
+);
+---
+
+{
+  render && textures.length > 0 && (
+    <Section
+      class:list={["gallery-infinite_wrap", className]}
+      paddingTop="none"
+      paddingBottom="none"
+      fullHeight
+      {...rest}
+    >
+      <div
+        slot="background"
+        class="gallery-infinite_stage"
+        data-items={JSON.stringify(textures)}
+      />
+      <slot />
+    </Section>
+  )
+}
+
+<style is:global>
+  @layer components {
+    .gallery-infinite_wrap {
+      overflow: clip;
+    }
+
+    .gallery-infinite_stage {
+      pointer-events: auto;
+    }
+
+    :root:has(.gallery-infinite_wrap) {
+      overflow: hidden;
+      overscroll-behavior: none;
+    }
+  }
+</style>

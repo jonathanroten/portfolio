@@ -1,0 +1,67 @@
+---
+import { SITE_NAME } from "@/consts.ts";
+
+interface Props {
+  /** Set to `false` to omit the component. */
+  render?: boolean;
+}
+
+const { render = true } = Astro.props;
+
+const currentYear = new Date().getFullYear();
+---
+
+{
+  render && (
+    <footer class="footer-minimal_wrap">
+      <div class="footer-minimal_inner">
+        <span class="footer-minimal_copyright text-style-h6">
+          {`© ${currentYear} ${SITE_NAME}`}
+        </span>
+        <span class="footer-minimal_hint text-style-h6" aria-hidden="true">
+          <span class="footer-minimal_hint_touch">Pinch to explore</span>
+          <span class="footer-minimal_hint_pointer">Scroll to explore</span>
+        </span>
+      </div>
+    </footer>
+  )
+}
+
+<style is:global>
+  @layer components {
+    .footer-minimal_wrap {
+      position: fixed;
+      inset-inline: 0;
+      bottom: 0;
+      z-index: 10;
+      display: flex;
+      justify-content: center;
+      padding: var(--site-margin);
+      color: var(--text);
+      pointer-events: none;
+    }
+
+    .footer-minimal_inner {
+      width: 100%;
+      max-width: var(--max-width-full);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-2) var(--space-6);
+    }
+
+    .footer-minimal_hint_pointer {
+      display: none;
+      @media (hover: hover) and (pointer: fine) {
+        display: inline;
+      }
+    }
+
+    .footer-minimal_hint_touch {
+      @media (hover: hover) and (pointer: fine) {
+        display: none;
+      }
+    }
+  }
+</style>
