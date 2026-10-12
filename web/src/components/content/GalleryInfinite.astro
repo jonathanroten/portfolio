@@ -1,6 +1,7 @@
 ---
 import { getImage } from "astro:assets";
 import type { HTMLAttributes } from "astro/types";
+import Img from "@/components/media/Img.astro";
 import type { GalleryImage, GalleryItem } from "@/types.ts";
 
 interface Props extends HTMLAttributes<"div"> {
@@ -32,12 +33,28 @@ const images: GalleryImage[] = await Promise.all(
 
 {
   render && images.length > 0 && (
-    <div
-      class:list={["gallery-infinite_wrap", className]}
-      aria-hidden="true"
-      data-items={JSON.stringify(images)}
-      {...rest}
-    />
+    <>
+      <div
+        class:list={["gallery-infinite_wrap", className]}
+        data-items={JSON.stringify(images)}
+        {...rest}
+      >
+        <ul class="sr-only">
+          {items.map(({ alt }) => (
+            <li>{alt}</li>
+          ))}
+        </ul>
+      </div>
+      <noscript class="gallery-infinite_fallback">
+        <ul class="gallery-infinite_fallback_list">
+          {images.map(({ src, width, height }) => (
+            <li>
+              <Img src={src} width={width} height={height} loading="lazy" />
+            </li>
+          ))}
+        </ul>
+      </noscript>
+    </>
   )
 }
 
@@ -149,6 +166,7 @@ const images: GalleryImage[] = await Promise.all(
     const createTile = (tx: number, ty: number): Tile => {
       const element = document.createElement("div");
       element.className = "gallery-infinite_tile";
+      element.setAttribute("aria-hidden", "true");
       for (const { shape, rank, style } of placements) {
         const image = new Image();
         image.className = "image gallery-infinite_image";
@@ -156,6 +174,10 @@ const images: GalleryImage[] = await Promise.all(
         image.decoding = "async";
         image.draggable = false;
         image.src = items[imageAt(tx, ty, shape, rank)].src;
+        image.decode().then(
+          () => image.classList.add("is-loaded"),
+          () => {},
+        );
         Object.assign(image.style, style);
         element.append(image);
       }
@@ -371,6 +393,7 @@ const images: GalleryImage[] = await Promise.all(
 
     new ResizeObserver(resize).observe(gallery);
     resize();
+    gallery.classList.add("is-ready");
   };
 
   for (const gallery of document.querySelectorAll<HTMLElement>(
@@ -406,9 +429,28 @@ const images: GalleryImage[] = await Promise.all(
     .gallery-infinite_image {
       position: absolute;
       will-change: translate;
+      opacity: 0;
+      transition: opacity var(--hover-duration-gentle) var(--hover-ease);
+      &.is-loaded {
+        opacity: 1;
+      }
     }
 
-    :root:has(.gallery-infinite_wrap) {
+    .gallery-infinite_fallback {
+      align-self: stretch;
+    }
+
+    .gallery-infinite_fallback_list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+      gap: var(--space-4);
+      width: 100%;
+      padding: var(--section-space-nav-overlap) var(--site-margin)
+        var(--site-margin);
+      list-style: none;
+    }
+
+    :root:has(.gallery-infinite_wrap.is-ready) {
       overflow: hidden;
       overscroll-behavior: none;
     }
