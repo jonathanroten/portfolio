@@ -300,6 +300,26 @@ const images: GalleryImage[] = await Promise.all(
       start();
     };
 
+    const nearestImage = () => {
+      let nearest: HTMLElement | null = null;
+      let nearestDistance = Infinity;
+      for (const tile of tiles.values()) {
+        for (const image of tile.children) {
+          const anchor = anchors.get(image);
+          if (!anchor || !image.classList.contains("is-loaded")) continue;
+          const distance = Math.hypot(
+            (anchor.x - center.x) * tileSize.width,
+            (anchor.y - center.y) * tileSize.height,
+          );
+          if (distance < nearestDistance) {
+            nearest = image as HTMLElement;
+            nearestDistance = distance;
+          }
+        }
+      }
+      return nearest;
+    };
+
     gallery.addEventListener("pointerdown", (event) => {
       if (drag.id !== -1) return;
       if (event.button !== 0) return;
@@ -386,6 +406,17 @@ const images: GalleryImage[] = await Promise.all(
 
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape") return unfocus();
+      if (
+        event.key === "Enter" &&
+        !event.repeat &&
+        event.target === document.body &&
+        !gallery.closest("[inert]")
+      ) {
+        const image = focused ? null : nearestImage();
+        if (image) focusOn(image);
+        else unfocus();
+        return;
+      }
       if (
         !keyDirections[event.key] ||
         event.metaKey ||
