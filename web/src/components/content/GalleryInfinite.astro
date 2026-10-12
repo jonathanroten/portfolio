@@ -1,0 +1,222 @@
+---
+import { getImage } from "astro:assets";
+import type { HTMLAttributes } from "astro/types";
+import type { GalleryImage, GalleryItem } from "@/types.ts";
+
+interface Props extends HTMLAttributes<"div"> {
+  /** Set to `false` to omit the component. */
+  render?: boolean;
+  /** Images to show in the gallery. */
+  items: GalleryItem[];
+}
+
+const { render = true, items, class: className, ...rest } = Astro.props;
+
+const IMAGE_LONG_EDGE = 1024;
+
+const images: GalleryImage[] = await Promise.all(
+  items.map(async ({ image }) => {
+    const scale = Math.min(
+      1,
+      IMAGE_LONG_EDGE / Math.max(image.width, image.height),
+    );
+    const { src, attributes } = await getImage({
+      src: image,
+      width: Math.round(image.width * scale),
+      format: "webp",
+    });
+    return { src, width: attributes.width, height: attributes.height };
+  }),
+);
+---
+
+{
+  render && images.length > 0 && (
+    <div
+      class:list={["gallery-infinite_wrap", className]}
+      aria-hidden="true"
+      data-items={JSON.stringify(images)}
+      {...rest}
+    />
+  )
+}
+
+<script>
+  import type { GalleryImage } from "@/types.ts";
+
+  const config = {
+    tileWidth: 1440,
+    tileHeight: 1200,
+    frames: [
+      { x: 60, y: 50, w: 426.667, h: 240 },
+      { x: 360, y: 200, w: 240, h: 240 },
+      { x: 720, y: 100, w: 480, h: 270 },
+      { x: 1140, y: 50, w: 240, h: 240 },
+      { x: 0, y: 400, w: 240, h: 320 },
+      { x: 600, y: 750, w: 240, h: 240 },
+      { x: 780, y: 450, w: 300, h: 400 },
+      { x: 60, y: 880, w: 480, h: 270 },
+      { x: 1140, y: 830, w: 240, h: 320 },
+    ],
+    shapes: { wide: 16 / 9, square: 1, tall: 3 / 4 },
+    stride: { x: 0.6, y: 0.35 },
+    tileMinRem: 56,
+    tileMaxRem: 100,
+  };
+
+  type Shape = keyof typeof config.shapes;
+
+  const clamp = (value: number, min: number, max: number) =>
+    Math.max(min, Math.min(value, max));
+
+  const wrap = (value: number, length: number) =>
+    ((value % length) + length) % length;
+
+  const shapeNames = Object.keys(config.shapes) as Shape[];
+
+  const shapeOf = (aspect: number) =>
+    shapeNames.reduce((nearest, shape) =>
+      Math.abs(Math.log(aspect / config.shapes[shape])) <
+      Math.abs(Math.log(aspect / config.shapes[nearest]))
+        ? shape
+        : nearest,
+    );
+
+  const mount = (gallery: HTMLElement, items: GalleryImage[]) => {
+    const ids = items.map((_, id) => id);
+    const itemShapes = items.map(({ width, height }) =>
+      shapeOf(width / height),
+    );
+    const pools = Object.fromEntries(
+      shapeNames.map((shape) => {
+        const matching = ids.filter((id) => itemShapes[id] === shape);
+        return [shape, matching.length ? matching : ids];
+      }),
+    ) as Record<Shape, number[]>;
+
+    const counts = new Map<Shape, number>();
+    const placements = config.frames.map((frame) => {
+      const shape = shapeOf(frame.w / frame.h);
+      const rank = counts.get(shape) ?? 0;
+      counts.set(shape, rank + 1);
+      return {
+        shape,
+        rank,
+        style: {
+          left: `${(frame.x / config.tileWidth) * 100}%`,
+          top: `${(frame.y / config.tileHeight) * 100}%`,
+          width: `${(frame.w / config.tileWidth) * 100}%`,
+          height: `${(frame.h / config.tileHeight) * 100}%`,
+        },
+      };
+    });
+
+    const imageAt = (tx: number, ty: number, shape: Shape, rank: number) => {
+      const pool = pools[shape];
+      const strideX = Math.ceil(pool.length * config.stride.x);
+      const strideY = Math.ceil(pool.length * config.stride.y);
+      return pool[wrap(tx * strideX + ty * strideY + rank, pool.length)];
+    };
+
+    const tiles = new Map<string, HTMLElement>();
+    const center = { x: 0.5, y: 0.5 };
+    const viewSize = { width: 0, height: 0 };
+    const tileSize = { width: 0, height: 0 };
+
+    const createTile = (tx: number, ty: number) => {
+      const element = document.createElement("div");
+      element.className = "gallery-infinite_tile";
+      for (const { shape, rank, style } of placements) {
+        const image = new Image();
+        image.className = "image gallery-infinite_image";
+        image.alt = "";
+        image.decoding = "async";
+        image.draggable = false;
+        image.src = items[imageAt(tx, ty, shape, rank)].src;
+        Object.assign(image.style, style);
+        element.append(image);
+      }
+      return element;
+    };
+
+    const syncTiles = () => {
+      const left = center.x - viewSize.width / tileSize.width / 2;
+      const top = center.y - viewSize.height / tileSize.height / 2;
+      const right = left + viewSize.width / tileSize.width;
+      const bottom = top + viewSize.height / tileSize.height;
+      const wanted = new Set<string>();
+      for (let ty = Math.floor(top); ty < Math.ceil(bottom); ty++) {
+        for (let tx = Math.floor(left); tx < Math.ceil(right); tx++) {
+          const key = `${tx},${ty}`;
+          wanted.add(key);
+          let element = tiles.get(key);
+          if (!element) {
+            element = createTile(tx, ty);
+            tiles.set(key, element);
+            gallery.append(element);
+          }
+          element.style.translate = `${(tx - left) * tileSize.width}px ${(ty - top) * tileSize.height}px`;
+        }
+      }
+      for (const [key, element] of tiles) {
+        if (wanted.has(key)) continue;
+        element.remove();
+        tiles.delete(key);
+      }
+    };
+
+    const resize = () => {
+      viewSize.width = gallery.clientWidth;
+      viewSize.height = gallery.clientHeight;
+      if (!viewSize.width || !viewSize.height) return;
+      const rem = parseFloat(
+        getComputedStyle(document.documentElement).fontSize,
+      );
+      tileSize.width = clamp(
+        viewSize.width,
+        config.tileMinRem * rem,
+        config.tileMaxRem * rem,
+      );
+      tileSize.height = (tileSize.width * config.tileHeight) / config.tileWidth;
+      gallery.style.setProperty("--_tile-width", `${tileSize.width}px`);
+      gallery.style.setProperty("--_tile-height", `${tileSize.height}px`);
+      syncTiles();
+    };
+    new ResizeObserver(resize).observe(gallery);
+    resize();
+  };
+
+  for (const gallery of document.querySelectorAll<HTMLElement>(
+    ".gallery-infinite_wrap",
+  )) {
+    const items: GalleryImage[] = JSON.parse(gallery.dataset.items ?? "[]");
+    if (items.length > 0) mount(gallery, items);
+  }
+</script>
+
+<style is:global>
+  @layer components {
+    .gallery-infinite_wrap {
+      position: absolute;
+      inset: 0;
+      overflow: clip;
+    }
+
+    .gallery-infinite_tile {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: var(--_tile-width);
+      height: var(--_tile-height);
+    }
+
+    .gallery-infinite_image {
+      position: absolute;
+    }
+
+    :root:has(.gallery-infinite_wrap) {
+      overflow: hidden;
+      overscroll-behavior: none;
+    }
+  }
+</style>

@@ -15,12 +15,9 @@ const currentYear = new Date().getFullYear();
   render && (
     <footer class="footer-minimal_wrap">
       <div class="footer-minimal_inner">
-        <span class="footer-minimal_copyright text-style-h6">
-          {`© ${currentYear} ${SITE_NAME}`}
-        </span>
-        <span class="footer-minimal_hint text-style-h6" aria-hidden="true">
-          <span class="footer-minimal_hint_touch">Pinch to explore</span>
-          <span class="footer-minimal_hint_pointer">Scroll to explore</span>
+        <span class="text-style-h6">{`© ${currentYear} ${SITE_NAME}`}</span>
+        <span class="text-style-h6" aria-hidden="true">
+          Drag or scroll to explore
         </span>
       </div>
     </footer>
@@ -49,19 +46,6 @@ const currentYear = new Date().getFullYear();
       align-items: center;
       justify-content: space-between;
       gap: var(--space-2) var(--space-6);
-    }
-
-    .footer-minimal_hint_pointer {
-      display: none;
-      @media (hover: hover) and (pointer: fine) {
-        display: inline;
-      }
-    }
-
-    .footer-minimal_hint_touch {
-      @media (hover: hover) and (pointer: fine) {
-        display: none;
-      }
     }
   }
 </style>

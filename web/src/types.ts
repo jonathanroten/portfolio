@@ -18,8 +18,11 @@ export interface GalleryItem {
   image: ImageMetadata;
   /** Describes the image for people who cannot see it. */
   alt: string;
-  /** Shown with the image when it is brought into focus. */
-  caption?: string;
-  /** Where the image links to when it is brought into focus. */
-  href?: string;
+}
+
+/** One gallery image as sent to the browser, resized for display. */
+export interface GalleryImage {
+  src: string;
+  width: number;
+  height: number;
 }
