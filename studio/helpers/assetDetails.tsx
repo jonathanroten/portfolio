@@ -4,7 +4,7 @@ import {PROJECT_TAG_NAME} from './projectTag'
 
 type DetailsComponent = NonNullable<NonNullable<MediaToolOptions['components']>['details']>
 
-// The site reads a gallery image's alt text from its gallery item, never from the asset, so the
+// The site reads a project image's alt text from the image in the project, never from the asset, so the
 // Media plugin's own Alt Text field would only hold a second copy that nothing uses.
 export function AssetDetails({renderDefaultDetails, ...props}: ComponentProps<DetailsComponent>) {
   const isProjectImage = props.assetTagOptions?.some((tag) => tag.label === PROJECT_TAG_NAME)

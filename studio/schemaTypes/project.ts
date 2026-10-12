@@ -48,14 +48,15 @@ export const project = defineType({
       validation: (rule) => rule.unique(),
     }),
     defineField({
-      name: 'gallery',
+      name: 'projectGallery',
+      title: 'Project gallery',
       type: 'array',
       description: 'Drop multiple images here at once. Drag to reorder.',
       options: {layout: 'grid'},
-      of: [defineArrayMember({type: 'galleryImage'})],
+      of: [defineArrayMember({type: 'projectImage'})],
     }),
   ],
   preview: {
-    select: {title: 'title', media: 'gallery.0'},
+    select: {title: 'title', media: 'projectGallery.0'},
   },
 })

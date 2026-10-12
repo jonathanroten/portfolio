@@ -26,7 +26,7 @@ Style examples (invented, do not reuse their content):
 export type BulkAltTextTarget = {
   /** Document type that holds the image array, e.g. 'project'. */
   documentType: string
-  /** Top-level array field of images, e.g. 'gallery'. */
+  /** Top-level array field of images, e.g. 'projectGallery'. */
   arrayField: string
 }
 
@@ -55,7 +55,7 @@ export type BulkAltTextOptions = {
  *     title: 'Images',
  *     useFieldActions: createBulkAltTextActions({
  *       targets: [
- *         {documentType: 'project', arrayField: 'gallery'},
+ *         {documentType: 'project', arrayField: 'projectGallery'},
  *         {documentType: 'gallery', arrayField: 'items'},
  *       ],
  *     }),

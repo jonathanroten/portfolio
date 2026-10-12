@@ -110,16 +110,6 @@ export type Gallery = {
   } & GalleryItem>;
 };
 
-export type GalleryImage = {
-  _type: "galleryImage";
-  asset?: SanityImageAssetReference;
-  media?: unknown;
-  hotspot?: SanityImageHotspot;
-  crop?: SanityImageCrop;
-  alt: string;
-  layout: "default" | "fullWidth";
-};
-
 export type Service = {
   _id: string;
   _type: "service";
@@ -127,6 +117,16 @@ export type Service = {
   _updatedAt: string;
   _rev: string;
   title: string;
+};
+
+export type ProjectImage = {
+  _type: "projectImage";
+  asset?: SanityImageAssetReference;
+  media?: unknown;
+  hotspot?: SanityImageHotspot;
+  crop?: SanityImageCrop;
+  alt: string;
+  layout: "default" | "fullWidth";
 };
 
 export type ServiceReference = {
@@ -150,9 +150,9 @@ export type Project = {
   services?: Array<{
     _key: string;
   } & ServiceReference>;
-  gallery?: Array<{
+  projectGallery?: Array<{
     _key: string;
-  } & GalleryImage>;
+  } & ProjectImage>;
 };
 
 export type Slug = {
@@ -407,18 +407,18 @@ export type Geopoint = {
   alt?: number;
 };
 
-export type AllSanitySchemaTypes = SiteSettings | SanityImageAssetReference | HomePage | SanityImageCrop | SanityImageHotspot | GalleryItem | Gallery | GalleryImage | Service | ServiceReference | Project | Slug | SanityAssistInstructionTask | SanityAssistTaskStatus | SanityAssistSchemaTypeAnnotations | SanityAssistOutputType | SanityAssistOutputField | AssistInstructionContextReference | SanityAssistInstructionContext | AssistInstructionContext | SanityAssistInstructionUserInput | SanityAssistInstructionPrompt | SanityAssistInstructionFieldRef | SanityAssistInstruction | SanityAssistSchemaTypeField | MediaFolderReference | MediaFolder | MediaTag | SanityImagePaletteSwatch | SanityImagePalette | SanityImageDimensions | SanityImageMetadata | SanityFileAsset | SanityAssetSourceData | SanityImageAsset | Geopoint;
+export type AllSanitySchemaTypes = SiteSettings | SanityImageAssetReference | HomePage | SanityImageCrop | SanityImageHotspot | GalleryItem | Gallery | Service | ProjectImage | ServiceReference | Project | Slug | SanityAssistInstructionTask | SanityAssistTaskStatus | SanityAssistSchemaTypeAnnotations | SanityAssistOutputType | SanityAssistOutputField | AssistInstructionContextReference | SanityAssistInstructionContext | AssistInstructionContext | SanityAssistInstructionUserInput | SanityAssistInstructionPrompt | SanityAssistInstructionFieldRef | SanityAssistInstruction | SanityAssistSchemaTypeField | MediaFolderReference | MediaFolder | MediaTag | SanityImagePaletteSwatch | SanityImagePalette | SanityImageDimensions | SanityImageMetadata | SanityFileAsset | SanityAssetSourceData | SanityImageAsset | Geopoint;
 
 // Source: ../web/src/utils/sanity.ts
 // Variable: PROJECTS_QUERY
-// Query: *[_type == "project" && projectType == $projectType && defined(slug.current)] | order(orderRank) {  _id,  title,  "slug": slug.current,  "services": services[defined(@->title)]->title,  description,  gallery[defined(asset)] { alt, asset, hotspot, crop, layout }}
+// Query: *[_type == "project" && projectType == $projectType && defined(slug.current)] | order(orderRank) {  _id,  title,  "slug": slug.current,  "services": services[defined(@->title)]->title,  description,  projectGallery[defined(asset)] { alt, asset, hotspot, crop, layout }}
 export type PROJECTS_QUERY_RESULT = Array<{
   _id: string;
   title: string;
   slug: string;
   services: Array<string> | null;
   description: string | null;
-  gallery: Array<{
+  projectGallery: Array<{
     alt: string;
     asset: SanityImageAssetReference | null;
     hotspot: SanityImageHotspot | null;
@@ -484,7 +484,7 @@ export type DESCRIPTION_QUERY_RESULT = Array<{
 // Query TypeMap
 declare global {
   interface SanityQueries {
-    "*[_type == \"project\" && projectType == $projectType && defined(slug.current)] | order(orderRank) {\n  _id,\n  title,\n  \"slug\": slug.current,\n  \"services\": services[defined(@->title)]->title,\n  description,\n  gallery[defined(asset)] { alt, asset, hotspot, crop, layout }\n}": PROJECTS_QUERY_RESULT;
+    "*[_type == \"project\" && projectType == $projectType && defined(slug.current)] | order(orderRank) {\n  _id,\n  title,\n  \"slug\": slug.current,\n  \"services\": services[defined(@->title)]->title,\n  description,\n  projectGallery[defined(asset)] { alt, asset, hotspot, crop, layout }\n}": PROJECTS_QUERY_RESULT;
     "*[_id == \"homePage\"][0].heroImages[defined(asset)] { asset, hotspot, crop }": HERO_IMAGES_QUERY_RESULT;
     "*[_id == \"gallery\"][0].items[defined(asset)] { alt, aspectRatio, asset, hotspot, crop }": GALLERY_QUERY_RESULT;
     "*[_type == \"service\" && defined(title)] | order(title asc).title": SERVICES_QUERY_RESULT;

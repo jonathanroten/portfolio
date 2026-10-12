@@ -1,15 +1,15 @@
 import {gallery} from './gallery'
-import {galleryImage} from './galleryImage'
 import {galleryItem} from './galleryItem'
 import {project} from './project'
+import {projectImage} from './projectImage'
 import {service} from './service'
 import {homePage} from './homePage'
 import {siteSettings} from './siteSettings'
 
 export const schemaTypes = [
   project,
+  projectImage,
   service,
-  galleryImage,
   gallery,
   galleryItem,
   homePage,

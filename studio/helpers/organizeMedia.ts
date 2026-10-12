@@ -1,5 +1,5 @@
 /**
- * Files gallery images into one Media plugin folder per project and tags them "Project".
+ * Files project images into one Media plugin folder per project and tags them "Project".
  *
  * Run after adding or editing a project:
  *   npm run organize-media
@@ -9,7 +9,7 @@
  * Safe to re-run. Only published projects are read. Each project gets a folder named after it
  * when the folder is first created; after that the name is yours to change in the Media tool.
  * Images already in a folder are never moved, so moves made by hand in the Media tool stick.
- * Every gallery image gets the "Project" tag, which makes its Alt Text read-only in the Media tool
+ * Every project image gets the "Project" tag, which makes its Alt Text read-only in the Media tool
  * (see assetDetails.tsx). Images no project uses stay unfiled and untagged, and folders and
  * tags are never deleted.
  */
@@ -43,7 +43,7 @@ async function main() {
   }>(
     `{
       "projects": *[_type == "project" && !(_id in path("drafts.**"))] | order(orderRank) {
-        _id, title, "assetIds": array::unique(gallery[defined(asset._ref)].asset._ref)
+        _id, title, "assetIds": array::unique(projectGallery[defined(asset._ref)].asset._ref)
       },
       "folderIds": *[_type == $folderType]._id,
       "tagId": *[_type == $tagType && name.current == $tagName][0]._id

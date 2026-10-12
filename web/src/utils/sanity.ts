@@ -35,7 +35,7 @@ const PROJECTS_QUERY =
   "slug": slug.current,
   "services": services[defined(@->title)]->title,
   description,
-  gallery[defined(asset)] { alt, asset, hotspot, crop, layout }
+  projectGallery[defined(asset)] { alt, asset, hotspot, crop, layout }
 }`);
 
 const HERO_IMAGES_QUERY = defineQuery(

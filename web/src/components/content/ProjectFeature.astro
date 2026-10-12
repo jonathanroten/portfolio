@@ -27,7 +27,7 @@ const items = (projects ?? []).filter(
     project.title ||
     project.services?.length ||
     project.description ||
-    project.gallery?.length,
+    project.projectGallery?.length,
 );
 ---
 
@@ -74,10 +74,10 @@ const items = (projects ?? []).filter(
                 )}
               </ContentWrapper>
             </div>
-            {!!project.gallery?.length && (
+            {!!project.projectGallery?.length && (
               <div class="project-feature_column">
                 <Grid xsmall={1} medium={2} class="gap-1">
-                  {project.gallery.map((image) => {
+                  {project.projectGallery.map((image) => {
                     const full = image.layout === "fullWidth";
                     const crop = full ? crops.full : crops.half;
                     return (
