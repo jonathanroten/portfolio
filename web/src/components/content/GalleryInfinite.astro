@@ -84,7 +84,7 @@ const images: GalleryImage[] = items.map((item) => {
       { x: 1140, y: 830, w: 240, h: 320 },
     ],
     shapes: { wide: 16 / 9, square: 1, tall: 3 / 4 },
-    stride: { x: 0.6, y: 0.35 },
+    rowStep: 2,
     tileMinRem: 56,
     tileMaxRem: 100,
     overscan: 0.1,
@@ -132,11 +132,11 @@ const images: GalleryImage[] = items.map((item) => {
       }),
     ) as Record<Shape, number[]>;
 
-    const counts = new Map<Shape, number>();
+    const counts: Record<Shape, number> = { wide: 0, square: 0, tall: 0 };
     const placements = config.frames.map((frame) => {
       const shape = shapeOf(frame.w / frame.h);
-      const rank = counts.get(shape) ?? 0;
-      counts.set(shape, rank + 1);
+      const rank = counts[shape];
+      counts[shape] += 1;
       return {
         shape,
         rank,
@@ -155,9 +155,8 @@ const images: GalleryImage[] = items.map((item) => {
 
     const imageAt = (tx: number, ty: number, shape: Shape, rank: number) => {
       const pool = pools[shape];
-      const strideX = Math.ceil(pool.length * config.stride.x);
-      const strideY = Math.ceil(pool.length * config.stride.y);
-      return pool[wrap(tx * strideX + ty * strideY + rank, pool.length)];
+      const group = tx + config.rowStep * ty;
+      return pool[wrap(group * counts[shape] + rank, pool.length)];
     };
 
     const tiles = new Map<string, HTMLElement>();
