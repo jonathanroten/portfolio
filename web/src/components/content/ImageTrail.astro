@@ -33,12 +33,7 @@ const items = await slotContent(Astro.slots);
     );
     if (images.length === 0) continue;
 
-    // Mouse tracking is scoped to the section the trail lives in, so the
-    // effect only runs while the cursor is over that section (and never
-    // while it's scrolled out of view).
     const scope = trail.closest<HTMLElement>(".section") ?? trail;
-    // When the section opens the page right below an in-flow nav, the image
-    // bounds extend up over the nav so the trail can reach the logo's line.
     const nav = scope.matches("main > :first-child")
       ? document.querySelector<HTMLElement>(".nav_wrap:not(.overlap)")
       : null;
@@ -46,7 +41,6 @@ const items = await slotContent(Astro.slots);
     const config = { threshold: 32, life: 750, flipMs: 1500 };
     const total = images.length;
 
-    // Flipbook below this width, trail at/above it — matches Grid's 64rem breakpoint.
     const desktopQuery = window.matchMedia("(width >= 64rem)");
     const reducedMotionQuery = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
@@ -62,7 +56,6 @@ const items = await slotContent(Astro.slots);
     let frame: number | null = null;
     let mouseHandler: ((event: MouseEvent) => void) | null = null;
 
-    // ---- Flipbook mode (narrow): one centered frame at a time ----
     const advance = () => {
       images.forEach((img, i) =>
         img.classList.toggle("is-active", i === index),
@@ -70,19 +63,13 @@ const items = await slotContent(Astro.slots);
       index = (index + 1) % total;
     };
 
-    // ---- Trail mode (wide): hard-cut image at the cursor ----
     const showImage = () => {
       const img = images[index];
-      // Keep the whole image inside the section (plus the nav above it, when
-      // there is one), inset on every side, so it never covers the section
-      // below. The registered property resolves the fluid inset to pixels.
       const inset =
         parseFloat(
           getComputedStyle(trail).getPropertyValue("--_bounds-inset"),
         ) || 0;
       const bounds = scope.getBoundingClientRect();
-      // Measured from the section rather than the sticky nav itself, so the
-      // bounds scroll with the section.
       const top = bounds.top - (nav?.offsetHeight ?? 0);
       const halfW = img.offsetWidth / 2;
       const halfH = img.offsetHeight / 2;
@@ -98,8 +85,6 @@ const items = await slotContent(Astro.slots);
         top + inset + halfH,
         bounds.bottom - inset - halfH,
       );
-      // Offsets are measured from the trail's own center, not the viewport's,
-      // so the effect stays correct however the trail is laid out on the page.
       const rect = trail.getBoundingClientRect();
       const offsetX = x - (rect.left + rect.width / 2);
       const offsetY = y - (rect.top + rect.height / 2);
@@ -128,7 +113,6 @@ const items = await slotContent(Astro.slots);
       frame = window.requestAnimationFrame(render);
     };
 
-    // Fully stop whichever mode is running so the two can never overlap.
     const teardown = () => {
       if (frame) {
         window.cancelAnimationFrame(frame);
@@ -163,12 +147,7 @@ const items = await slotContent(Astro.slots);
         }
         return;
       }
-      // Tracked on the containing section rather than the trail itself,
-      // since the trail is pointer-events: none and never receives pointer
-      // events directly. Scoping to the section (rather than window) keeps
-      // the effect from firing while the cursor is elsewhere on the page.
       mouseHandler = (event) => {
-        // clientX/clientY are browser-reported pixels — runtime values, not CSS.
         pointer.x = event.clientX;
         pointer.y = event.clientY;
         if (!hasMoved) {
@@ -181,8 +160,6 @@ const items = await slotContent(Astro.slots);
       frame = window.requestAnimationFrame(render);
     };
 
-    // Rebuild only when the mode ACTUALLY changes, so resizing within one
-    // mode never tears down (or duplicates) the running experience.
     let currentFlip: boolean | null = null;
     const applyMode = () => {
       const flipbook = !desktopQuery.matches;
@@ -191,21 +168,14 @@ const items = await slotContent(Astro.slots);
       run(flipbook);
     };
 
-    // Debounce so a viewport that settles over a moment on load (a resizing
-    // container or window animating open) commits to ONE final mode instead
-    // of briefly showing the wrong one — this stops an image flashing on load.
     let settleTimer: number | null = null;
     const scheduleApply = () => {
       if (settleTimer) window.clearTimeout(settleTimer);
       settleTimer = window.setTimeout(applyMode, 120);
     };
 
-    // 'change' handles the breakpoint cross; 'resize' is a fallback for
-    // environments that don't fire it. applyMode is a no-op unless the
-    // mode actually changed, so this stays cheap.
     desktopQuery.addEventListener("change", scheduleApply);
     window.addEventListener("resize", scheduleApply);
-    // A reduced-motion toggle mid-session starts or stops the flipbook timer.
     reducedMotionQuery.addEventListener("change", () => {
       if (currentFlip !== null) run(currentFlip);
     });
@@ -214,7 +184,6 @@ const items = await slotContent(Astro.slots);
 </script>
 
 <style is:global>
-  /* Registered so the inset computes to px, which the script reads. */
   @property --_bounds-inset {
     syntax: "<length>";
     inherits: false;
@@ -223,10 +192,8 @@ const items = await slotContent(Astro.slots);
 
   @layer components {
     .image-trail_wrap {
-      /* Display size of each image. Override from outside for a different fit. */
       --_img-width: 18.75rem;
       --_img-ratio: 4/5;
-      /* Gap kept between trail images and the edges of their bounds (section, plus nav). */
       --_bounds-inset: var(--site-margin);
       display: flex;
       align-items: center;
@@ -250,8 +217,6 @@ const items = await slotContent(Astro.slots);
       }
     }
 
-    /* Flipbook mode: a larger, centered frame sitting in normal flow rather
-       than overlaid on whatever the trail sits in front of. */
     @media (width < 64rem) {
       .image-trail_wrap {
         --_img-width: 68vw;
