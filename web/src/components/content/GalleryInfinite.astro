@@ -1,34 +1,34 @@
 ---
-import { getImage } from "astro:assets";
 import type { HTMLAttributes } from "astro/types";
-import Img from "@/components/media/Img.astro";
-import type { GalleryImage, GalleryItem } from "@/types.ts";
+import type { GalleryImage } from "@/types.ts";
+import { imageUrl, type getGalleryItems } from "@/utils/sanity.ts";
 
 interface Props extends HTMLAttributes<"div"> {
   /** Set to `false` to omit the component. */
   render?: boolean;
-  /** Images to show in the gallery. */
-  items: GalleryItem[];
+  /** Images to show in the gallery, as `getGalleryItems` returns them. */
+  items: Awaited<ReturnType<typeof getGalleryItems>>;
 }
 
 const { render = true, items, class: className, ...rest } = Astro.props;
 
-const IMAGE_LONG_EDGE = 1024;
+const SIZES: Record<
+  (typeof items)[number]["aspectRatio"],
+  { ratio: number; width: number }
+> = {
+  "1:1": { ratio: 1, width: 640 },
+  "16:9": { ratio: 16 / 9, width: 1024 },
+  "3:4": { ratio: 3 / 4, width: 768 },
+};
 
-const images: GalleryImage[] = await Promise.all(
-  items.map(async ({ image }) => {
-    const scale = Math.min(
-      1,
-      IMAGE_LONG_EDGE / Math.max(image.width, image.height),
-    );
-    const { src, attributes } = await getImage({
-      src: image,
-      width: Math.round(image.width * scale),
-      format: "webp",
-    });
-    return { src, width: attributes.width, height: attributes.height };
-  }),
-);
+const images: GalleryImage[] = items.map((item) => {
+  const { ratio, width } = SIZES[item.aspectRatio];
+  return {
+    src: imageUrl(item, width, ratio),
+    width,
+    height: Math.round(width / ratio),
+  };
+});
 ---
 
 {
@@ -49,7 +49,15 @@ const images: GalleryImage[] = await Promise.all(
         <ul class="gallery-infinite_fallback_list" role="list">
           {images.map(({ src, width, height }) => (
             <li>
-              <Img src={src} width={width} height={height} loading="lazy" />
+              <img
+                class="image"
+                src={src}
+                width={width}
+                height={height}
+                alt=""
+                loading="lazy"
+                decoding="async"
+              />
             </li>
           ))}
         </ul>

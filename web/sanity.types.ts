@@ -89,6 +89,27 @@ export type SanityImageHotspot = {
   width: number;
 };
 
+export type GalleryItem = {
+  _type: "galleryItem";
+  asset?: SanityImageAssetReference;
+  media?: unknown;
+  hotspot?: SanityImageHotspot;
+  crop?: SanityImageCrop;
+  alt: string;
+  aspectRatio: "1:1" | "16:9" | "3:4";
+};
+
+export type Gallery = {
+  _id: string;
+  _type: "gallery";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  items?: Array<{
+    _key: string;
+  } & GalleryItem>;
+};
+
 export type GalleryImage = {
   _type: "galleryImage";
   asset?: SanityImageAssetReference;
@@ -386,7 +407,7 @@ export type Geopoint = {
   alt?: number;
 };
 
-export type AllSanitySchemaTypes = SiteSettings | SanityImageAssetReference | HomePage | SanityImageCrop | SanityImageHotspot | GalleryImage | Service | ServiceReference | Project | Slug | SanityAssistInstructionTask | SanityAssistTaskStatus | SanityAssistSchemaTypeAnnotations | SanityAssistOutputType | SanityAssistOutputField | AssistInstructionContextReference | SanityAssistInstructionContext | AssistInstructionContext | SanityAssistInstructionUserInput | SanityAssistInstructionPrompt | SanityAssistInstructionFieldRef | SanityAssistInstruction | SanityAssistSchemaTypeField | MediaFolderReference | MediaFolder | MediaTag | SanityImagePaletteSwatch | SanityImagePalette | SanityImageDimensions | SanityImageMetadata | SanityFileAsset | SanityAssetSourceData | SanityImageAsset | Geopoint;
+export type AllSanitySchemaTypes = SiteSettings | SanityImageAssetReference | HomePage | SanityImageCrop | SanityImageHotspot | GalleryItem | Gallery | GalleryImage | Service | ServiceReference | Project | Slug | SanityAssistInstructionTask | SanityAssistTaskStatus | SanityAssistSchemaTypeAnnotations | SanityAssistOutputType | SanityAssistOutputField | AssistInstructionContextReference | SanityAssistInstructionContext | AssistInstructionContext | SanityAssistInstructionUserInput | SanityAssistInstructionPrompt | SanityAssistInstructionFieldRef | SanityAssistInstruction | SanityAssistSchemaTypeField | MediaFolderReference | MediaFolder | MediaTag | SanityImagePaletteSwatch | SanityImagePalette | SanityImageDimensions | SanityImageMetadata | SanityFileAsset | SanityAssetSourceData | SanityImageAsset | Geopoint;
 
 // Source: ../web/src/utils/sanity.ts
 // Variable: PROJECTS_QUERY
@@ -411,6 +432,17 @@ export type PROJECTS_QUERY_RESULT = Array<{
 // Query: *[_id == "homePage"][0].heroImages[defined(asset)] { asset, hotspot, crop }
 export type HERO_IMAGES_QUERY_RESULT = Array<{
   asset: SanityImageAssetReference;
+  hotspot: SanityImageHotspot | null;
+  crop: SanityImageCrop | null;
+}> | null;
+
+// Source: ../web/src/utils/sanity.ts
+// Variable: GALLERY_QUERY
+// Query: *[_id == "gallery"][0].items[defined(asset)] { alt, aspectRatio, asset, hotspot, crop }
+export type GALLERY_QUERY_RESULT = Array<{
+  alt: string;
+  aspectRatio: "1:1" | "16:9" | "3:4";
+  asset: SanityImageAssetReference | null;
   hotspot: SanityImageHotspot | null;
   crop: SanityImageCrop | null;
 }> | null;
@@ -454,6 +486,7 @@ declare global {
   interface SanityQueries {
     "*[_type == \"project\" && projectType == $projectType && defined(slug.current)] | order(orderRank) {\n  _id,\n  title,\n  \"slug\": slug.current,\n  \"services\": services[defined(@->title)]->title,\n  description,\n  gallery[defined(asset)] { alt, asset, hotspot, crop, layout }\n}": PROJECTS_QUERY_RESULT;
     "*[_id == \"homePage\"][0].heroImages[defined(asset)] { asset, hotspot, crop }": HERO_IMAGES_QUERY_RESULT;
+    "*[_id == \"gallery\"][0].items[defined(asset)] { alt, aspectRatio, asset, hotspot, crop }": GALLERY_QUERY_RESULT;
     "*[_type == \"service\" && defined(title)] | order(title asc).title": SERVICES_QUERY_RESULT;
     "*[_id == \"siteSettings\"][0] {\n  \"navigation\": navigation[defined(label) && defined(href)] { _key, label, href },\n  \"socialLinks\": socialLinks[defined(label) && defined(url)] { _key, label, url },\n  seoDescription\n}": SITE_SETTINGS_QUERY_RESULT;
     "*[_id == \"homePage\"][0].description[0].children[defined(text)] {\n  text,\n  \"highlight\": \"highlight\" in coalesce(marks, [])\n}": DESCRIPTION_QUERY_RESULT;

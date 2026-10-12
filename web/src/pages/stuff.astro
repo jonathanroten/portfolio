@@ -3,7 +3,9 @@ import Layout from "@/layouts/BaseLayout.astro";
 import Section from "@/components/wrapper/Section.astro";
 import Heading from "@/components/typography/Heading.astro";
 import GalleryInfinite from "@/components/content/GalleryInfinite.astro";
-import { galleryItems } from "@/data/gallery.ts";
+import { getGalleryItems } from "@/utils/sanity.ts";
+
+const galleryItems = await getGalleryItems();
 ---
 
 <Layout title="Stuff" theme="dark" overlap footer="minimal">

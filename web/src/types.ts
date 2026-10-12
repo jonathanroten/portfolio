@@ -12,15 +12,7 @@ export interface SeoProps {
   noindex?: boolean;
 }
 
-/** One image in the infinite gallery. */
-export interface GalleryItem {
-  /** Imported image. Resized at build for the gallery. */
-  image: ImageMetadata;
-  /** Describes the image for people who cannot see it. */
-  alt: string;
-}
-
-/** One gallery image as sent to the browser, resized for display. */
+/** One gallery image as sent to the browser, cropped and resized for display. */
 export interface GalleryImage {
   src: string;
   width: number;
