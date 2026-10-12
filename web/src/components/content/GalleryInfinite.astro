@@ -62,6 +62,9 @@ const images: GalleryImage[] = await Promise.all(
     stride: { x: 0.6, y: 0.35 },
     tileMinRem: 56,
     tileMaxRem: 100,
+    overscan: 0.1,
+    ease: 220,
+    glide: 280,
   };
 
   type Shape = keyof typeof config.shapes;
@@ -120,6 +123,8 @@ const images: GalleryImage[] = await Promise.all(
 
     const tiles = new Map<string, HTMLElement>();
     const center = { x: 0.5, y: 0.5 };
+    const target = { x: 0.5, y: 0.5 };
+    const drag = { id: -1, x: 0, y: 0, time: 0, vx: 0, vy: 0 };
     const viewSize = { width: 0, height: 0 };
     const tileSize = { width: 0, height: 0 };
 
@@ -145,8 +150,17 @@ const images: GalleryImage[] = await Promise.all(
       const right = left + viewSize.width / tileSize.width;
       const bottom = top + viewSize.height / tileSize.height;
       const wanted = new Set<string>();
-      for (let ty = Math.floor(top); ty < Math.ceil(bottom); ty++) {
-        for (let tx = Math.floor(left); tx < Math.ceil(right); tx++) {
+      const margin = config.overscan;
+      for (
+        let ty = Math.floor(top - margin);
+        ty < Math.ceil(bottom + margin);
+        ty++
+      ) {
+        for (
+          let tx = Math.floor(left - margin);
+          tx < Math.ceil(right + margin);
+          tx++
+        ) {
           const key = `${tx},${ty}`;
           wanted.add(key);
           let element = tiles.get(key);
@@ -182,6 +196,95 @@ const images: GalleryImage[] = await Promise.all(
       gallery.style.setProperty("--_tile-height", `${tileSize.height}px`);
       syncTiles();
     };
+    let frame = 0;
+    let lastTime = 0;
+
+    const step = (now: number) => {
+      const dragging = drag.id !== -1;
+      const blend = dragging
+        ? 1
+        : 1 - Math.exp(-Math.min(now - lastTime, 50) / config.ease);
+      lastTime = now;
+      center.x += (target.x - center.x) * blend;
+      center.y += (target.y - center.y) * blend;
+      syncTiles();
+      const settled =
+        Math.abs(target.x - center.x) * tileSize.width < 0.1 &&
+        Math.abs(target.y - center.y) * tileSize.height < 0.1;
+      if (settled && !dragging) {
+        center.x = target.x;
+        center.y = target.y;
+        frame = 0;
+        return;
+      }
+      frame = requestAnimationFrame(step);
+    };
+
+    const start = () => {
+      if (frame) return;
+      lastTime = performance.now();
+      frame = requestAnimationFrame(step);
+    };
+
+    gallery.addEventListener("pointerdown", (event) => {
+      if (drag.id !== -1) return;
+      if (event.pointerType === "mouse" && event.button !== 0) return;
+      gallery.setPointerCapture(event.pointerId);
+      Object.assign(drag, {
+        id: event.pointerId,
+        x: event.clientX,
+        y: event.clientY,
+        time: event.timeStamp,
+        vx: 0,
+        vy: 0,
+      });
+      target.x = center.x;
+      target.y = center.y;
+      gallery.classList.add("is-dragging");
+      start();
+    });
+
+    gallery.addEventListener("pointermove", (event) => {
+      if (event.pointerId !== drag.id) return;
+      const dx = event.clientX - drag.x;
+      const dy = event.clientY - drag.y;
+      const elapsed = Math.max(event.timeStamp - drag.time, 1);
+      drag.vx = drag.vx * 0.8 + (dx / elapsed) * 0.2;
+      drag.vy = drag.vy * 0.8 + (dy / elapsed) * 0.2;
+      drag.x = event.clientX;
+      drag.y = event.clientY;
+      drag.time = event.timeStamp;
+      target.x -= dx / tileSize.width;
+      target.y -= dy / tileSize.height;
+      start();
+    });
+
+    const release = (event: PointerEvent) => {
+      if (event.pointerId !== drag.id) return;
+      drag.id = -1;
+      gallery.classList.remove("is-dragging");
+      if (event.timeStamp - drag.time < 100) {
+        target.x -= (drag.vx * config.glide) / tileSize.width;
+        target.y -= (drag.vy * config.glide) / tileSize.height;
+      }
+      start();
+    };
+    gallery.addEventListener("pointerup", release);
+    gallery.addEventListener("pointercancel", release);
+
+    gallery.addEventListener(
+      "wheel",
+      (event) => {
+        if (event.ctrlKey) return;
+        event.preventDefault();
+        const unit = [1, 16, viewSize.height][event.deltaMode];
+        target.x += (event.deltaX * unit) / tileSize.width;
+        target.y += (event.deltaY * unit) / tileSize.height;
+        start();
+      },
+      { passive: false },
+    );
+
     new ResizeObserver(resize).observe(gallery);
     resize();
   };
@@ -200,6 +303,11 @@ const images: GalleryImage[] = await Promise.all(
       position: absolute;
       inset: 0;
       overflow: clip;
+      cursor: grab;
+      touch-action: none;
+      &.is-dragging {
+        cursor: grabbing;
+      }
     }
 
     .gallery-infinite_tile {
@@ -208,6 +316,7 @@ const images: GalleryImage[] = await Promise.all(
       left: 0;
       width: var(--_tile-width);
       height: var(--_tile-height);
+      will-change: translate;
     }
 
     .gallery-infinite_image {
