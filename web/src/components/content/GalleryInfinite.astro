@@ -65,6 +65,9 @@ const images: GalleryImage[] = await Promise.all(
     overscan: 0.1,
     ease: 220,
     glide: 280,
+    calmEase: 60,
+    keySpeed: 1.1,
+    drift: { ease: 160, min: 0, max: 16 },
   };
 
   type Shape = keyof typeof config.shapes;
@@ -74,6 +77,17 @@ const images: GalleryImage[] = await Promise.all(
 
   const wrap = (value: number, length: number) =>
     ((value % length) + length) % length;
+
+  const keyDirections: Partial<Record<string, [number, number]>> = {
+    arrowleft: [-1, 0],
+    a: [-1, 0],
+    arrowright: [1, 0],
+    d: [1, 0],
+    arrowup: [0, -1],
+    w: [0, -1],
+    arrowdown: [0, 1],
+    s: [0, 1],
+  };
 
   const shapeNames = Object.keys(config.shapes) as Shape[];
 
@@ -121,14 +135,18 @@ const images: GalleryImage[] = await Promise.all(
       return pool[wrap(tx * strideX + ty * strideY + rank, pool.length)];
     };
 
-    const tiles = new Map<string, HTMLElement>();
+    type Tile = { element: HTMLElement; gains: number[] };
+    const tiles = new Map<string, Tile>();
     const center = { x: 0.5, y: 0.5 };
     const target = { x: 0.5, y: 0.5 };
+    const flow = { x: 0, y: 0 };
     const drag = { id: -1, x: 0, y: 0, time: 0, vx: 0, vy: 0 };
+    const held = new Set<string>();
+    const calm = window.matchMedia("(prefers-reduced-motion: reduce)");
     const viewSize = { width: 0, height: 0 };
     const tileSize = { width: 0, height: 0 };
 
-    const createTile = (tx: number, ty: number) => {
+    const createTile = (tx: number, ty: number): Tile => {
       const element = document.createElement("div");
       element.className = "gallery-infinite_tile";
       for (const { shape, rank, style } of placements) {
@@ -141,7 +159,16 @@ const images: GalleryImage[] = await Promise.all(
         Object.assign(image.style, style);
         element.append(image);
       }
-      return element;
+      const phase = Math.random();
+      const gains = placements
+        .map(
+          (_, index) =>
+            config.drift.min +
+            ((config.drift.max - config.drift.min) * (index + phase)) /
+              placements.length,
+        )
+        .sort(() => Math.random() - 0.5);
+      return { element, gains };
     };
 
     const syncTiles = () => {
@@ -163,18 +190,18 @@ const images: GalleryImage[] = await Promise.all(
         ) {
           const key = `${tx},${ty}`;
           wanted.add(key);
-          let element = tiles.get(key);
-          if (!element) {
-            element = createTile(tx, ty);
-            tiles.set(key, element);
-            gallery.append(element);
+          let tile = tiles.get(key);
+          if (!tile) {
+            tile = createTile(tx, ty);
+            tiles.set(key, tile);
+            gallery.append(tile.element);
           }
-          element.style.translate = `${(tx - left) * tileSize.width}px ${(ty - top) * tileSize.height}px`;
+          tile.element.style.translate = `${(tx - left) * tileSize.width}px ${(ty - top) * tileSize.height}px`;
         }
       }
-      for (const [key, element] of tiles) {
+      for (const [key, tile] of tiles) {
         if (wanted.has(key)) continue;
-        element.remove();
+        tile.element.remove();
         tiles.delete(key);
       }
     };
@@ -199,19 +226,53 @@ const images: GalleryImage[] = await Promise.all(
     let frame = 0;
     let lastTime = 0;
 
+    const applyDrift = () => {
+      for (const { element, gains } of tiles.values()) {
+        gains.forEach((gain, index) => {
+          (element.children[index] as HTMLElement).style.translate =
+            `${flow.x * gain}px ${flow.y * gain}px`;
+        });
+      }
+    };
+
     const step = (now: number) => {
-      const dragging = drag.id !== -1;
-      const blend = dragging
-        ? 1
-        : 1 - Math.exp(-Math.min(now - lastTime, 50) / config.ease);
+      const elapsed = Math.min(now - lastTime, 50);
       lastTime = now;
-      center.x += (target.x - center.x) * blend;
-      center.y += (target.y - center.y) * blend;
+      const dragging = drag.id !== -1;
+      for (const key of held) {
+        const [dx, dy] = keyDirections[key] ?? [0, 0];
+        target.x += (dx * config.keySpeed * elapsed) / tileSize.width;
+        target.y += (dy * config.keySpeed * elapsed) / tileSize.height;
+      }
+      const ease = calm.matches ? config.calmEase : config.ease;
+      const blend = dragging ? 1 : 1 - Math.exp(-elapsed / ease);
+      const moved = {
+        x: (target.x - center.x) * blend,
+        y: (target.y - center.y) * blend,
+      };
+      center.x += moved.x;
+      center.y += moved.y;
+      const smooth = calm.matches
+        ? 1
+        : 1 - Math.exp(-elapsed / config.drift.ease);
+      const speed = calm.matches
+        ? { x: 0, y: 0 }
+        : {
+            x: (moved.x * tileSize.width) / Math.max(elapsed, 1),
+            y: (moved.y * tileSize.height) / Math.max(elapsed, 1),
+          };
+      flow.x += (speed.x - flow.x) * smooth;
+      flow.y += (speed.y - flow.y) * smooth;
+      const pending = Math.max(
+        Math.hypot(
+          (target.x - center.x) * tileSize.width,
+          (target.y - center.y) * tileSize.height,
+        ),
+        Math.hypot(flow.x, flow.y) * config.drift.max,
+      );
       syncTiles();
-      const settled =
-        Math.abs(target.x - center.x) * tileSize.width < 0.1 &&
-        Math.abs(target.y - center.y) * tileSize.height < 0.1;
-      if (settled && !dragging) {
+      applyDrift();
+      if (pending < 0.1 && !dragging && !held.size) {
         center.x = target.x;
         center.y = target.y;
         frame = 0;
@@ -263,7 +324,7 @@ const images: GalleryImage[] = await Promise.all(
       if (event.pointerId !== drag.id) return;
       drag.id = -1;
       gallery.classList.remove("is-dragging");
-      if (event.timeStamp - drag.time < 100) {
+      if (!calm.matches && event.timeStamp - drag.time < 100) {
         target.x -= (drag.vx * config.glide) / tileSize.width;
         target.y -= (drag.vy * config.glide) / tileSize.height;
       }
@@ -284,6 +345,29 @@ const images: GalleryImage[] = await Promise.all(
       },
       { passive: false },
     );
+
+    document.addEventListener("keydown", (event) => {
+      const key = event.key.toLowerCase();
+      if (
+        !keyDirections[key] ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.altKey
+      ) {
+        return;
+      }
+      const typing =
+        event.target instanceof Element &&
+        event.target.closest("input, textarea, select, [contenteditable]");
+      if (typing || gallery.closest("[inert]")) return;
+      event.preventDefault();
+      held.add(key);
+      start();
+    });
+    document.addEventListener("keyup", (event) => {
+      held.delete(event.key.toLowerCase());
+    });
+    window.addEventListener("blur", () => held.clear());
 
     new ResizeObserver(resize).observe(gallery);
     resize();
@@ -321,6 +405,7 @@ const images: GalleryImage[] = await Promise.all(
 
     .gallery-infinite_image {
       position: absolute;
+      will-change: translate;
     }
 
     :root:has(.gallery-infinite_wrap) {
