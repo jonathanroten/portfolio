@@ -1,3 +1,4 @@
+import {CaseIcon} from '@sanity/icons/Case'
 import {CogIcon} from '@sanity/icons/Cog'
 import {HomeIcon} from '@sanity/icons/Home'
 import {ImagesIcon} from '@sanity/icons/Images'
@@ -32,6 +33,7 @@ export const structure: StructureResolver = (S, context) => {
         .child(S.documentTypeList('service').title('Services')),
       S.listItem()
         .title('Projects')
+        .icon(CaseIcon)
         .child(
           S.list()
             .title('Projects')
