@@ -34,8 +34,6 @@ interface Props extends HTMLAttributes<"section"> {
   gap?: ContainerGap;
   /** Content alignment. */
   align?: "start" | "center" | "end";
-  /** Fill the viewport height below the nav. */
-  fullHeight?: boolean;
   /** Inner container classes. */
   containerClass?: string;
   /** Inner container attributes. */
@@ -50,7 +48,6 @@ const {
   paddingBottom = variant === "fill" ? "none" : "medium",
   gap = "8",
   align,
-  fullHeight = false,
   containerClass,
   containerAttrs = {},
   class: className,
@@ -80,7 +77,7 @@ const background = await slotContent(Astro.slots, "background");
         "section",
         padClass("top", paddingTop),
         padClass("bottom", paddingBottom),
-        (fullHeight || variant === "fill") && "full-height",
+        variant === "fill" && "full-height",
         variant !== "default" && variant,
         theme !== "inherit" && `theme-${theme}`,
         align && `alignment-${align}`,
