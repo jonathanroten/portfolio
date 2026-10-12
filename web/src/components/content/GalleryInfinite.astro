@@ -85,6 +85,7 @@ const images: GalleryImage[] = await Promise.all(
     calmEase: 60,
     keySpeed: 1.1,
     drift: { ease: 160, min: 0, max: 16 },
+    click: { distance: 8, time: 400 },
   };
 
   type Shape = keyof typeof config.shapes;
@@ -136,6 +137,10 @@ const images: GalleryImage[] = await Promise.all(
       return {
         shape,
         rank,
+        anchor: {
+          x: (frame.x + frame.w / 2) / config.tileWidth,
+          y: (frame.y + frame.h / 2) / config.tileHeight,
+        },
         style: {
           left: `${(frame.x / config.tileWidth) * 100}%`,
           top: `${(frame.y / config.tileHeight) * 100}%`,
@@ -157,7 +162,21 @@ const images: GalleryImage[] = await Promise.all(
     const center = { x: 0.5, y: 0.5 };
     const target = { x: 0.5, y: 0.5 };
     const flow = { x: 0, y: 0 };
-    const drag = { id: -1, x: 0, y: 0, time: 0, vx: 0, vy: 0 };
+    const drag = {
+      id: -1,
+      x: 0,
+      y: 0,
+      time: 0,
+      vx: 0,
+      vy: 0,
+      startX: 0,
+      startY: 0,
+      startTime: 0,
+      moved: false,
+      target: null as EventTarget | null,
+    };
+    const anchors = new WeakMap<Element, { x: number; y: number }>();
+    let focused: HTMLElement | null = null;
     const held = new Set<string>();
     const calm = window.matchMedia("(prefers-reduced-motion: reduce)");
     const viewSize = { width: 0, height: 0 };
@@ -167,12 +186,13 @@ const images: GalleryImage[] = await Promise.all(
       const element = document.createElement("div");
       element.className = "gallery-infinite_tile";
       element.setAttribute("aria-hidden", "true");
-      for (const { shape, rank, style } of placements) {
+      for (const { shape, rank, anchor, style } of placements) {
         const image = new Image();
         image.className = "image gallery-infinite_image";
         image.alt = "";
         image.decoding = "async";
         image.draggable = false;
+        anchors.set(image, { x: tx + anchor.x, y: ty + anchor.y });
         image.src = items[imageAt(tx, ty, shape, rank)].src;
         image.decode().then(
           () => image.classList.add("is-loaded"),
@@ -309,6 +329,21 @@ const images: GalleryImage[] = await Promise.all(
       frame = requestAnimationFrame(step);
     };
 
+    const unfocus = () => {
+      focused?.classList.remove("is-focus");
+      focused = null;
+    };
+
+    const focusOn = (image: HTMLElement) => {
+      const anchor = anchors.get(image);
+      if (!anchor) return;
+      focused = image;
+      image.classList.add("is-focus");
+      target.x = anchor.x;
+      target.y = anchor.y;
+      start();
+    };
+
     gallery.addEventListener("pointerdown", (event) => {
       if (drag.id !== -1) return;
       if (event.pointerType === "mouse" && event.button !== 0) return;
@@ -320,6 +355,11 @@ const images: GalleryImage[] = await Promise.all(
         time: event.timeStamp,
         vx: 0,
         vy: 0,
+        startX: event.clientX,
+        startY: event.clientY,
+        startTime: event.timeStamp,
+        moved: false,
+        target: event.target,
       });
       target.x = center.x;
       target.y = center.y;
@@ -332,6 +372,14 @@ const images: GalleryImage[] = await Promise.all(
       const dx = event.clientX - drag.x;
       const dy = event.clientY - drag.y;
       const elapsed = Math.max(event.timeStamp - drag.time, 1);
+      const travelled = Math.hypot(
+        event.clientX - drag.startX,
+        event.clientY - drag.startY,
+      );
+      if (!drag.moved && travelled > config.click.distance) {
+        drag.moved = true;
+        unfocus();
+      }
       drag.vx = drag.vx * 0.8 + (dx / elapsed) * 0.2;
       drag.vy = drag.vy * 0.8 + (dy / elapsed) * 0.2;
       drag.x = event.clientX;
@@ -346,7 +394,18 @@ const images: GalleryImage[] = await Promise.all(
       if (event.pointerId !== drag.id) return;
       drag.id = -1;
       gallery.classList.remove("is-dragging");
-      if (!calm.matches && event.timeStamp - drag.time < 100) {
+      const clicked =
+        event.type === "pointerup" &&
+        !drag.moved &&
+        event.timeStamp - drag.startTime < config.click.time;
+      if (clicked) {
+        const image =
+          drag.target instanceof HTMLElement && anchors.has(drag.target)
+            ? drag.target
+            : null;
+        if (focused) unfocus();
+        else if (image) focusOn(image);
+      } else if (!calm.matches && event.timeStamp - drag.time < 100) {
         target.x -= (drag.vx * config.glide) / tileSize.width;
         target.y -= (drag.vy * config.glide) / tileSize.height;
       }
@@ -360,6 +419,7 @@ const images: GalleryImage[] = await Promise.all(
       (event) => {
         if (event.ctrlKey) return;
         event.preventDefault();
+        unfocus();
         const unit = [1, 16, viewSize.height][event.deltaMode];
         target.x += (event.deltaX * unit) / tileSize.width;
         target.y += (event.deltaY * unit) / tileSize.height;
@@ -369,6 +429,7 @@ const images: GalleryImage[] = await Promise.all(
     );
 
     document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") return unfocus();
       const key = event.key.toLowerCase();
       if (
         !keyDirections[key] ||
@@ -383,6 +444,7 @@ const images: GalleryImage[] = await Promise.all(
         event.target.closest("input, textarea, select, [contenteditable]");
       if (typing || gallery.closest("[inert]")) return;
       event.preventDefault();
+      unfocus();
       held.add(key);
       start();
     });
@@ -407,6 +469,7 @@ const images: GalleryImage[] = await Promise.all(
 <style is:global>
   @layer components {
     .gallery-infinite_wrap {
+      --_focus-scale: 1.15;
       position: absolute;
       inset: 0;
       overflow: clip;
@@ -428,11 +491,17 @@ const images: GalleryImage[] = await Promise.all(
 
     .gallery-infinite_image {
       position: absolute;
-      will-change: translate;
+      will-change: translate, scale;
       opacity: 0;
-      transition: opacity var(--hover-duration-gentle) var(--hover-ease);
+      transition:
+        opacity var(--hover-duration-gentle) var(--hover-ease),
+        scale var(--hover-duration-gentle) var(--hover-ease);
       &.is-loaded {
         opacity: 1;
+      }
+      &.is-focus {
+        z-index: 1;
+        scale: var(--_focus-scale);
       }
     }
 
