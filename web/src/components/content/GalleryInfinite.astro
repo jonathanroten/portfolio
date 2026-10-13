@@ -471,7 +471,8 @@ const images: GalleryImage[] = items.map((item) => {
       touch-action: none;
       -webkit-user-select: none;
       user-select: none;
-      &.is-dragging {
+      &.is-dragging,
+      &.is-dragging .gallery-infinite_image {
         cursor: grabbing;
       }
     }
@@ -497,6 +498,11 @@ const images: GalleryImage[] = items.map((item) => {
       &.is-focus {
         z-index: 1;
         scale: var(--_focus-scale);
+      }
+      @media (hover: hover) {
+        &.is-loaded {
+          cursor: pointer;
+        }
       }
     }
 
