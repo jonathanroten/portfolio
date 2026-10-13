@@ -464,7 +464,6 @@ const images: GalleryImage[] = items.map((item) => {
   @layer components {
     .gallery-infinite_wrap {
       --_focus-scale: 1.15;
-      --_backdrop: color-mix(in lab, black 60%, transparent);
       position: absolute;
       inset: 0;
       overflow: clip;
@@ -496,10 +495,10 @@ const images: GalleryImage[] = items.map((item) => {
         position: absolute;
         inset: 0;
         z-index: 1;
-        background-color: var(--_backdrop);
+        background-color: var(--backdrop);
         opacity: 0;
         pointer-events: none;
-        transition: opacity var(--hover-duration-gentle) var(--hover-ease);
+        transition: opacity var(--open-duration-gentle) var(--open-ease);
       }
     }
 
@@ -507,8 +506,8 @@ const images: GalleryImage[] = items.map((item) => {
       position: absolute;
       opacity: 0;
       transition:
-        opacity var(--hover-duration-gentle) var(--hover-ease),
-        scale var(--hover-duration-gentle) var(--hover-ease);
+        opacity var(--open-duration-gentle) var(--open-ease),
+        scale var(--open-duration-gentle) var(--open-ease);
       &.is-loaded {
         opacity: 1;
       }
