@@ -464,6 +464,7 @@ const images: GalleryImage[] = items.map((item) => {
   @layer components {
     .gallery-infinite_wrap {
       --_focus-scale: 1.15;
+      --_backdrop: color-mix(in lab, black 60%, transparent);
       position: absolute;
       inset: 0;
       overflow: clip;
@@ -471,6 +472,9 @@ const images: GalleryImage[] = items.map((item) => {
       touch-action: none;
       -webkit-user-select: none;
       user-select: none;
+      &:has(.is-focus) .gallery-infinite_tile::after {
+        opacity: 1;
+      }
       &.is-dragging,
       &.is-dragging .gallery-infinite_image {
         cursor: grabbing;
@@ -484,6 +488,19 @@ const images: GalleryImage[] = items.map((item) => {
       width: var(--_tile-width);
       height: var(--_tile-height);
       will-change: translate;
+      &:has(.is-focus) {
+        z-index: 1;
+      }
+      &::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        background-color: var(--_backdrop);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity var(--hover-duration-gentle) var(--hover-ease);
+      }
     }
 
     .gallery-infinite_image {
@@ -496,7 +513,7 @@ const images: GalleryImage[] = items.map((item) => {
         opacity: 1;
       }
       &.is-focus {
-        z-index: 1;
+        z-index: 2;
         scale: var(--_focus-scale);
       }
       @media (hover: hover) {
