@@ -386,8 +386,9 @@ const images: GalleryImage[] = items.map((item) => {
           drag.target instanceof HTMLElement && anchors.has(drag.target)
             ? drag.target
             : null;
-        if (focused) unfocus();
-        else if (image) focusOn(image);
+        const previous = focused;
+        unfocus();
+        if (image && image !== previous) focusOn(image);
       } else if (!calm.matches && event.timeStamp - drag.time < 100) {
         target.x -= (drag.vx * config.glide) / tileSize.width;
         target.y -= (drag.vy * config.glide) / tileSize.height;
