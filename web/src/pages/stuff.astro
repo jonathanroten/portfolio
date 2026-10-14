@@ -8,10 +8,16 @@ import { getGalleryItems } from "@/utils/sanity.ts";
 const galleryItems = await getGalleryItems();
 ---
 
-<Layout title="Stuff" theme="dark" overlap footer="minimal">
+<Layout
+  title="Stuff"
+  theme="dark"
+  overlap
+  footer="minimal"
+  footerMessage="Explore the space"
+>
   <Section variant="fill">
     <Heading tag="h1" variant="h2" class="sr-only"
-      >Explore the stuff I've created.</Heading
+      >Work Gallery: Stuff I've created.</Heading
     >
     <GalleryInfinite items={galleryItems} />
   </Section>
