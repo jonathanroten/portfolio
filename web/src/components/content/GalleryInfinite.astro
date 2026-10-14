@@ -27,6 +27,7 @@ const images: GalleryImage[] = items.map((item) => {
     src: imageUrl(item, width, ratio),
     width,
     height: Math.round(width / ratio),
+    service: (item.services ?? []).join(", "),
   };
 });
 ---
@@ -40,10 +41,16 @@ const images: GalleryImage[] = items.map((item) => {
         {...rest}
       >
         <ul class="sr-only">
-          {items.map(({ alt }) => (
-            <li>{alt}</li>
+          {items.map(({ alt }, index) => (
+            <li>{[alt, images[index].service].filter(Boolean).join(" — ")}</li>
           ))}
         </ul>
+        <div class="gallery-infinite_caption">
+          <div class="gallery-infinite_details" aria-live="polite">
+            <p class="gallery-infinite_index text-style-small text-transform-uppercase" />
+            <p class="gallery-infinite_service text-style-small text-transform-uppercase" />
+          </div>
+        </div>
       </div>
       <noscript class="gallery-infinite_fallback">
         <ul class="gallery-infinite_fallback_list" role="list">
@@ -93,6 +100,7 @@ const images: GalleryImage[] = items.map((item) => {
     calmEase: 60,
     keySpeed: 1.1,
     click: { distance: 8, time: 400 },
+    seatDistance: 32,
   };
 
   type Shape = keyof typeof config.shapes;
@@ -176,7 +184,13 @@ const images: GalleryImage[] = items.map((item) => {
       target: null as EventTarget | null,
     };
     const anchors = new WeakMap<Element, { x: number; y: number }>();
+    const indexes = new WeakMap<Element, number>();
+    const caption = {
+      index: gallery.querySelector<HTMLElement>(".gallery-infinite_index"),
+      service: gallery.querySelector<HTMLElement>(".gallery-infinite_service"),
+    };
     let focused: HTMLElement | null = null;
+    let seated = false;
     const held = new Set<string>();
     const calm = window.matchMedia("(prefers-reduced-motion: reduce)");
     const viewSize = { width: 0, height: 0 };
@@ -192,8 +206,10 @@ const images: GalleryImage[] = items.map((item) => {
         image.alt = "";
         image.decoding = "async";
         image.draggable = false;
+        const index = imageAt(tx, ty, shape, rank);
         anchors.set(image, { x: tx + anchor.x, y: ty + anchor.y });
-        image.src = items[imageAt(tx, ty, shape, rank)].src;
+        indexes.set(image, index);
+        image.src = items[index].src;
         image.decode().then(
           () => image.classList.add("is-loaded"),
           () => {},
@@ -239,6 +255,27 @@ const images: GalleryImage[] = items.map((item) => {
       }
     };
 
+    const syncFocus = () => {
+      if (!focused) return;
+      gallery.style.setProperty("--_focus-width", `${focused.offsetWidth}px`);
+      gallery.style.setProperty("--_focus-height", `${focused.offsetHeight}px`);
+    };
+
+    const seat = (image: HTMLElement) => {
+      const index = indexes.get(image) ?? 0;
+      const { service } = items[index];
+      if (caption.index)
+        caption.index.textContent = String(index + 1).padStart(3, "0");
+      if (caption.service) caption.service.textContent = service;
+      syncFocus();
+      seated = true;
+      Promise.allSettled(image.getAnimations().map((a) => a.finished)).then(
+        () => {
+          if (focused === image) gallery.classList.add("is-seated");
+        },
+      );
+    };
+
     const resize = () => {
       viewSize.width = gallery.clientWidth;
       viewSize.height = gallery.clientHeight;
@@ -255,6 +292,7 @@ const images: GalleryImage[] = items.map((item) => {
       gallery.style.setProperty("--_tile-width", `${tileSize.width}px`);
       gallery.style.setProperty("--_tile-height", `${tileSize.height}px`);
       syncTiles();
+      syncFocus();
     };
     let frame = 0;
     let lastTime = 0;
@@ -277,6 +315,7 @@ const images: GalleryImage[] = items.map((item) => {
         (target.x - center.x) * tileSize.width,
         (target.y - center.y) * tileSize.height,
       );
+      if (focused && !seated && pending < config.seatDistance) seat(focused);
       if (pending < 0.1 && !dragging && !held.size) {
         center.x = target.x;
         center.y = target.y;
@@ -295,6 +334,8 @@ const images: GalleryImage[] = items.map((item) => {
     const unfocus = () => {
       focused?.classList.remove("is-focus");
       focused = null;
+      seated = false;
+      gallery.classList.remove("is-seated");
     };
 
     const focusOn = (image: HTMLElement) => {
@@ -520,6 +561,43 @@ const images: GalleryImage[] = items.map((item) => {
           cursor: pointer;
         }
       }
+    }
+
+    .gallery-infinite_caption {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      z-index: 2;
+      width: calc(var(--_focus-width) * var(--_focus-scale));
+      height: calc(var(--_focus-height) * var(--_focus-scale));
+      translate: -50% -50%;
+      color: var(--text);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--open-duration) var(--open-ease);
+      .gallery-infinite_wrap.is-seated & {
+        opacity: 1;
+      }
+    }
+
+    .gallery-infinite_details {
+      position: absolute;
+      top: 100%;
+      inset-inline: 0;
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: var(--space-4);
+      margin-top: var(--space-2);
+    }
+
+    .gallery-infinite_index {
+      flex: none;
+    }
+
+    .gallery-infinite_service {
+      margin-inline-start: auto;
+      text-align: end;
     }
 
     .gallery-infinite_fallback {
