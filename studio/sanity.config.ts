@@ -8,7 +8,7 @@ import {structure} from './structure'
 import {createBulkAltTextActions} from './helpers/bulkAltText'
 import {AssetDetails} from './helpers/assetDetails'
 
-const SINGLETON_TYPES = ['homePage', 'siteSettings']
+const SINGLETON_TYPES = ['homePage', 'gallery', 'siteSettings']
 
 export default defineConfig({
   name: 'default',
@@ -23,8 +23,13 @@ export default defineConfig({
     media({components: {details: AssetDetails}}),
     assist({
       fieldActions: {
-        title: 'Gallery',
-        useFieldActions: createBulkAltTextActions({documentType: 'project', arrayField: 'gallery'}),
+        title: 'Images',
+        useFieldActions: createBulkAltTextActions({
+          targets: [
+            {documentType: 'project', arrayField: 'projectGallery'},
+            {documentType: 'gallery', arrayField: 'items'},
+          ],
+        }),
       },
     }),
   ],

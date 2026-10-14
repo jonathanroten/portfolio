@@ -71,7 +71,7 @@ export const siteSettings = defineType({
     }),
     defineField({
       name: 'seoDescription',
-      title: 'SEO description',
+      title: 'SEO Description',
       type: 'text',
       rows: 3,
       description:

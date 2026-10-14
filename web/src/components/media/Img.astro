@@ -18,12 +18,12 @@ type Base = Omit<
   src: ImageMetadata | string;
   /** Alt text. Omit for decorative images. */
   alt?: string;
-  /** Display width. The other dimension is inferred.
+  /** Image width. The other dimension is inferred.
    *
    * @min 1
    * @int */
   width?: number;
-  /** Display height. The other dimension is inferred.
+  /** Image height. The other dimension is inferred.
    *
    * @min 1
    * @int */
@@ -87,6 +87,8 @@ const isSvg =
 const resolvedFormat = isSvg ? "svg" : undefined;
 
 const isFetchable = typeof src === "string" && /^https?:\/\//i.test(src);
+const remoteAllowed =
+  isFetchable && isRemoteAllowed(src as string, imageConfig);
 const hasBothDimensions = width !== undefined && height !== undefined;
 const hasEitherDimension = width !== undefined || height !== undefined;
 const sizing =
@@ -124,12 +126,7 @@ if (
 const variantSpecified = (Astro.props as AllProps).variant !== undefined;
 const unoptimizedRemote = isFetchable && !variantSpecified;
 
-if (
-  import.meta.env.DEV &&
-  isFetchable &&
-  variantSpecified &&
-  !isRemoteAllowed(src as string, imageConfig)
-) {
+if (import.meta.env.DEV && isFetchable && variantSpecified && !remoteAllowed) {
   console.warn(
     `[lumos] <Img src="${src}"> generates a srcset for a remote host. Every entry repeats the original URL unless the host is listed in image.remotePatterns or image.domains.`,
   );
@@ -147,25 +144,25 @@ const source = typeof src === "string" ? undefined : src;
 const cropsToRatio =
   source !== undefined && width !== undefined && height !== undefined;
 
-const cropLimit = cropsToRatio
+const widthLimit = cropsToRatio
   ? Math.min(source.width, Math.round(source.height * (width / height)))
   : isFetchable && hasBothDimensions
     ? width
     : undefined;
 
-const withinCrop = (widths: number[]) => {
-  const limit = cropLimit as number;
+const withinLimit = (widths: number[]) => {
+  const limit = widthLimit as number;
   const kept = widths.filter((w) => w <= limit);
   return kept.at(-1) === limit ? kept : [...kept, limit];
 };
 
 if (import.meta.env.DEV && cropsToRatio) {
   const dropped = BREAKPOINTS.filter(
-    (w) => w <= (source as ImageMetadata).width && w > (cropLimit as number),
+    (w) => w <= (source as ImageMetadata).width && w > (widthLimit as number),
   );
   if (variant === "full-width" && dropped.length) {
     console.warn(
-      `[lumos] <Img> crops to ${width}×${height}, which a ${source!.width}×${source!.height} source can only hold up to ${cropLimit}px wide. Widths ${dropped.join(", ")} were dropped rather than enlarged; a source that tall is needed to serve them.`,
+      `[lumos] <Img> crops to ${width}×${height}, which a ${source!.width}×${source!.height} source can only hold up to ${widthLimit}px wide. Widths ${dropped.join(", ")} were dropped rather than enlarged; a source that tall is needed to serve them.`,
     );
   }
 }
@@ -176,20 +173,22 @@ const srcset =
     : variant === "densities"
       ? {
           densities:
-            cropsToRatio && width * 2 > (cropLimit as number) ? [1] : [1, 2],
+            cropsToRatio && width * 2 > (widthLimit as number) ? [1] : [1, 2],
         }
       : variant === "full-width"
         ? {
             layout: variant,
-            ...(cropLimit !== undefined
-              ? { widths: withinCrop(BREAKPOINTS) }
+            ...(widthLimit !== undefined
+              ? { widths: withinLimit(BREAKPOINTS) }
               : {}),
             ...(loading === "lazy" ? { sizes: "auto" } : {}),
           }
         : {
             sizes: sizes ?? defaultSizes,
             layout: variant,
-            ...(cropsToRatio ? { widths: withinCrop([width, width * 2]) } : {}),
+            ...(cropsToRatio
+              ? { widths: withinLimit([width, width * 2]) }
+              : {}),
           };
 
 const classes = [

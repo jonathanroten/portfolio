@@ -23,11 +23,16 @@ Style examples (invented, do not reuse their content):
 - Laptop displaying a bakery website with a hand holding a croissant and the headline "Fresh Every Morning."
 - Three light gray ring shapes joined at the center on a black background.`
 
-export type BulkAltTextOptions = {
+export type BulkAltTextTarget = {
   /** Document type that holds the image array, e.g. 'project'. */
   documentType: string
-  /** Top-level array field of images, e.g. 'gallery'. */
+  /** Top-level array field of images, e.g. 'projectGallery'. */
   arrayField: string
+}
+
+export type BulkAltTextOptions = {
+  /** Every image array that gets the action. */
+  targets: BulkAltTextTarget[]
   /** Alt text field on each image. Defaults to 'alt'. */
   altField?: string
   /**
@@ -41,14 +46,19 @@ export type BulkAltTextOptions = {
 
 /**
  * Builds the `useFieldActions` hook for the AI Assist plugin that adds "Generate missing alt text"
- * to an image array's AI Assist menu. It describes every image whose alt is empty, in batches, and
- * leaves images that already have alt text untouched.
+ * to the AI Assist menu of each image array in `targets`. It describes every image whose alt is
+ * empty, in batches, and leaves images that already have alt text untouched.
  *
  * ```ts
  * assist({
  *   fieldActions: {
- *     title: 'Gallery',
- *     useFieldActions: createBulkAltTextActions({documentType: 'project', arrayField: 'gallery'}),
+ *     title: 'Images',
+ *     useFieldActions: createBulkAltTextActions({
+ *       targets: [
+ *         {documentType: 'project', arrayField: 'projectGallery'},
+ *         {documentType: 'gallery', arrayField: 'items'},
+ *       ],
+ *     }),
  *   },
  * })
  * ```
@@ -56,13 +66,7 @@ export type BulkAltTextOptions = {
  * Needs the schema deployed (`sanity schema deploy`) and API version vX (Agent Actions).
  */
 export function createBulkAltTextActions(options: BulkAltTextOptions) {
-  const {
-    documentType,
-    arrayField,
-    altField = 'alt',
-    batchSize = 10,
-    instruction = ALT_TEXT_INSTRUCTION,
-  } = options
+  const {targets, altField = 'alt', batchSize = 10, instruction = ALT_TEXT_INSTRUCTION} = options
 
   // AI Assist calls this as a hook for every field, so hooks run unconditionally
   return function useBulkAltTextActions(props: AssistFieldActionProps) {
@@ -77,11 +81,14 @@ export function createBulkAltTextActions(options: BulkAltTextOptions) {
     const documentValueRef = useRef(documentValue)
     documentValueRef.current = documentValue
 
-    const isTarget =
-      documentSchemaType.name === documentType && path.length === 1 && path[0] === arrayField
+    const target = targets.find(
+      ({documentType, arrayField}) =>
+        documentSchemaType.name === documentType && path.length === 1 && path[0] === arrayField,
+    )
 
     return useMemo(() => {
-      if (!isTarget) return []
+      if (!target) return []
+      const {arrayField} = target
 
       return [
         defineAssistFieldAction({
@@ -155,6 +162,6 @@ export function createBulkAltTextActions(options: BulkAltTextOptions) {
           },
         }),
       ]
-    }, [isTarget, toast, client, schemaId, documentIdForAction, path])
+    }, [target, toast, client, schemaId, documentIdForAction, path])
   }
 }

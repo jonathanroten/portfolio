@@ -1,8 +1,8 @@
 import {defineField, defineType} from 'sanity'
 
-export const galleryImage = defineType({
-  name: 'galleryImage',
-  title: 'Gallery image',
+export const projectImage = defineType({
+  name: 'projectImage',
+  title: 'Project Image',
   type: 'image',
   options: {
     hotspot: true,
@@ -14,7 +14,7 @@ export const galleryImage = defineType({
   fields: [
     defineField({
       name: 'alt',
-      title: 'Alternative text',
+      title: 'Alternative Text',
       type: 'string',
       description: 'Describe the image for people who cannot see it.',
       validation: (rule) => rule.required(),
@@ -26,7 +26,7 @@ export const galleryImage = defineType({
       options: {
         list: [
           {title: 'Default', value: 'default'},
-          {title: 'Full width', value: 'fullWidth'},
+          {title: 'Full Width', value: 'fullWidth'},
         ],
         layout: 'radio',
         direction: 'horizontal',

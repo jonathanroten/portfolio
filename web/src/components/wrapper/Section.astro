@@ -22,6 +22,8 @@ type ContainerGap =
 interface Props extends HTMLAttributes<"section"> {
   /** Set to `false` to omit the component. */
   render?: boolean;
+  /** Container layout. Fill spans the section edge to edge at full height, with no padding unless set. */
+  variant?: "default" | "fill";
   /** Color theme of element and its children. */
   theme?: "inherit" | "light" | "dark" | "brand";
   /** Top padding. */
@@ -32,8 +34,6 @@ interface Props extends HTMLAttributes<"section"> {
   gap?: ContainerGap;
   /** Content alignment. */
   align?: "start" | "center" | "end";
-  /** Fill the viewport height below the nav. */
-  fullHeight?: boolean;
   /** Inner container classes. */
   containerClass?: string;
   /** Inner container attributes. */
@@ -42,12 +42,12 @@ interface Props extends HTMLAttributes<"section"> {
 
 const {
   render = true,
+  variant = "default",
   theme = "inherit",
-  paddingTop = "medium",
-  paddingBottom = "medium",
+  paddingTop = variant === "fill" ? "none" : "medium",
+  paddingBottom = variant === "fill" ? "none" : "medium",
   gap = "8",
   align,
-  fullHeight = false,
   containerClass,
   containerAttrs = {},
   class: className,
@@ -77,7 +77,8 @@ const background = await slotContent(Astro.slots, "background");
         "section",
         padClass("top", paddingTop),
         padClass("bottom", paddingBottom),
-        fullHeight && "full-height",
+        variant === "fill" && "full-height",
+        variant !== "default" && variant,
         theme !== "inherit" && `theme-${theme}`,
         align && `alignment-${align}`,
         className,

@@ -2,30 +2,24 @@
   "name": "portfolio",
   "private": true,
   "version": "1.0.0",
-  "main": "package.json",
   "license": "UNLICENSED",
   "scripts": {
     "build": "sanity build",
     "deploy": "sanity deploy",
-    "deploy-graphql": "sanity graphql deploy",
     "dev": "sanity dev",
     "organize-media": "sanity exec helpers/organizeMedia.ts --with-user-token --",
     "typegen": "sanity schemas extract --force --enforce-required-fields && sanity typegen generate",
-    "typegen:watch": "sanity typegen generate --watch",
-    "start": "sanity start"
+    "typegen:watch": "sanity typegen generate --watch"
   },
-  "keywords": [
-    "sanity"
-  ],
   "dependencies": {
     "@sanity/assist": "^6.2.2",
     "@sanity/icons": "^5.2.3",
     "@sanity/orderable-document-list": "^2.0.25",
     "@sanity/ui": "^4.3.0",
-    "@sanity/vision": "^6.18.0",
+    "@sanity/vision": "^6.19.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "sanity": "^6.18.0",
+    "sanity": "^6.19.0",
     "sanity-plugin-media": "^6.3.2",
     "styled-components": "^6.1.18"
   },

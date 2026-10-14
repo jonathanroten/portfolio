@@ -1,0 +1,18 @@
+---
+import Layout from "@/layouts/BaseLayout.astro";
+import Section from "@/components/wrapper/Section.astro";
+import Heading from "@/components/typography/Heading.astro";
+import GalleryInfinite from "@/components/content/GalleryInfinite.astro";
+import { getGalleryItems } from "@/utils/sanity.ts";
+
+const galleryItems = await getGalleryItems();
+---
+
+<Layout title="Stuff" theme="dark" overlap footer="minimal">
+  <Section variant="fill">
+    <Heading tag="h1" variant="h2" class="sr-only"
+      >Explore the stuff I've created.</Heading
+    >
+    <GalleryInfinite items={galleryItems} />
+  </Section>
+</Layout>

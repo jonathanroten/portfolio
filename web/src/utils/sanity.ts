@@ -3,6 +3,7 @@ import { createImageUrlBuilder } from "@sanity/image-url";
 import { defineQuery } from "groq";
 import type {
   DESCRIPTION_QUERY_RESULT,
+  GALLERY_QUERY_RESULT,
   HERO_IMAGES_QUERY_RESULT,
   PROJECTS_QUERY_RESULT,
   Project,
@@ -34,7 +35,7 @@ const PROJECTS_QUERY =
   "slug": slug.current,
   "services": services[defined(@->title)]->title,
   description,
-  gallery[defined(asset)] { alt, asset, hotspot, crop, layout }
+  projectGallery[defined(asset)] { alt, asset, hotspot, crop, layout }
 }`);
 
 const HERO_IMAGES_QUERY = defineQuery(
@@ -46,6 +47,17 @@ export async function getHeroImages(): Promise<
   NonNullable<HERO_IMAGES_QUERY_RESULT>
 > {
   return (await sanityClient.fetch(HERO_IMAGES_QUERY)) ?? [];
+}
+
+const GALLERY_QUERY = defineQuery(
+  `*[_id == "gallery"][0].items[defined(asset)] { alt, aspectRatio, asset, hotspot, crop }`,
+);
+
+/** Images for the infinite gallery, in the order set in the Studio. */
+export async function getGalleryItems(): Promise<
+  NonNullable<GALLERY_QUERY_RESULT>
+> {
+  return (await sanityClient.fetch(GALLERY_QUERY)) ?? [];
 }
 
 const SERVICES_QUERY = defineQuery(

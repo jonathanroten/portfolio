@@ -37,7 +37,7 @@ export const homePage = defineType({
     }),
     defineField({
       name: 'heroImages',
-      title: 'Hero images',
+      title: 'Hero Images',
       type: 'array',
       description: 'Images that follow the cursor in the hero. Drag to reorder.',
       of: [defineArrayMember({type: 'image', options: {hotspot: true}})],

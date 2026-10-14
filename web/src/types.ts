@@ -11,3 +11,10 @@ export interface SeoProps {
   /** Override `NOINDEX_ROUTES` for this page's robots tag. */
   noindex?: boolean;
 }
+
+/** One gallery image as sent to the browser, cropped and resized for display. */
+export interface GalleryImage {
+  src: string;
+  width: number;
+  height: number;
+}

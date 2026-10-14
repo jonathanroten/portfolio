@@ -25,6 +25,11 @@
   &.full-height {
     min-height: calc(100svh - var(--nav-total-height));
   }
+  &.fill > .container {
+    width: 100%;
+    max-width: none;
+    flex-grow: 1;
+  }
 }
 
 .container {
