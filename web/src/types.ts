@@ -17,4 +17,8 @@ export interface GalleryImage {
   src: string;
   width: number;
   height: number;
+  /** Who the work was for, read out to screen readers when the image is focused. */
+  client: string;
+  /** What was done for them, shown under the image when it is focused. */
+  service: string;
 }
