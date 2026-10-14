@@ -350,10 +350,16 @@ const { render = true, overlap = false } = Astro.props;
       padding-block: var(--space-4);
       transition: color var(--hover-duration-gentle) var(--hover-ease);
       @media (width >= 48rem) {
-        padding-block: 0 var(--link-border-gap);
-        border-bottom: var(--border-width) solid transparent;
-        &[aria-current="page"] {
-          border-bottom-color: currentcolor;
+        position: relative;
+        padding-block: 0;
+        &[aria-current="page"]::after {
+          content: "";
+          position: absolute;
+          inset-inline: calc(var(--h6) * -0.25);
+          top: 50%;
+          height: var(--border-width-medium);
+          background-color: currentcolor;
+          translate: 0 -50%;
         }
       }
     }
