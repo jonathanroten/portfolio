@@ -11,7 +11,7 @@ import ProjectFeature from "@/components/content/ProjectFeature.astro";
 import Img from "@/components/media/Img.astro";
 import Accordion from "@/components/interactive/Accordion.astro";
 import AccordionItem from "@/components/interactive/AccordionItem.astro";
-import ProjectSlider from "@/components/content/ProjectSlider.astro";
+import Slider from "@/components/interactive/Slider.astro";
 
 import {
   getDescription,
@@ -25,6 +25,7 @@ const brandProjects = await getProjects("brand");
 const interactiveProjects = await getProjects("interactive");
 const heroImages = await getHeroImages();
 const description = await getDescription();
+const sliderCrop = { width: 1920, ratio: 16 / 9 };
 ---
 
 <Layout theme="dark">
@@ -84,7 +85,33 @@ const description = await getDescription();
             heading={project.title}
             headingTag="h2"
           >
-            <ProjectSlider project={project} />
+            <Slider
+              label={`${project.title} project images`}
+              align="center"
+              loop
+              fade
+              xsmall={1.2}
+              large={1.7}
+              class="gap-1 gap-row-5"
+            >
+              {project.projectGallery?.map((image) => (
+                <Img
+                  src={imageUrl(image, sliderCrop.width, sliderCrop.ratio)}
+                  alt={image.alt}
+                  variant="full-width"
+                  width={sliderCrop.width}
+                  height={Math.round(sliderCrop.width / sliderCrop.ratio)}
+                />
+              ))}
+              {!!project.services?.length && (
+                <Fragment slot="caption">
+                  <Heading tag="h3" variant="h5" class="margin-bottom-3">
+                    Services Provided
+                  </Heading>
+                  <Paragraph>{project.services.join(", ")}</Paragraph>
+                </Fragment>
+              )}
+            </Slider>
           </AccordionItem>
         ))
       }
