@@ -34,6 +34,8 @@ type Props = HTMLAttributes<"div"> & {
   large?: number;
   /** Loop past the last slide. */
   loop?: boolean;
+  /** Fade slides out at both edges. */
+  fade?: boolean;
 };
 
 const {
@@ -46,6 +48,7 @@ const {
   medium,
   large,
   loop = false,
+  fade = false,
   class: className,
   ...rest
 } = Astro.props;
@@ -87,6 +90,7 @@ const caption = await slotContent(Astro.slots, "caption");
         variant !== "bleed" && variant,
         align !== "start" && align,
         loop && "loop",
+        fade && "fade",
         className,
       ]}
       style={visible}
@@ -495,6 +499,21 @@ const caption = await slotContent(Astro.slots, "caption");
         margin-inline: 0;
         padding-inline: var(--_center, 0rem);
         scroll-padding-inline: 0;
+      }
+
+      .slider_wrap.fade & {
+        --_fade: calc(var(--_edge) + var(--_center, 0rem));
+        mask-image: linear-gradient(
+          to right,
+          transparent,
+          black var(--_fade),
+          black calc(100% - var(--_fade)),
+          transparent
+        );
+
+        &:focus-visible {
+          outline-offset: var(--focus-offset-inner);
+        }
       }
     }
 
