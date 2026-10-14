@@ -16,10 +16,10 @@ type Base = HTMLAttributes<"div"> & {
   render?: boolean;
   /** Item heading. Supports inline markup. */
   heading?: string;
-  /** Heading level. */
-  headingTag?: "h2" | "h3" | "h4" | "h5" | "h6";
   /** Content layout. */
   variant?: "default" | "list-inline" | "list-stacked";
+  /** Heading level. */
+  headingTag?: "h2" | "h3" | "h4" | "h5" | "h6";
 };
 
 type Props = Base &
@@ -46,10 +46,10 @@ type AllProps = Base & {
 const {
   render = true,
   heading,
-  headingTag = "h3",
   variant = "default",
   text,
   items,
+  headingTag = "h3",
   class: className,
   ...rest
 } = Astro.props as AllProps;

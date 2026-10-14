@@ -7,10 +7,10 @@ interface Props extends HTMLAttributes<"div"> {
   /** Set to `false` to omit the component. */
   render?: boolean;
   /** Images to show in the gallery, as `getGalleryItems` returns them. */
-  items: Awaited<ReturnType<typeof getGalleryItems>>;
+  items?: Awaited<ReturnType<typeof getGalleryItems>>;
 }
 
-const { render = true, items, class: className, ...rest } = Astro.props;
+const { render = true, items = [], class: className, ...rest } = Astro.props;
 
 const SIZES: Record<
   (typeof items)[number]["aspectRatio"],
