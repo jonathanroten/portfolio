@@ -1,4 +1,4 @@
-import {defineField, defineType} from 'sanity'
+import {defineArrayMember, defineField, defineType} from 'sanity'
 
 // The gallery's frames come in these shapes. An item's ratio picks both its crop and the frames it fills
 export const aspectRatios = [
@@ -40,6 +40,15 @@ export const galleryItem = defineType({
       },
       initialValue: '1:1',
       validation: (rule) => rule.required(),
+    }),
+    defineField({
+      name: 'services',
+      type: 'array',
+      description:
+        'Shown under the image when it is selected. Pick from existing services, or create a new one. Renaming a service updates every image.',
+      of: [defineArrayMember({type: 'reference', to: [{type: 'service'}]})],
+      options: {aiAssist: {exclude: true}},
+      validation: (rule) => rule.required().unique(),
     }),
   ],
   preview: {

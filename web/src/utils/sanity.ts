@@ -50,7 +50,7 @@ export async function getHeroImages(): Promise<
 }
 
 const GALLERY_QUERY = defineQuery(
-  `*[_id == "gallery"][0].items[defined(asset)] { alt, aspectRatio, asset, hotspot, crop }`,
+  `*[_id == "gallery"][0].items[defined(asset)] { alt, aspectRatio, asset, hotspot, crop, "services": services[defined(@->title)]->title }`,
 );
 
 /** Images for the infinite gallery, in the order set in the Studio. */

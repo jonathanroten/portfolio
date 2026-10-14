@@ -21,20 +21,13 @@ const SIZES: Record<
   "3:4": { ratio: 3 / 4, width: 768 },
 };
 
-const SAMPLE_CAPTIONS = [
-  { client: "Richardson's", service: "Branding" },
-  { client: "Fool's Gold", service: "Packaging" },
-  { client: "The Artreaux", service: "Merchandise" },
-  { client: "Uptown Trading Company", service: "Branding & Packaging" },
-];
-
-const images: GalleryImage[] = items.map((item, index) => {
+const images: GalleryImage[] = items.map((item) => {
   const { ratio, width } = SIZES[item.aspectRatio];
   return {
     src: imageUrl(item, width, ratio),
     width,
     height: Math.round(width / ratio),
-    ...SAMPLE_CAPTIONS[index % SAMPLE_CAPTIONS.length],
+    service: (item.services ?? []).join(", "),
   };
 });
 ---
@@ -48,14 +41,13 @@ const images: GalleryImage[] = items.map((item, index) => {
         {...rest}
       >
         <ul class="sr-only">
-          {items.map(({ alt }) => (
-            <li>{alt}</li>
+          {items.map(({ alt }, index) => (
+            <li>{[alt, images[index].service].filter(Boolean).join(" — ")}</li>
           ))}
         </ul>
         <div class="gallery-infinite_caption">
           <div class="gallery-infinite_details" aria-live="polite">
             <p class="gallery-infinite_index text-style-small text-transform-uppercase" />
-            <p class="gallery-infinite_client sr-only" />
             <p class="gallery-infinite_service text-style-small text-transform-uppercase" />
           </div>
         </div>
@@ -195,7 +187,6 @@ const images: GalleryImage[] = items.map((item, index) => {
     const indexes = new WeakMap<Element, number>();
     const caption = {
       index: gallery.querySelector<HTMLElement>(".gallery-infinite_index"),
-      client: gallery.querySelector<HTMLElement>(".gallery-infinite_client"),
       service: gallery.querySelector<HTMLElement>(".gallery-infinite_service"),
     };
     let focused: HTMLElement | null = null;
@@ -272,10 +263,9 @@ const images: GalleryImage[] = items.map((item, index) => {
 
     const seat = (image: HTMLElement) => {
       const index = indexes.get(image) ?? 0;
-      const { client, service } = items[index];
+      const { service } = items[index];
       if (caption.index)
         caption.index.textContent = String(index + 1).padStart(3, "0");
-      if (caption.client) caption.client.textContent = client;
       if (caption.service) caption.service.textContent = service;
       syncFocus();
       seated = true;

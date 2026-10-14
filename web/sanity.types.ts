@@ -89,6 +89,13 @@ export type SanityImageHotspot = {
   width: number;
 };
 
+export type ServiceReference = {
+  _ref: string;
+  _type: "reference";
+  _weak?: boolean;
+  [internalGroqTypeReferenceTo]?: "service";
+};
+
 export type GalleryItem = {
   _type: "galleryItem";
   asset?: SanityImageAssetReference;
@@ -97,6 +104,9 @@ export type GalleryItem = {
   crop?: SanityImageCrop;
   alt: string;
   aspectRatio: "1:1" | "16:9" | "3:4";
+  services: Array<{
+    _key: string;
+  } & ServiceReference>;
 };
 
 export type Gallery = {
@@ -127,13 +137,6 @@ export type ProjectImage = {
   crop?: SanityImageCrop;
   alt: string;
   layout: "default" | "fullWidth";
-};
-
-export type ServiceReference = {
-  _ref: string;
-  _type: "reference";
-  _weak?: boolean;
-  [internalGroqTypeReferenceTo]?: "service";
 };
 
 export type Project = {
@@ -407,7 +410,7 @@ export type Geopoint = {
   alt?: number;
 };
 
-export type AllSanitySchemaTypes = SiteSettings | SanityImageAssetReference | HomePage | SanityImageCrop | SanityImageHotspot | GalleryItem | Gallery | Service | ProjectImage | ServiceReference | Project | Slug | SanityAssistInstructionTask | SanityAssistTaskStatus | SanityAssistSchemaTypeAnnotations | SanityAssistOutputType | SanityAssistOutputField | AssistInstructionContextReference | SanityAssistInstructionContext | AssistInstructionContext | SanityAssistInstructionUserInput | SanityAssistInstructionPrompt | SanityAssistInstructionFieldRef | SanityAssistInstruction | SanityAssistSchemaTypeField | MediaFolderReference | MediaFolder | MediaTag | SanityImagePaletteSwatch | SanityImagePalette | SanityImageDimensions | SanityImageMetadata | SanityFileAsset | SanityAssetSourceData | SanityImageAsset | Geopoint;
+export type AllSanitySchemaTypes = SiteSettings | SanityImageAssetReference | HomePage | SanityImageCrop | SanityImageHotspot | ServiceReference | GalleryItem | Gallery | Service | ProjectImage | Project | Slug | SanityAssistInstructionTask | SanityAssistTaskStatus | SanityAssistSchemaTypeAnnotations | SanityAssistOutputType | SanityAssistOutputField | AssistInstructionContextReference | SanityAssistInstructionContext | AssistInstructionContext | SanityAssistInstructionUserInput | SanityAssistInstructionPrompt | SanityAssistInstructionFieldRef | SanityAssistInstruction | SanityAssistSchemaTypeField | MediaFolderReference | MediaFolder | MediaTag | SanityImagePaletteSwatch | SanityImagePalette | SanityImageDimensions | SanityImageMetadata | SanityFileAsset | SanityAssetSourceData | SanityImageAsset | Geopoint;
 
 // Source: ../web/src/utils/sanity.ts
 // Variable: PROJECTS_QUERY
@@ -438,13 +441,14 @@ export type HERO_IMAGES_QUERY_RESULT = Array<{
 
 // Source: ../web/src/utils/sanity.ts
 // Variable: GALLERY_QUERY
-// Query: *[_id == "gallery"][0].items[defined(asset)] { alt, aspectRatio, asset, hotspot, crop }
+// Query: *[_id == "gallery"][0].items[defined(asset)] { alt, aspectRatio, asset, hotspot, crop, "services": services[defined(@->title)]->title }
 export type GALLERY_QUERY_RESULT = Array<{
   alt: string;
   aspectRatio: "1:1" | "16:9" | "3:4";
   asset: SanityImageAssetReference | null;
   hotspot: SanityImageHotspot | null;
   crop: SanityImageCrop | null;
+  services: Array<string>;
 }> | null;
 
 // Source: ../web/src/utils/sanity.ts
@@ -486,7 +490,7 @@ declare global {
   interface SanityQueries {
     "*[_type == \"project\" && projectType == $projectType && defined(slug.current)] | order(orderRank) {\n  _id,\n  title,\n  \"slug\": slug.current,\n  \"services\": services[defined(@->title)]->title,\n  description,\n  projectGallery[defined(asset)] { alt, asset, hotspot, crop, layout }\n}": PROJECTS_QUERY_RESULT;
     "*[_id == \"homePage\"][0].heroImages[defined(asset)] { asset, hotspot, crop }": HERO_IMAGES_QUERY_RESULT;
-    "*[_id == \"gallery\"][0].items[defined(asset)] { alt, aspectRatio, asset, hotspot, crop }": GALLERY_QUERY_RESULT;
+    "*[_id == \"gallery\"][0].items[defined(asset)] { alt, aspectRatio, asset, hotspot, crop, \"services\": services[defined(@->title)]->title }": GALLERY_QUERY_RESULT;
     "*[_type == \"service\" && defined(title)] | order(title asc).title": SERVICES_QUERY_RESULT;
     "*[_id == \"siteSettings\"][0] {\n  \"navigation\": navigation[defined(label) && defined(href)] { _key, label, href },\n  \"socialLinks\": socialLinks[defined(label) && defined(url)] { _key, label, url },\n  seoDescription\n}": SITE_SETTINGS_QUERY_RESULT;
     "*[_id == \"homePage\"][0].description[0].children[defined(text)] {\n  text,\n  \"highlight\": \"highlight\" in coalesce(marks, [])\n}": DESCRIPTION_QUERY_RESULT;
