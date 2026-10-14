@@ -21,12 +21,15 @@ type Props = SeoProps & {
    * full-bleed pages.
    */
   footer?: "full" | "minimal";
+  /** Text in the right corner of the `minimal` footer. Omit to leave it empty. */
+  footerMessage?: string;
 };
 
 const {
   theme = "inherit",
   overlap = false,
   footer = "full",
+  footerMessage,
   ...seo
 } = Astro.props;
 ---
@@ -44,6 +47,6 @@ const {
       <slot />
     </main>
     {footer === "full" && <Footer />}
-    {footer === "minimal" && <FooterMinimal />}
+    {footer === "minimal" && <FooterMinimal message={footerMessage} />}
   </body>
 </html>
