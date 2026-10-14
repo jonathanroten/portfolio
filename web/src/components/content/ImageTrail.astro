@@ -187,7 +187,7 @@ const items = await slotContent(Astro.slots);
   @property --_bounds-inset {
     syntax: "<length>";
     inherits: false;
-    initial-value: 0px;
+    initial-value: 0;
   }
 
   @layer components {
@@ -215,10 +215,8 @@ const items = await slotContent(Astro.slots);
           opacity: 1;
         }
       }
-    }
 
-    @media (width < 64rem) {
-      .image-trail_wrap {
+      @media (width < 64rem) {
         --_img-width: 68vw;
         position: relative;
         aspect-ratio: var(--_img-ratio);

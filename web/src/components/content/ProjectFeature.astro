@@ -87,7 +87,7 @@ const items = (projects ?? []).filter(
                         width={crop.width}
                         height={Math.round(crop.width / crop.ratio)}
                         alt={image.alt ?? undefined}
-                        class={full ? "full-width" : undefined}
+                        class={full ? "grid-column-full" : undefined}
                       />
                     );
                   })}
@@ -123,9 +123,6 @@ const items = (projects ?? []).filter(
         display: flex;
         flex-direction: column;
         gap: var(--space-1);
-        .grid > .full-width {
-          grid-column: 1 / -1;
-        }
       }
       .project-feature_counter {
         border: var(--border-width-medium) solid var(--text);
