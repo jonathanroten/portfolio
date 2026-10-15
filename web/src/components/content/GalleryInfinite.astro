@@ -14,17 +14,18 @@ const { render = true, items = [], class: className, ...rest } = Astro.props;
 
 const SIZES: Record<
   (typeof items)[number]["aspectRatio"],
-  { ratio: number; width: number }
+  { ratio: number; width: number; fullWidth: number }
 > = {
-  "1:1": { ratio: 1, width: 640 },
-  "16:9": { ratio: 16 / 9, width: 1024 },
-  "3:4": { ratio: 3 / 4, width: 768 },
+  "1:1": { ratio: 1, width: 640, fullWidth: 1600 },
+  "16:9": { ratio: 16 / 9, width: 1024, fullWidth: 2400 },
+  "3:4": { ratio: 3 / 4, width: 768, fullWidth: 1200 },
 };
 
 const images: GalleryImage[] = items.map((item) => {
-  const { ratio, width } = SIZES[item.aspectRatio];
+  const { ratio, width, fullWidth } = SIZES[item.aspectRatio];
   return {
     src: imageUrl(item, width, ratio),
+    fullSrc: imageUrl(item, fullWidth, ratio),
     width,
     height: Math.round(width / ratio),
     service: (item.services ?? []).join(", "),
@@ -257,8 +258,19 @@ const images: GalleryImage[] = items.map((item) => {
 
     const syncFocus = () => {
       if (!focused) return;
-      gallery.style.setProperty("--_focus-width", `${focused.offsetWidth}px`);
-      gallery.style.setProperty("--_focus-height", `${focused.offsetHeight}px`);
+      const width = focused.offsetWidth;
+      const height = focused.offsetHeight;
+      const inset = getComputedStyle(gallery);
+      const scale = Math.max(
+        1,
+        Math.min(
+          (viewSize.width - 2 * parseFloat(inset.scrollPaddingLeft)) / width,
+          (viewSize.height - 2 * parseFloat(inset.scrollPaddingTop)) / height,
+        ),
+      );
+      gallery.style.setProperty("--_focus-width", `${width}px`);
+      gallery.style.setProperty("--_focus-height", `${height}px`);
+      gallery.style.setProperty("--_focus-scale", String(scale));
     };
 
     const seat = (image: HTMLElement) => {
@@ -267,7 +279,6 @@ const images: GalleryImage[] = items.map((item) => {
       if (caption.index)
         caption.index.textContent = String(index + 1).padStart(3, "0");
       if (caption.service) caption.service.textContent = service;
-      syncFocus();
       seated = true;
       Promise.allSettled(image.getAnimations().map((a) => a.finished)).then(
         () => {
@@ -332,24 +343,39 @@ const images: GalleryImage[] = items.map((item) => {
     };
 
     const unfocus = () => {
-      focused?.classList.remove("is-focus");
+      const image = focused;
+      if (image) {
+        // Stays on top of the backdrop and its neighbours until it has shrunk back
+        image.classList.replace("is-focus", "is-leaving");
+        Promise.allSettled(image.getAnimations().map((a) => a.finished)).then(
+          () => image.classList.remove("is-leaving"),
+        );
+      }
       focused = null;
       seated = false;
       gallery.classList.remove("is-seated");
     };
 
-    const focusOn = (image: HTMLElement) => {
+    const focusOn = (image: HTMLImageElement) => {
       const anchor = anchors.get(image);
       if (!anchor) return;
       focused = image;
+      syncFocus();
       image.classList.add("is-focus");
+      const { fullSrc } = items[indexes.get(image) ?? 0];
+      const full = new Image();
+      full.src = fullSrc;
+      full.decode().then(
+        () => (image.src = fullSrc),
+        () => {},
+      );
       target.x = anchor.x;
       target.y = anchor.y;
       start();
     };
 
     const nearestImage = () => {
-      let nearest: HTMLElement | null = null;
+      let nearest: HTMLImageElement | null = null;
       let nearestDistance = Infinity;
       for (const tile of tiles.values()) {
         for (const image of tile.children) {
@@ -360,7 +386,7 @@ const images: GalleryImage[] = items.map((item) => {
             (anchor.y - center.y) * tileSize.height,
           );
           if (distance < nearestDistance) {
-            nearest = image as HTMLElement;
+            nearest = image as HTMLImageElement;
             nearestDistance = distance;
           }
         }
@@ -424,7 +450,7 @@ const images: GalleryImage[] = items.map((item) => {
         event.timeStamp - drag.startTime < config.click.time;
       if (clicked) {
         const image =
-          drag.target instanceof HTMLElement && anchors.has(drag.target)
+          drag.target instanceof HTMLImageElement && anchors.has(drag.target)
             ? drag.target
             : null;
         const previous = focused;
@@ -504,7 +530,11 @@ const images: GalleryImage[] = items.map((item) => {
 <style is:global>
   @layer components {
     .gallery-infinite_wrap {
-      --_focus-scale: 1.15;
+      --_focus-duration: 600ms;
+      /* The view a focused image grows to fill, read by the script: clear of
+         the fixed nav, and as the image is centred, the same room below for
+         the caption and footer */
+      scroll-padding: var(--nav-total-height) var(--site-margin);
       position: absolute;
       inset: 0;
       overflow: clip;
@@ -528,8 +558,11 @@ const images: GalleryImage[] = items.map((item) => {
       width: var(--_tile-width);
       height: var(--_tile-height);
       will-change: translate;
-      &:has(.is-focus) {
+      &:has(.is-leaving) {
         z-index: 1;
+      }
+      &:has(.is-focus) {
+        z-index: 2;
       }
       &::after {
         content: "";
@@ -548,12 +581,15 @@ const images: GalleryImage[] = items.map((item) => {
       opacity: 0;
       transition:
         opacity var(--open-duration-gentle) var(--open-ease),
-        scale var(--open-duration-gentle) var(--open-ease);
+        scale var(--_focus-duration) var(--open-ease);
       &.is-loaded {
         opacity: 1;
       }
-      &.is-focus {
+      &.is-focus,
+      &.is-leaving {
         z-index: 2;
+      }
+      &.is-focus {
         scale: var(--_focus-scale);
       }
       @media (hover: hover) {
@@ -567,7 +603,7 @@ const images: GalleryImage[] = items.map((item) => {
       position: absolute;
       top: 50%;
       left: 50%;
-      z-index: 2;
+      z-index: 3;
       width: calc(var(--_focus-width) * var(--_focus-scale));
       height: calc(var(--_focus-height) * var(--_focus-scale));
       translate: -50% -50%;
