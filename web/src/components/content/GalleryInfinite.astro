@@ -95,6 +95,7 @@ const images: GalleryImage[] = items.map((item) => {
     rowStep: 2,
     tileMinRem: 56,
     tileMaxRem: 100,
+    focusRem: 30,
     overscan: 0.1,
     ease: 220,
     glide: 280,
@@ -111,6 +112,9 @@ const images: GalleryImage[] = items.map((item) => {
 
   const wrap = (value: number, length: number) =>
     ((value % length) + length) % length;
+
+  const remSize = () =>
+    parseFloat(getComputedStyle(document.documentElement).fontSize);
 
   const keyDirections: Partial<Record<string, [number, number]>> = {
     ArrowLeft: [-1, 0],
@@ -261,11 +265,18 @@ const images: GalleryImage[] = items.map((item) => {
       const width = focused.offsetWidth;
       const height = focused.offsetHeight;
       const inset = getComputedStyle(gallery);
+      const roomWidth =
+        viewSize.width - 2 * parseFloat(inset.scrollPaddingLeft);
+      const roomHeight =
+        viewSize.height - 2 * parseFloat(inset.scrollPaddingTop);
+      // Every shape opens with its short side at `focusRem`, unless that
+      // would push it past the room
       const scale = Math.max(
         1,
         Math.min(
-          (viewSize.width - 2 * parseFloat(inset.scrollPaddingLeft)) / width,
-          (viewSize.height - 2 * parseFloat(inset.scrollPaddingTop)) / height,
+          (config.focusRem * remSize()) / Math.min(width, height),
+          roomWidth / width,
+          roomHeight / height,
         ),
       );
       gallery.style.setProperty("--_focus-width", `${width}px`);
@@ -291,9 +302,7 @@ const images: GalleryImage[] = items.map((item) => {
       viewSize.width = gallery.clientWidth;
       viewSize.height = gallery.clientHeight;
       if (!viewSize.width || !viewSize.height) return;
-      const rem = parseFloat(
-        getComputedStyle(document.documentElement).fontSize,
-      );
+      const rem = remSize();
       tileSize.width = clamp(
         viewSize.width,
         config.tileMinRem * rem,
@@ -453,9 +462,10 @@ const images: GalleryImage[] = items.map((item) => {
           drag.target instanceof HTMLImageElement && anchors.has(drag.target)
             ? drag.target
             : null;
-        const previous = focused;
-        unfocus();
-        if (image && image !== previous) focusOn(image);
+        // A click anywhere closes an open image, so a stray click beside it
+        // never opens one of the dimmed images behind
+        if (focused) unfocus();
+        else if (image) focusOn(image);
       } else if (!calm.matches && event.timeStamp - drag.time < 100) {
         target.x -= (drag.vx * config.glide) / tileSize.width;
         target.y -= (drag.vy * config.glide) / tileSize.height;
@@ -622,18 +632,12 @@ const images: GalleryImage[] = items.map((item) => {
       inset-inline: 0;
       display: flex;
       align-items: start;
-      justify-content: space-between;
       gap: var(--space-4);
       margin-top: var(--space-2);
     }
 
     .gallery-infinite_index {
       flex: none;
-    }
-
-    .gallery-infinite_service {
-      margin-inline-start: auto;
-      text-align: end;
     }
 
     .gallery-infinite_fallback {
