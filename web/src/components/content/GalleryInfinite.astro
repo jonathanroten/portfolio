@@ -554,7 +554,9 @@ const images: GalleryImage[] = items.map((item) => {
         event.timeStamp - drag.startTime < config.click.time;
       if (clicked) {
         const image =
-          drag.target instanceof HTMLImageElement && placed.has(drag.target)
+          drag.target instanceof HTMLImageElement &&
+          placed.has(drag.target) &&
+          drag.target.classList.contains("is-loaded")
             ? drag.target
             : null;
         if (focused) {
