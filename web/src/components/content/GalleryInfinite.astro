@@ -197,6 +197,12 @@ const images: GalleryImage[] = items.map((item) => {
     const anchors = new WeakMap<Element, { x: number; y: number }>();
     const extents = new WeakMap<Element, { x: number; y: number }>();
     const indexes = new WeakMap<Element, number>();
+    const slots = new WeakMap<Element, string>();
+    // Overlapping images stack in the order they were last opened, so one
+    // opened from behind a neighbour stays in front once it closes. Kept by
+    // slot, as tiles are rebuilt when they scroll back into view
+    const stacking = new Map<string, number>();
+    let stacked = 0;
     const caption = {
       box: gallery.querySelector<HTMLElement>(".gallery-infinite_caption"),
       details: gallery.querySelector<HTMLElement>(".gallery-infinite_details"),
@@ -253,16 +259,20 @@ const images: GalleryImage[] = items.map((item) => {
       const element = document.createElement("div");
       element.className = "gallery-infinite_tile";
       element.setAttribute("aria-hidden", "true");
-      for (const { shape, rank, anchor, extent, style } of placements) {
+      for (const [place, placement] of placements.entries()) {
+        const { shape, rank, anchor, extent, style } = placement;
         const image = new Image();
         image.className = "image gallery-infinite_image";
         image.alt = "";
         image.decoding = "async";
         image.draggable = false;
         const index = imageAt(tx, ty, shape, rank);
+        const slot = `${tx},${ty},${place}`;
         anchors.set(image, { x: tx + anchor.x, y: ty + anchor.y });
         extents.set(image, extent);
         indexes.set(image, index);
+        slots.set(image, slot);
+        image.style.zIndex = String(stacking.get(slot) ?? "");
         image.src = items[index].src;
         image.decode().then(
           () => image.classList.add("is-loaded"),
@@ -418,7 +428,7 @@ const images: GalleryImage[] = items.map((item) => {
     const unfocus = () => {
       const image = focused;
       if (image) {
-        // Stays on top of the backdrop and its neighbours until it has shrunk back
+        // Its tile stays above neighbouring tiles until it has shrunk back
         image.classList.replace("is-focus", "is-leaving");
         Promise.allSettled(image.getAnimations().map((a) => a.finished)).then(
           () => image.classList.remove("is-leaving"),
@@ -442,6 +452,14 @@ const images: GalleryImage[] = items.map((item) => {
         caption.index.textContent = String(index + 1).padStart(3, "0");
       if (caption.service) caption.service.textContent = service;
       syncFocus();
+      const slot = slots.get(image);
+      if (slot) {
+        // Last opened is highest, which also keeps the open image above its
+        // neighbours as it grows and shrinks back
+        stacked += 1;
+        stacking.set(slot, stacked);
+        image.style.zIndex = String(stacked);
+      }
       image.classList.add("is-focus");
       const full = new Image();
       full.src = fullSrc;
@@ -677,10 +695,6 @@ const images: GalleryImage[] = items.map((item) => {
         translate var(--_focus-duration) var(--open-ease);
       &.is-loaded {
         opacity: 1;
-      }
-      &.is-focus,
-      &.is-leaving {
-        z-index: 2;
       }
       &.is-focus {
         scale: var(--_focus-scale);
