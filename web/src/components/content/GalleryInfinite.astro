@@ -630,6 +630,7 @@ const images: GalleryImage[] = items.map((item) => {
   @layer components {
     .gallery-infinite_wrap {
       --_focus-duration: 600ms;
+      --_leaving: calc(var(--open-duration) * 0.5);
       /* The view a focused image grows to fill, read by the script: clear of
          the fixed nav, and as the image is centred, the same room below for
          the caption and footer */
@@ -717,9 +718,11 @@ const images: GalleryImage[] = items.map((item) => {
       color: var(--text);
       opacity: 0;
       pointer-events: none;
-      transition: opacity var(--open-duration) var(--open-ease);
+      /* Gone before the shrinking image pulls away from it */
+      transition: opacity var(--_leaving) var(--open-ease);
       .gallery-infinite_wrap.is-seated & {
         opacity: 1;
+        transition-duration: var(--open-duration);
       }
     }
 
