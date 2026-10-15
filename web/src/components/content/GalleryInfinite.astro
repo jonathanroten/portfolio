@@ -118,6 +118,11 @@ const images: GalleryImage[] = items.map((item) => {
   const remSize = () =>
     parseFloat(getComputedStyle(document.documentElement).fontSize);
 
+  const afterAnimations = (element: Element) =>
+    Promise.allSettled(
+      element.getAnimations().map((animation) => animation.finished),
+    );
+
   const keyDirections: Partial<Record<string, [number, number]>> = {
     ArrowLeft: [-1, 0],
     ArrowRight: [1, 0],
@@ -194,13 +199,15 @@ const images: GalleryImage[] = items.map((item) => {
       moved: false,
       target: null as EventTarget | null,
     };
-    const anchors = new WeakMap<Element, { x: number; y: number }>();
-    const extents = new WeakMap<Element, { x: number; y: number }>();
-    const indexes = new WeakMap<Element, number>();
-    const slots = new WeakMap<Element, string>();
-    // Overlapping images stack in the order they were last opened, so one
-    // opened from behind a neighbour stays in front once it closes. Kept by
-    // slot, as tiles are rebuilt when they scroll back into view
+    const placed = new WeakMap<
+      Element,
+      {
+        anchor: { x: number; y: number };
+        extent: { x: number; y: number };
+        index: number;
+        slot: string;
+      }
+    >();
     const stacking = new Map<string, number>();
     let stacked = 0;
     const caption = {
@@ -210,7 +217,6 @@ const images: GalleryImage[] = items.map((item) => {
       service: gallery.querySelector<HTMLElement>(".gallery-infinite_service"),
     };
     let focused: HTMLElement | null = null;
-    // The room the open image keeps clear around itself and its caption
     let clearing: {
       x: number;
       y: number;
@@ -223,20 +229,16 @@ const images: GalleryImage[] = items.map((item) => {
     const viewSize = { width: 0, height: 0 };
     const tileSize = { width: 0, height: 0 };
 
-    // Moves an image straight out from the open one until it clears the
-    // open image and its caption. The further out an image already is, the
-    // less it moves, so the edges of the field barely shift
     const pushOf = (image: Element) => {
-      const anchor = anchors.get(image);
-      const extent = extents.get(image);
-      if (!clearing || !anchor || !extent || image === focused) return "";
+      const place = placed.get(image);
+      if (!clearing || !place || image === focused) return "";
+      const { anchor, extent } = place;
       const dx = (anchor.x - clearing.x) * tileSize.width;
       const dy = (anchor.y - clearing.y) * tileSize.height;
       const distance = Math.hypot(dx, dy);
       if (distance < 1) return "";
       const ux = dx / distance;
       const uy = dy / distance;
-      // How far along this line the image's centre has to be to clear it
       const reach = Math.min(
         (clearing.halfWidth + extent.x * tileSize.width) / Math.abs(ux),
         (clearing.halfHeight + extent.y * tileSize.height) / Math.abs(uy),
@@ -268,10 +270,12 @@ const images: GalleryImage[] = items.map((item) => {
         image.draggable = false;
         const index = imageAt(tx, ty, shape, rank);
         const slot = `${tx},${ty},${place}`;
-        anchors.set(image, { x: tx + anchor.x, y: ty + anchor.y });
-        extents.set(image, extent);
-        indexes.set(image, index);
-        slots.set(image, slot);
+        placed.set(image, {
+          anchor: { x: tx + anchor.x, y: ty + anchor.y },
+          extent,
+          index,
+          slot,
+        });
         image.style.zIndex = String(stacking.get(slot) ?? "");
         image.src = items[index].src;
         image.decode().then(
@@ -279,7 +283,6 @@ const images: GalleryImage[] = items.map((item) => {
           () => {},
         );
         Object.assign(image.style, style);
-        // Tiles that appear while an image is open arrive already pushed
         image.style.translate = pushOf(image);
         element.append(image);
       }
@@ -325,13 +328,13 @@ const images: GalleryImage[] = items.map((item) => {
       if (!focused) return;
       const width = focused.offsetWidth;
       const height = focused.offsetHeight;
-      const inset = getComputedStyle(gallery);
+      const style = getComputedStyle(gallery);
       const roomWidth =
-        viewSize.width - 2 * parseFloat(inset.scrollPaddingLeft);
+        viewSize.width -
+        2 * parseFloat(style.getPropertyValue("--_focus-inset-inline"));
       const roomHeight =
-        viewSize.height - 2 * parseFloat(inset.scrollPaddingTop);
-      // Every shape opens with its short side at `focusRem`, unless that
-      // would push it past the room
+        viewSize.height -
+        2 * parseFloat(style.getPropertyValue("--_focus-inset-block"));
       const scale = Math.max(
         1,
         Math.min(
@@ -343,10 +346,8 @@ const images: GalleryImage[] = items.map((item) => {
       gallery.style.setProperty("--_focus-width", `${width}px`);
       gallery.style.setProperty("--_focus-height", `${height}px`);
       gallery.style.setProperty("--_focus-scale", String(scale));
-      const anchor = anchors.get(focused);
+      const anchor = placed.get(focused)?.anchor;
       if (!anchor) return;
-      // The caption hangs below the image, but the same room goes on every
-      // side so the clearing stays centred on the image
       const captionRoom =
         caption.box && caption.details
           ? caption.details.offsetTop +
@@ -365,11 +366,9 @@ const images: GalleryImage[] = items.map((item) => {
 
     const seat = (image: HTMLElement) => {
       seated = true;
-      Promise.allSettled(image.getAnimations().map((a) => a.finished)).then(
-        () => {
-          if (focused === image) gallery.classList.add("is-seated");
-        },
-      );
+      afterAnimations(image).then(() => {
+        if (focused === image) gallery.classList.add("is-seated");
+      });
     };
 
     const resize = () => {
@@ -385,8 +384,8 @@ const images: GalleryImage[] = items.map((item) => {
       tileSize.height = (tileSize.width * config.tileHeight) / config.tileWidth;
       gallery.style.setProperty("--_tile-width", `${tileSize.width}px`);
       gallery.style.setProperty("--_tile-height", `${tileSize.height}px`);
-      syncTiles();
       syncFocus();
+      syncTiles();
     };
     let frame = 0;
     let lastTime = 0;
@@ -428,11 +427,8 @@ const images: GalleryImage[] = items.map((item) => {
     const unfocus = () => {
       const image = focused;
       if (image) {
-        // Its tile stays above neighbouring tiles until it has shrunk back
         image.classList.replace("is-focus", "is-leaving");
-        Promise.allSettled(image.getAnimations().map((a) => a.finished)).then(
-          () => image.classList.remove("is-leaving"),
-        );
+        afterAnimations(image).then(() => image.classList.remove("is-leaving"));
         clearing = null;
         syncPush();
       }
@@ -442,31 +438,34 @@ const images: GalleryImage[] = items.map((item) => {
     };
 
     const focusOn = (image: HTMLImageElement) => {
-      const anchor = anchors.get(image);
-      if (!anchor) return;
+      const place = placed.get(image);
+      if (!place) return;
+      const { anchor, index, slot } = place;
       focused = image;
-      const index = indexes.get(image) ?? 0;
       const { service, fullSrc } = items[index];
-      // Set before `syncFocus`, which measures the caption to keep it clear
+      for (const animation of caption.box?.getAnimations() ?? []) {
+        animation.finish();
+      }
       if (caption.index)
         caption.index.textContent = String(index + 1).padStart(3, "0");
       if (caption.service) caption.service.textContent = service;
       syncFocus();
-      const slot = slots.get(image);
-      if (slot) {
-        // Last opened is highest, which also keeps the open image above its
-        // neighbours as it grows and shrinks back
-        stacked += 1;
-        stacking.set(slot, stacked);
-        image.style.zIndex = String(stacked);
-      }
+      stacked += 1;
+      stacking.set(slot, stacked);
+      image.style.zIndex = String(stacked);
       image.classList.add("is-focus");
-      const full = new Image();
-      full.src = fullSrc;
-      full.decode().then(
-        () => (image.src = fullSrc),
-        () => {},
-      );
+      if (image.src !== fullSrc) {
+        const full = new Image();
+        full.src = fullSrc;
+        full.decode().then(
+          () => {
+            if (focused !== image || image.src === fullSrc) return;
+            image.src = fullSrc;
+            image.classList.add("is-loaded");
+          },
+          () => {},
+        );
+      }
       target.x = anchor.x;
       target.y = anchor.y;
       start();
@@ -477,7 +476,7 @@ const images: GalleryImage[] = items.map((item) => {
       let nearestDistance = Infinity;
       for (const tile of tiles.values()) {
         for (const image of tile.children) {
-          const anchor = anchors.get(image);
+          const anchor = placed.get(image)?.anchor;
           if (!anchor || !image.classList.contains("is-loaded")) continue;
           const distance = Math.hypot(
             (anchor.x - center.x) * tileSize.width,
@@ -548,11 +547,9 @@ const images: GalleryImage[] = items.map((item) => {
         event.timeStamp - drag.startTime < config.click.time;
       if (clicked) {
         const image =
-          drag.target instanceof HTMLImageElement && anchors.has(drag.target)
+          drag.target instanceof HTMLImageElement && placed.has(drag.target)
             ? drag.target
             : null;
-        // A click anywhere closes an open image, so a stray click beside it
-        // never opens one of the dimmed images behind
         if (focused) unfocus();
         else if (image) focusOn(image);
       } else if (!calm.matches && event.timeStamp - drag.time < 100) {
@@ -627,14 +624,22 @@ const images: GalleryImage[] = items.map((item) => {
 </script>
 
 <style is:global>
+  @property --_focus-inset-block {
+    syntax: "<length>";
+    inherits: false;
+    initial-value: 0;
+  }
+  @property --_focus-inset-inline {
+    syntax: "<length>";
+    inherits: false;
+    initial-value: 0;
+  }
+
   @layer components {
     .gallery-infinite_wrap {
-      --_focus-duration: 600ms;
       --_leaving: calc(var(--open-duration) * 0.5);
-      /* The view a focused image grows to fill, read by the script: clear of
-         the fixed nav, and as the image is centred, the same room below for
-         the caption and footer */
-      scroll-padding: var(--nav-total-height) var(--site-margin);
+      --_focus-inset-block: var(--nav-total-height);
+      --_focus-inset-inline: var(--site-margin);
       position: absolute;
       inset: 0;
       overflow: clip;
@@ -642,8 +647,6 @@ const images: GalleryImage[] = items.map((item) => {
       touch-action: none;
       -webkit-user-select: none;
       user-select: none;
-      /* Dims the background between the images. The images dim themselves,
-         as they can be pushed out past the edge of their tile */
       &::before {
         content: "";
         position: absolute;
@@ -656,12 +659,9 @@ const images: GalleryImage[] = items.map((item) => {
       &:has(.is-focus)::before {
         opacity: 1;
       }
-      &:has(.is-focus) .gallery-infinite_image:not(.is-focus, .is-leaving) {
-        /* The same as --backdrop's 60% black laid over the image */
-        filter: brightness(0.4);
+      &:has(.is-focus) .gallery-infinite_image:not(.is-focus) {
+        filter: brightness(calc(100% - var(--backdrop-opacity)));
       }
-      /* While an image is open, a click anywhere only closes it, so no image
-         shows the pointer */
       &:has(.is-focus) .gallery-infinite_image {
         cursor: inherit;
       }
@@ -692,8 +692,8 @@ const images: GalleryImage[] = items.map((item) => {
       transition:
         opacity var(--open-duration-gentle) var(--open-ease),
         filter var(--open-duration-gentle) var(--open-ease),
-        scale var(--_focus-duration) var(--open-ease),
-        translate var(--_focus-duration) var(--open-ease);
+        scale var(--open-duration-slow) var(--open-ease),
+        translate var(--open-duration-slow) var(--open-ease);
       &.is-loaded {
         opacity: 1;
       }
@@ -718,7 +718,6 @@ const images: GalleryImage[] = items.map((item) => {
       color: var(--text);
       opacity: 0;
       pointer-events: none;
-      /* Gone before the shrinking image pulls away from it */
       transition: opacity var(--_leaving) var(--open-ease);
       .gallery-infinite_wrap.is-seated & {
         opacity: 1;

@@ -60,6 +60,7 @@
   /* Opening motion */
   --open-duration: var(--hover-duration);
   --open-duration-gentle: var(--hover-duration-gentle);
+  --open-duration-slow: 600ms;
   --open-ease: var(--hover-ease);
 
   /* Theme motion */
@@ -76,7 +77,8 @@
   --radius-round: 100vw;
 
   /* Backdrop */
-  --backdrop: color-mix(in lab, black 60%, transparent);
+  --backdrop-opacity: 60%;
+  --backdrop: color-mix(in lab, black var(--backdrop-opacity), transparent);
 
   /* Fluid scale range */
   --viewport-min: 320;
