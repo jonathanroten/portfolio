@@ -197,6 +197,7 @@ const images: GalleryImage[] = items.map((item) => {
       startY: 0,
       startTime: 0,
       moved: false,
+      grabbed: false,
       target: null as EventTarget | null,
     };
     const placed = new WeakMap<
@@ -393,7 +394,7 @@ const images: GalleryImage[] = items.map((item) => {
     const step = (now: number) => {
       const elapsed = Math.min(now - lastTime, 50);
       lastTime = now;
-      const dragging = drag.id !== -1 && !focused;
+      const dragging = drag.id !== -1 && drag.grabbed;
       for (const key of held) {
         const [dx, dy] = keyDirections[key] ?? [0, 0];
         target.x += (dx * config.keySpeed * elapsed) / tileSize.width;
@@ -506,9 +507,10 @@ const images: GalleryImage[] = items.map((item) => {
         startY: event.clientY,
         startTime: event.timeStamp,
         moved: false,
+        grabbed: !focused,
         target: event.target,
       });
-      if (!focused) {
+      if (drag.grabbed) {
         target.x = center.x;
         target.y = center.y;
       }
@@ -527,18 +529,19 @@ const images: GalleryImage[] = items.map((item) => {
       );
       if (!drag.moved && travelled > config.click.distance) {
         drag.moved = true;
-        if (focused) {
+        if (!drag.grabbed) {
+          drag.grabbed = true;
           target.x = center.x;
           target.y = center.y;
-          unfocus();
         }
+        unfocus();
       }
       drag.vx = drag.vx * 0.8 + (dx / elapsed) * 0.2;
       drag.vy = drag.vy * 0.8 + (dy / elapsed) * 0.2;
       drag.x = event.clientX;
       drag.y = event.clientY;
       drag.time = event.timeStamp;
-      if (focused) return;
+      if (!drag.grabbed) return;
       target.x -= dx / tileSize.width;
       target.y -= dy / tileSize.height;
       start();
