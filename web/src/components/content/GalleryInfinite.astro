@@ -393,7 +393,7 @@ const images: GalleryImage[] = items.map((item) => {
     const step = (now: number) => {
       const elapsed = Math.min(now - lastTime, 50);
       lastTime = now;
-      const dragging = drag.id !== -1;
+      const dragging = drag.id !== -1 && !focused;
       for (const key of held) {
         const [dx, dy] = keyDirections[key] ?? [0, 0];
         target.x += (dx * config.keySpeed * elapsed) / tileSize.width;
@@ -508,8 +508,10 @@ const images: GalleryImage[] = items.map((item) => {
         moved: false,
         target: event.target,
       });
-      target.x = center.x;
-      target.y = center.y;
+      if (!focused) {
+        target.x = center.x;
+        target.y = center.y;
+      }
       gallery.classList.add("is-dragging");
       start();
     });
@@ -525,13 +527,18 @@ const images: GalleryImage[] = items.map((item) => {
       );
       if (!drag.moved && travelled > config.click.distance) {
         drag.moved = true;
-        unfocus();
+        if (focused) {
+          target.x = center.x;
+          target.y = center.y;
+          unfocus();
+        }
       }
       drag.vx = drag.vx * 0.8 + (dx / elapsed) * 0.2;
       drag.vy = drag.vy * 0.8 + (dy / elapsed) * 0.2;
       drag.x = event.clientX;
       drag.y = event.clientY;
       drag.time = event.timeStamp;
+      if (focused) return;
       target.x -= dx / tileSize.width;
       target.y -= dy / tileSize.height;
       start();
@@ -550,8 +557,11 @@ const images: GalleryImage[] = items.map((item) => {
           drag.target instanceof HTMLImageElement && placed.has(drag.target)
             ? drag.target
             : null;
-        if (focused) unfocus();
-        else if (image) focusOn(image);
+        if (focused) {
+          target.x = center.x;
+          target.y = center.y;
+          unfocus();
+        } else if (image) focusOn(image);
       } else if (!calm.matches && event.timeStamp - drag.time < 100) {
         target.x -= (drag.vx * config.glide) / tileSize.width;
         target.y -= (drag.vy * config.glide) / tileSize.height;
