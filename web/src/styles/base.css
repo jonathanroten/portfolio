@@ -9,10 +9,9 @@
   --dark-800: color-mix(in srgb, var(--dark-900), var(--light-100) 7.5%);
   --dark-700: color-mix(in srgb, var(--dark-900), var(--light-100) 15%);
 
-  --brand-700: color-mix(in srgb, var(--brand-500), var(--dark-900) 15%);
   --brand-500: #146ef5;
-  --brand-300: color-mix(in srgb, var(--brand-500), var(--light-100) 15%);
-  --brand-100: color-mix(in srgb, var(--brand-500), var(--light-100) 25%);
+  --brand-300: #3b89ff;
+  --brand-100: #5398ff;
 
   --brand-text: var(--light-100);
 
