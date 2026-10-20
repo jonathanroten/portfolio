@@ -52,7 +52,7 @@ if (import.meta.env.DEV && render && content && !id) {
         <Button
           class="modal_close"
           variant="close"
-          emphasis="secondary"
+          emphasis="tertiary"
           data-modal-close
         />
         <div class="modal_scroll" data-modal-scroll>
@@ -127,7 +127,9 @@ if (import.meta.env.DEV && render && content && !id) {
       --_from: 0 2rem;
       --_body: 0 0;
       --_backdrop: var(--backdrop);
-      --_close: calc(2.75em + var(--space-4) * 2);
+      --_close-inset: var(--space-4);
+      --_close: calc(2.75em + var(--_close-inset) * 2);
+      --_gutter: var(--space-6);
       width: 100%;
       max-width: none;
       height: 100%;
@@ -180,6 +182,8 @@ if (import.meta.env.DEV && render && content && !id) {
       &.side-panel {
         --_panel: 28rem;
         --_from: var(--_panel) 0;
+        --_close-inset: var(--space-2);
+        --_gutter: var(--space-4);
         padding: 0;
         align-items: stretch;
         justify-content: end;
@@ -240,8 +244,8 @@ if (import.meta.env.DEV && render && content && !id) {
 
     .modal_close {
       position: absolute;
-      top: var(--space-4);
-      inset-inline-end: var(--space-4);
+      top: var(--_close-inset);
+      inset-inline-end: var(--_close-inset);
       z-index: 1;
     }
 
@@ -257,7 +261,7 @@ if (import.meta.env.DEV && render && content && !id) {
     }
 
     .modal_body {
-      padding: var(--_close) var(--space-6) var(--space-7);
+      padding: var(--_close) var(--_gutter) var(--space-7);
       translate: var(--_body);
       transition: translate var(--_leaving) var(--open-ease);
 

@@ -209,6 +209,11 @@
 
 .field-label {
   display: flex;
+  flex-wrap: wrap;
+  text-transform: uppercase;
+  & > * + * {
+    margin-inline-start: 0.35em;
+  }
 }
 
 .field-star {
@@ -216,24 +221,26 @@
 }
 
 .field-control {
-  --_field-pad-block: 0.75em;
-  --_field-pad-inline: 1em;
+  --_field-pad-block: 0.5em;
+  --_field-pad-inline: 0.75em;
   width: 100%;
-  min-height: calc(1lh + var(--_field-pad-block) * 2 + var(--border-width) * 2);
+  min-height: calc(1lh + var(--_field-pad-block) * 2 + var(--border-width-medium) * 2);
   padding: var(--_field-pad-block) var(--_field-pad-inline);
-  background-color: var(--background-2);
+  background-color: transparent;
   color: inherit;
-  border: var(--border-width) solid transparent;
+  border: var(--border-width-medium) solid var(--text);
   border-radius: var(--radius-small);
   transition:
     background-color var(--hover-duration) var(--hover-ease),
     border-color var(--hover-duration) var(--hover-ease);
   &::placeholder {
     color: var(--text-2);
+    font-size: var(--text-small);
+    text-transform: uppercase;
   }
   @media (hover: hover) {
     &:hover:not(:disabled) {
-      background-color: var(--background-3);
+      background-color: var(--background-2);
     }
   }
   &:focus-visible {

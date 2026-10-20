@@ -15,7 +15,7 @@ type Base = {
   value?: string;
   /** Submitted name. Defaults to the label slug. */
   name?: string;
-  /** Prompt shown before selection. Defaults to the variant prompt. */
+  /** Prompt shown before selection. Defaults to the variant prompt, or the label when it is hidden. */
   placeholder?: string;
   /** Require the field and mark its label. */
   required?: boolean;
@@ -163,13 +163,16 @@ const entries = choices.map((choice) =>
 
 const wording = WORDING[variant];
 const text = label ?? wording.label;
+const prompt = labelHidden
+  ? `${text}${required ? " *" : ""}`
+  : wording.placeholder;
 ---
 
 {
   render && entries.length > 0 && (
     <label class:list={["field", "form-select", className]}>
       <span
-        class:list={["field-label text-style-main", labelHidden && "sr-only"]}
+        class:list={["field-label text-style-small", labelHidden && "sr-only"]}
       >
         <span>{text}</span>
         {required && (
@@ -187,7 +190,7 @@ const text = label ?? wording.label;
           {...rest}
         >
           <option value="" disabled selected={value === undefined} hidden>
-            {placeholder ?? wording.placeholder}
+            {placeholder ?? prompt}
           </option>
           {entries.map((entry) => (
             <option value={entry.value} selected={entry.value === value}>
@@ -212,7 +215,14 @@ const text = label ?? wording.label;
       appearance: none;
       padding-inline-end: 3em;
       &:has(option[value=""]:checked) {
+        --_field-pad-inline: calc(var(--text-main) * 0.75);
+        min-height: calc(
+          var(--text-main) * (var(--text-main-line-height) + 1) +
+            var(--border-width-medium) * 2
+        );
         color: var(--text-2);
+        font-size: var(--text-small);
+        text-transform: uppercase;
       }
     }
 
@@ -223,7 +233,7 @@ const text = label ?? wording.label;
       translate: 0 -50%;
       rotate: 90deg;
       pointer-events: none;
-      color: var(--text-2);
+      color: var(--text);
     }
 
     /* The list the browser draws itself, where it will */

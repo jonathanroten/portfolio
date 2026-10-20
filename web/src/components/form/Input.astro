@@ -26,7 +26,7 @@ interface Props extends Omit<HTMLAttributes<"input">, "type"> {
   variant?: InputVariant;
   /** Submitted name. Defaults to the label slug. */
   name?: string;
-  /** Empty-field hint. Defaults to the variant name. */
+  /** Empty-field hint. Defaults to the label, marked when required and the label is hidden. */
   placeholder?: string;
   /** Require the field and mark its label. */
   required?: boolean;
@@ -93,13 +93,14 @@ const KINDS: Record<
 
 const kind = KINDS[variant];
 const text = label ?? kind.label;
+const hint = labelHidden && required ? `${text} *` : text;
 ---
 
 {
   render && (
     <label class:list={["field", "form-input", className]}>
       <span
-        class:list={["field-label text-style-main", labelHidden && "sr-only"]}
+        class:list={["field-label text-style-small", labelHidden && "sr-only"]}
       >
         <span>{text}</span>
         {required && (
@@ -112,7 +113,7 @@ const text = label ?? kind.label;
         class="field-control text-style-main"
         type={kind.type}
         name={name ?? slug(text)}
-        placeholder={placeholder ?? text}
+        placeholder={placeholder ?? hint}
         inputmode={kind.mode}
         autocomplete={kind.fill}
         required={required || undefined}
