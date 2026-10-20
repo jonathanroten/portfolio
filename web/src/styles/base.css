@@ -2,13 +2,18 @@
 :root {
   /* Swatches */
   --light-100: #ffffff;
-  --light-200: #ebebeb;
-  --light-300: #d9d9d9;
-  --dark-700: #3f3f40;
-  --dark-800: #262627;
+  --light-200: color-mix(in srgb, var(--light-100), var(--dark-900) 7.5%);
+  --light-300: color-mix(in srgb, var(--light-100), var(--dark-900) 15%);
+
   --dark-900: #19191a;
+  --dark-800: color-mix(in srgb, var(--dark-900), var(--light-100) 7.5%);
+  --dark-700: color-mix(in srgb, var(--dark-900), var(--light-100) 15%);
+
+  --brand-700: color-mix(in srgb, var(--brand-500), var(--dark-900) 15%);
   --brand-500: #146ef5;
-  --brand-400: #3b86f7;
+  --brand-300: color-mix(in srgb, var(--brand-500), var(--light-100) 15%);
+  --brand-100: color-mix(in srgb, var(--brand-500), var(--light-100) 25%);
+
   --brand-text: var(--light-100);
 
   /* Typography primitives */
@@ -320,6 +325,13 @@
   --button-2-border-hover: var(--button-2-background-hover);
   --button-2-text-hover: var(--background);
 
+  --button-3-background: transparent;
+  --button-3-border: transparent;
+  --button-3-text: var(--text);
+  --button-3-background-hover: var(--background-3);
+  --button-3-border-hover: var(--button-3-background-hover);
+  --button-3-text-hover: var(--text);
+
   --link-text: var(--text);
   --link-border: var(--border);
   --link-text-hover: var(--text);
@@ -357,6 +369,13 @@
   --button-2-border-hover: var(--button-2-background-hover);
   --button-2-text-hover: var(--background);
 
+  --button-3-background: transparent;
+  --button-3-border: transparent;
+  --button-3-text: var(--text);
+  --button-3-background-hover: var(--background-3);
+  --button-3-border-hover: var(--button-3-background-hover);
+  --button-3-text-hover: var(--text);
+
   --link-text: var(--text);
   --link-border: var(--border);
   --link-text-hover: var(--text);
@@ -367,8 +386,8 @@
   color-scheme: dark;
 
   --background: var(--brand-500);
-  --background-2: var(--brand-400);
-  --background-3: var(--brand-400);
+  --background-2: var(--brand-300);
+  --background-3: var(--brand-100);
   --background-skeleton: color-mix(in lab, currentcolor 10%, transparent);
   --background-accent: color-mix(in lab, var(--dark-900) 10%, transparent);
   --text: var(--brand-text);
@@ -379,12 +398,12 @@
   --selection-background: var(--text);
   --selection-text: var(--background);
 
-  --button-background: var(--brand-text);
+  --button-background: var(--background-2);
   --button-border: var(--button-background);
-  --button-text: var(--background);
-  --button-background-hover: var(--light-100);
+  --button-text: var(--brand-text);
+  --button-background-hover: var(--brand-text);
   --button-border-hover: var(--button-background-hover);
-  --button-text-hover: var(--dark-900);
+  --button-text-hover: var(--background);
 
   --button-2-background: transparent;
   --button-2-border: var(--border);
@@ -392,6 +411,13 @@
   --button-2-background-hover: var(--light-100);
   --button-2-border-hover: var(--button-2-background-hover);
   --button-2-text-hover: var(--dark-900);
+
+  --button-3-background: transparent;
+  --button-3-border: transparent;
+  --button-3-text: var(--text);
+  --button-3-background-hover: var(--background-2);
+  --button-3-border-hover: var(--button-3-background-hover);
+  --button-3-text-hover: var(--text);
 
   --link-text: var(--text);
   --link-border: var(--border);

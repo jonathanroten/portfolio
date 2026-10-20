@@ -73,8 +73,8 @@ if (import.meta.env.DEV && render && content && !id) {
 
     const open = () => {
       if (modal.open) return;
-      if (scroll) scroll.scrollTop = 0;
       modal.showModal();
+      if (scroll) scroll.scrollTop = 0;
       modal.dispatchEvent(new CustomEvent("modal-open", { bubbles: true }));
     };
 
@@ -264,6 +264,10 @@ if (import.meta.env.DEV && render && content && !id) {
       padding: var(--_close) var(--_gutter) var(--space-7);
       translate: var(--_body);
       transition: translate var(--_leaving) var(--open-ease);
+
+      .modal_wrap.side-panel & {
+        padding-bottom: var(--_gutter);
+      }
 
       .modal_wrap.full-screen & {
         min-height: 100%;

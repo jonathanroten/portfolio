@@ -60,7 +60,7 @@ const fieldId = id ?? `range-${label ? slug(label) : "field"}`;
       class:list={["field", "form-range", className]}
       style={`--_progress: ${progress};`}
     >
-      <label class="field-label text-style-main" for={fieldId}>
+      <label class="field-label text-style-small" for={fieldId}>
         <span>{label}</span>
         {required && (
           <span class="field-star" aria-hidden="true">

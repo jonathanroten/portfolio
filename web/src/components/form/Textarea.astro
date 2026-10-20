@@ -63,7 +63,7 @@ const hint = labelHidden && required ? `${label} *` : label;
         )}
       </span>
       <textarea
-        class="field-control form-textarea_field text-style-main"
+        class="field-control form-textarea_field text-style-small"
         name={name ?? slug(label)}
         placeholder={placeholder ?? hint}
         required={required || undefined}
@@ -80,11 +80,11 @@ const hint = labelHidden && required ? `${label} *` : label;
     .form-textarea_field {
       field-sizing: content;
       min-height: calc(
-        var(--_min-lines, 3) * 1lh + var(--_field-pad-block) * 2 +
+        var(--_min-lines, 3) * var(--_field-line) + var(--_field-pad-block) * 2 +
           var(--border-width-medium) * 2
       );
       max-height: calc(
-        var(--_max-lines, 12) * 1lh + var(--_field-pad-block) * 2 +
+        var(--_max-lines, 12) * var(--_field-line) + var(--_field-pad-block) * 2 +
           var(--border-width-medium) * 2
       );
       resize: vertical;

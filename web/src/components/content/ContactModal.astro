@@ -51,10 +51,10 @@ const timelines = [
         <Textarea label="Your Message" labelHidden required />
         <div class="contact-modal_project">
           <Choice
-            label="Start a project"
+            label="Start a Project"
             name="project"
             value="yes"
-            labelStyle="heading"
+            size="large"
             data-contact-project
           />
           <fieldset class="contact-modal_fields" disabled>
@@ -121,7 +121,8 @@ const timelines = [
     .contact-modal_wrap {
       display: flex;
       flex-direction: column;
-      min-height: calc(100dvh - var(--_close) - var(--space-7));
+      min-height: calc(100dvh - var(--_close) - var(--_gutter));
+      padding-top: var(--space-7);
     }
 
     .contact-modal_project {
@@ -130,7 +131,7 @@ const timelines = [
       align-items: start;
       gap: var(--space-5);
       margin-block: var(--space-3);
-      padding-top: var(--space-4);
+      padding-top: var(--space-3);
       border-top: var(--border-width) solid var(--border);
     }
 

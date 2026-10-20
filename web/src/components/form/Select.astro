@@ -184,7 +184,7 @@ const prompt = labelHidden
 
       <span class="form-select_control">
         <select
-          class="field-control form-select_field text-style-main"
+          class="field-control form-select_field text-style-small"
           name={name ?? slug(text)}
           required={required || undefined}
           {...rest}
@@ -215,14 +215,13 @@ const prompt = labelHidden
       appearance: none;
       padding-inline-end: 3em;
       &:has(option[value=""]:checked) {
-        --_field-pad-inline: calc(var(--text-main) * 0.75);
-        min-height: calc(
-          var(--text-main) * (var(--text-main-line-height) + 1) +
-            var(--border-width-medium) * 2
-        );
         color: var(--text-2);
-        font-size: var(--text-small);
         text-transform: uppercase;
+        @media (hover: hover) {
+          &:hover:not(:disabled) {
+            color: var(--text);
+          }
+        }
       }
     }
 
@@ -234,6 +233,7 @@ const prompt = labelHidden
       rotate: 90deg;
       pointer-events: none;
       color: var(--text);
+      font-size: var(--text-small);
     }
 
     /* The list the browser draws itself, where it will */
@@ -264,23 +264,17 @@ const prompt = labelHidden
         rotate: -90deg;
       }
 
-      .form-select_field:open {
-        background-color: var(--background-3);
-        border-end-start-radius: 0;
-        border-end-end-radius: 0;
-      }
-
       .form-select_field::picker(select) {
         margin-block: 0;
-        padding: var(--space-1);
+        padding: 0;
         max-height: min(18rem, calc(100dvh - 6rem));
+        position-area: span-block-end span-inline-end;
+        position-try-fallbacks: flip-block;
         position-try-order: normal;
         overscroll-behavior: contain;
-        background-color: var(--background-3);
-        border: 0;
+        background-color: var(--background);
+        border: var(--border-width-medium) solid var(--text);
         border-radius: var(--radius-small);
-        border-start-start-radius: 0;
-        border-start-end-radius: 0;
         opacity: 0;
         scale: 0.98;
         transition:
@@ -307,11 +301,10 @@ const prompt = labelHidden
         align-items: center;
         gap: var(--space-2);
         padding: var(--space-1) var(--space-2);
-        font-size: var(--text-small);
         line-height: var(--line-height-large);
         color: var(--text);
+        text-transform: none;
         background-color: transparent;
-        border-radius: var(--radius-small);
         cursor: pointer;
         transition: background-color var(--hover-duration) var(--hover-ease);
         &:hover,
@@ -326,9 +319,13 @@ const prompt = labelHidden
       }
 
       .form-select_field option::checkmark {
+        content: "";
         order: 1;
+        width: 0.4em;
+        height: 0.4em;
         margin-inline-start: auto;
-        color: var(--text-2);
+        background-color: var(--text);
+        border-radius: var(--radius-round);
       }
     }
   }

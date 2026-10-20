@@ -221,10 +221,11 @@
 }
 
 .field-control {
-  --_field-pad-block: 0.5em;
-  --_field-pad-inline: 0.75em;
+  --_field-line: calc(var(--text-main) * var(--text-main-line-height));
+  --_field-pad-block: calc(var(--text-main) * 0.5);
+  --_field-pad-inline: calc(var(--text-main) * 0.75);
   width: 100%;
-  min-height: calc(1lh + var(--_field-pad-block) * 2 + var(--border-width-medium) * 2);
+  min-height: calc(var(--_field-line) + var(--_field-pad-block) * 2 + var(--border-width-medium) * 2);
   padding: var(--_field-pad-block) var(--_field-pad-inline);
   background-color: transparent;
   color: inherit;
@@ -235,12 +236,14 @@
     border-color var(--hover-duration) var(--hover-ease);
   &::placeholder {
     color: var(--text-2);
-    font-size: var(--text-small);
     text-transform: uppercase;
   }
   @media (hover: hover) {
     &:hover:not(:disabled) {
       background-color: var(--background-2);
+      &::placeholder {
+        color: var(--text);
+      }
     }
   }
   &:focus-visible {
