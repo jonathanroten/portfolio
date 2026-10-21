@@ -1,0 +1,106 @@
+---
+import type { HTMLAttributes } from "astro/types";
+import { TURNSTILE_SITE_KEY } from "@/consts.ts";
+
+interface Props extends HTMLAttributes<"div"> {
+  /** Set to `false` to omit the component. */
+  render?: boolean;
+  /** Name the server checks the token against. Defaults to the form name. */
+  action?: string;
+  /** Public site key. Defaults to `TURNSTILE_SITE_KEY`, or Cloudflare's always-pass test key in development. */
+  siteKey?: string;
+}
+
+const {
+  render = true,
+  action,
+  siteKey = import.meta.env.DEV
+    ? "1x00000000000000000000AA"
+    : TURNSTILE_SITE_KEY,
+  class: className,
+  ...rest
+} = Astro.props;
+---
+
+{
+  render && siteKey && (
+    <div
+      class:list={["form-turnstile_wrap", className]}
+      data-sitekey={siteKey}
+      data-action={action}
+      {...rest}
+    />
+  )
+}
+
+<script>
+  type Turnstile = {
+    render: (
+      container: HTMLElement,
+      options: Record<string, unknown>,
+    ) => string | null | undefined;
+    reset: (widgetId: string) => void;
+  };
+
+  let api: Promise<Turnstile | undefined> | undefined;
+
+  const load = () =>
+    (api ??= new Promise((resolve) => {
+      const script = document.createElement("script");
+      script.src =
+        "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+      script.async = true;
+      script.addEventListener(
+        "load",
+        () => resolve((window as Window & { turnstile?: Turnstile }).turnstile),
+        { once: true },
+      );
+      script.addEventListener("error", () => resolve(undefined), {
+        once: true,
+      });
+      document.head.append(script);
+    }));
+
+  for (const wrap of document.querySelectorAll<HTMLElement>(
+    ".form-turnstile_wrap",
+  )) {
+    const form = wrap.closest("form");
+    const status = wrap.closest<HTMLElement>(".form_wrap");
+
+    const observer = new IntersectionObserver(async (entries) => {
+      if (!entries.some((entry) => entry.isIntersecting)) return;
+      observer.disconnect();
+
+      const turnstile = await load();
+      const scheme = getComputedStyle(wrap).colorScheme;
+      const id = turnstile?.render(wrap, {
+        sitekey: wrap.dataset.sitekey,
+        action: wrap.dataset.action ?? form?.getAttribute("name") ?? undefined,
+        appearance: "interaction-only",
+        size: "flexible",
+        theme: scheme === "dark" || scheme === "light" ? scheme : "auto",
+        "before-interactive-callback": () => {
+          wrap.dataset.interactive = "";
+        },
+        "after-interactive-callback": () => {
+          delete wrap.dataset.interactive;
+        },
+      });
+      if (!turnstile || !id || !status) return;
+
+      new MutationObserver(() => {
+        if (status.dataset.state === "failed") turnstile.reset(id);
+      }).observe(status, { attributeFilter: ["data-state"] });
+    });
+
+    observer.observe(form ?? wrap);
+  }
+</script>
+
+<style is:global>
+  @layer components {
+    .form-turnstile_wrap:not([data-interactive]) {
+      position: absolute;
+    }
+  }
+</style>

@@ -8,6 +8,7 @@ import Input from "@/components/form/Input.astro";
 import Textarea from "@/components/form/Textarea.astro";
 import Select from "@/components/form/Select.astro";
 import Choice from "@/components/form/Choice.astro";
+import Turnstile from "@/components/form/Turnstile.astro";
 import Button from "@/components/Button.astro";
 import ButtonWrapper from "@/components/wrapper/ButtonWrapper.astro";
 
@@ -41,14 +42,16 @@ const timelines = [
       </Paragraph>
       <Form
         name="talk"
+        action="/api/contact"
         successMessage="Thanks, I’ll get back to you soon."
+        errorMessage="That didn’t send. Please try again, or email hello@jonathanroten.com."
         class="margin-top-5 flex-grow"
       >
         <Input variant="first-name" labelHidden required />
         <Input variant="last-name" labelHidden required />
         <Input variant="email" labelHidden required />
         <Input label="Company Website" labelHidden />
-        <Textarea label="Your Message" labelHidden required />
+        <Textarea label="Your Message" name="message" labelHidden required />
         <div class="contact-modal_project">
           <Choice
             label="Start a Project"
@@ -82,6 +85,7 @@ const timelines = [
             <Select label="Timeline" options={timelines} labelHidden required />
           </fieldset>
         </div>
+        <Turnstile />
         <ButtonWrapper marginTop="auto">
           <Button type="submit" size="large" class="width-full">
             Let’s Talk

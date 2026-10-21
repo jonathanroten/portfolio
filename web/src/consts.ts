@@ -12,3 +12,8 @@ export const SITE_LOCALE = "en-US";
  * all match the same route.
  */
 export const NOINDEX_ROUTES: string[] = ["/404"];
+/**
+ * Public Turnstile site key for jonathanroten.com. Development uses
+ * Cloudflare's always-pass test key instead.
+ */
+export const TURNSTILE_SITE_KEY = "0x4AAAAAAFabMJD99WC8rqRT";
