@@ -79,12 +79,6 @@ const {
         appearance: "interaction-only",
         size: "flexible",
         theme: scheme === "dark" || scheme === "light" ? scheme : "auto",
-        "before-interactive-callback": () => {
-          wrap.dataset.interactive = "";
-        },
-        "after-interactive-callback": () => {
-          delete wrap.dataset.interactive;
-        },
       });
       if (!turnstile || !id || !status) return;
 
@@ -96,11 +90,3 @@ const {
     observer.observe(form ?? wrap);
   }
 </script>
-
-<style is:global>
-  @layer components {
-    .form-turnstile_wrap:not([data-interactive]) {
-      position: absolute;
-    }
-  }
-</style>
