@@ -7,24 +7,30 @@ interface Props extends HTMLAttributes<"fieldset"> {
   render?: boolean;
   /** Field group label. */
   legend?: string;
+  /** Guidance shown after the legend, in its own case. */
+  hint?: string;
   /** Field layout. */
-  variant?: "stack" | "columns" | "thirds" | "inline";
+  variant?: "stack" | "columns" | "thirds" | "inline" | "chips";
   /** Legend style. */
   legendStyle?: "heading" | "label" | "hidden";
+  /** Mark the legend, and require at least one checked box. */
+  required?: boolean;
 }
 
 const {
   render = true,
   legend,
+  hint,
   variant = "stack",
   legendStyle = "heading",
+  required = false,
   class: className,
   ...rest
 } = Astro.props;
 
 const LEGEND_STYLES: Record<NonNullable<Props["legendStyle"]>, string> = {
   heading: "text-style-h5",
-  label: "field-label text-style-main",
+  label: "field-label text-style-small",
   hidden: "sr-only",
 };
 
@@ -35,6 +41,7 @@ const content = await slotContent(Astro.slots);
   render && legend && content && (
     <fieldset
       class:list={["form-fieldset", variant !== "stack" && variant, className]}
+      data-required={required || undefined}
       {...rest}
     >
       <legend
@@ -44,7 +51,13 @@ const content = await slotContent(Astro.slots);
           LEGEND_STYLES[legendStyle],
         ]}
       >
-        {legend}
+        <span>{legend}</span>
+        {hint && <span class="form-fieldset_hint">{hint}</span>}
+        {required && (
+          <span class="field-star" aria-hidden="true">
+            *
+          </span>
+        )}
       </legend>
       <div class="form-fieldset_fields">
         <Fragment set:html={content} />
@@ -52,6 +65,25 @@ const content = await slotContent(Astro.slots);
     </fieldset>
   )
 }
+
+<script>
+  for (const group of document.querySelectorAll<HTMLFieldSetElement>(
+    ".form-fieldset[data-required]",
+  )) {
+    const boxes = [
+      ...group.querySelectorAll<HTMLInputElement>('input[type="checkbox"]'),
+    ];
+    if (!boxes.length) continue;
+
+    const check = () => {
+      const none = !boxes.some((box) => box.checked);
+      boxes[0].setCustomValidity(none ? "Select at least one." : "");
+    };
+
+    group.addEventListener("change", check);
+    check();
+  }
+</script>
 
 <style is:global>
   @layer components {
@@ -71,9 +103,13 @@ const content = await slotContent(Astro.slots);
       margin-bottom: var(--space-3);
     }
 
+    .form-fieldset_hint {
+      text-transform: none;
+    }
+
     .form-fieldset_fields {
       display: grid;
-      gap: var(--space-5);
+      gap: var(--space-3);
 
       .form-fieldset.inline & {
         display: flex;
@@ -82,6 +118,11 @@ const content = await slotContent(Astro.slots);
         > * {
           width: auto;
         }
+      }
+
+      .form-fieldset.chips & {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: var(--space-1);
       }
 
       @media (width >= 48rem) {

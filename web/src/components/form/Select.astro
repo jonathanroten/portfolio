@@ -15,7 +15,7 @@ type Base = {
   value?: string;
   /** Submitted name. Defaults to the label slug. */
   name?: string;
-  /** Prompt shown before selection. Defaults to the variant prompt. */
+  /** Prompt shown before selection. Defaults to the variant prompt, or the label when it is hidden. */
   placeholder?: string;
   /** Require the field and mark its label. */
   required?: boolean;
@@ -163,13 +163,16 @@ const entries = choices.map((choice) =>
 
 const wording = WORDING[variant];
 const text = label ?? wording.label;
+const prompt = labelHidden
+  ? `${text}${required ? " *" : ""}`
+  : wording.placeholder;
 ---
 
 {
   render && entries.length > 0 && (
     <label class:list={["field", "form-select", className]}>
       <span
-        class:list={["field-label text-style-main", labelHidden && "sr-only"]}
+        class:list={["field-label text-style-small", labelHidden && "sr-only"]}
       >
         <span>{text}</span>
         {required && (
@@ -181,13 +184,13 @@ const text = label ?? wording.label;
 
       <span class="form-select_control">
         <select
-          class="field-control form-select_field text-style-main"
+          class="field-control form-select_field text-style-small"
           name={name ?? slug(text)}
           required={required || undefined}
           {...rest}
         >
           <option value="" disabled selected={value === undefined} hidden>
-            {placeholder ?? wording.placeholder}
+            {placeholder ?? prompt}
           </option>
           {entries.map((entry) => (
             <option value={entry.value} selected={entry.value === value}>
@@ -213,6 +216,12 @@ const text = label ?? wording.label;
       padding-inline-end: 3em;
       &:has(option[value=""]:checked) {
         color: var(--text-2);
+        text-transform: uppercase;
+        @media (hover: hover) {
+          &:hover:not(:disabled) {
+            color: var(--text);
+          }
+        }
       }
     }
 
@@ -223,7 +232,8 @@ const text = label ?? wording.label;
       translate: 0 -50%;
       rotate: 90deg;
       pointer-events: none;
-      color: var(--text-2);
+      color: var(--text);
+      font-size: var(--text-small);
     }
 
     /* The list the browser draws itself, where it will */
@@ -254,23 +264,17 @@ const text = label ?? wording.label;
         rotate: -90deg;
       }
 
-      .form-select_field:open {
-        background-color: var(--background-3);
-        border-end-start-radius: 0;
-        border-end-end-radius: 0;
-      }
-
       .form-select_field::picker(select) {
         margin-block: 0;
-        padding: var(--space-1);
+        padding: 0;
         max-height: min(18rem, calc(100dvh - 6rem));
+        position-area: span-block-end span-inline-end;
+        position-try-fallbacks: flip-block;
         position-try-order: normal;
         overscroll-behavior: contain;
-        background-color: var(--background-3);
-        border: 0;
+        background-color: var(--background);
+        border: var(--border-width-medium) solid var(--text);
         border-radius: var(--radius-small);
-        border-start-start-radius: 0;
-        border-start-end-radius: 0;
         opacity: 0;
         scale: 0.98;
         transition:
@@ -297,11 +301,10 @@ const text = label ?? wording.label;
         align-items: center;
         gap: var(--space-2);
         padding: var(--space-1) var(--space-2);
-        font-size: var(--text-small);
         line-height: var(--line-height-large);
         color: var(--text);
+        text-transform: none;
         background-color: transparent;
-        border-radius: var(--radius-small);
         cursor: pointer;
         transition: background-color var(--hover-duration) var(--hover-ease);
         &:hover,
@@ -316,9 +319,13 @@ const text = label ?? wording.label;
       }
 
       .form-select_field option::checkmark {
+        content: "";
         order: 1;
+        width: 0.4em;
+        height: 0.4em;
         margin-inline-start: auto;
-        color: var(--text-2);
+        background-color: var(--text);
+        border-radius: var(--radius-round);
       }
     }
   }

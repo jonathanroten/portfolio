@@ -9,6 +9,8 @@ interface Props extends HTMLAttributes<"form"> {
   name?: string;
   /** Form endpoint. Omit to skip submission. */
   action?: string;
+  /** Submit button text while sending. */
+  sendingMessage?: string;
   /** Message shown after submission. */
   successMessage?: string;
   /** Message shown after an error. */
@@ -19,6 +21,7 @@ const {
   render = true,
   name,
   action,
+  sendingMessage = "Sending…",
   successMessage = "Thanks — we will be in touch.",
   errorMessage = "That did not send. Please try again.",
   method = "post",
@@ -35,6 +38,7 @@ const content = await slotContent(Astro.slots);
       class:list={["form_wrap", className]}
       data-state="idle"
       data-endpoint={action}
+      data-sending={sendingMessage}
     >
       <form
         class="form_fields"
@@ -46,10 +50,18 @@ const content = await slotContent(Astro.slots);
         <Fragment set:html={content} />
       </form>
 
-      <p class="form_note form_note-sent text-style-main" role="status">
+      <p
+        class="form_note form_note-sent text-style-main"
+        role="status"
+        tabindex="-1"
+      >
         {successMessage}
       </p>
-      <p class="form_note form_note-failed text-style-main" role="alert">
+      <p
+        class="form_note form_note-failed text-style-main"
+        role="alert"
+        tabindex="-1"
+      >
         {errorMessage}
       </p>
     </div>
@@ -64,6 +76,11 @@ const content = await slotContent(Astro.slots);
     const submit = fields.querySelector<HTMLButtonElement | HTMLInputElement>(
       'button:not([type]), button[type="submit"], input[type="submit"]',
     );
+    const label =
+      submit instanceof HTMLButtonElement
+        ? (submit.querySelector<HTMLElement>(".button_text") ?? submit)
+        : undefined;
+    const idle = label?.innerHTML;
 
     fields.addEventListener("submit", async (event) => {
       const endpoint = form.dataset.endpoint;
@@ -72,7 +89,11 @@ const content = await slotContent(Astro.slots);
 
       event.preventDefault();
       form.dataset.state = "sending";
+      fields.setAttribute("aria-busy", "true");
       if (submit) submit.disabled = true;
+      if (label && form.dataset.sending) {
+        label.textContent = form.dataset.sending;
+      }
 
       try {
         if (endpoint) {
@@ -88,6 +109,12 @@ const content = await slotContent(Astro.slots);
       } catch {
         form.dataset.state = "failed";
         if (submit) submit.disabled = false;
+      } finally {
+        fields.removeAttribute("aria-busy");
+        if (label && idle !== undefined) label.innerHTML = idle;
+        form
+          .querySelector<HTMLElement>(`.form_note-${form.dataset.state}`)
+          ?.focus();
       }
     });
   }
@@ -104,17 +131,22 @@ const content = await slotContent(Astro.slots);
 
     .form_fields {
       display: flex;
+      flex-grow: 1;
       flex-direction: column;
-      gap: var(--space-5);
-      row-gap: var(--space-8);
-      column-gap: var(--space-8);
+      gap: var(--space-3);
     }
 
     .form_note {
       display: none;
       padding: var(--space-4) var(--space-5);
-      border: var(--border-width) solid var(--border);
-      border-radius: var(--radius-small);
+      background: var(--background-2);
+    }
+
+    .form_wrap[data-state="sending"] .form_fields {
+      cursor: progress;
+      & * {
+        cursor: inherit;
+      }
     }
 
     .form_wrap[data-state="sent"] {

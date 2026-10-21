@@ -76,5 +76,9 @@ export default defineConfig({
     },
   ],
 
-  vite: { build: { cssTarget: "safari15.4" } },
+  vite: {
+    build: { cssTarget: "safari15.4" },
+    // `npm run dev:worker` serves /api on 8787 while `astro dev` serves pages
+    server: { proxy: { "/api": "http://localhost:8787" } },
+  },
 });

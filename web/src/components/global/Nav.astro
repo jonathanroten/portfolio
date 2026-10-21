@@ -206,14 +206,16 @@ const { render = true, overlap = false } = Astro.props;
       height: inherit;
       display: flex;
       align-items: center;
-      transition: opacity var(--hover-duration-gentle) var(--hover-ease);
       > svg {
         height: inherit;
       }
       @media (hover: hover) {
         &:hover {
-          opacity: 0.6;
+          color: var(--text-2);
         }
+      }
+      @media (width >= 48rem) {
+        transition: color var(--hover-duration-gentle) var(--hover-ease);
       }
     }
 
@@ -229,10 +231,9 @@ const { render = true, overlap = false } = Astro.props;
       margin-right: calc((var(--_size) - var(--_icon-width)) / -2);
       color: inherit;
       border-radius: var(--radius-small);
-      transition: opacity var(--hover-duration-gentle) var(--hover-ease);
       @media (hover: hover) {
         &:hover {
-          opacity: 0.6;
+          color: var(--text-2);
         }
       }
       @media (width >= 48rem) {
@@ -348,10 +349,10 @@ const { render = true, overlap = false } = Astro.props;
     .nav_link {
       display: block;
       padding-block: var(--space-4);
-      transition: color var(--hover-duration-gentle) var(--hover-ease);
       @media (width >= 48rem) {
         position: relative;
         padding-block: 0;
+        transition: color var(--hover-duration-gentle) var(--hover-ease);
         &[aria-current="page"]::after {
           content: "";
           position: absolute;

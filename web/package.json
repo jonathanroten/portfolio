@@ -8,7 +8,9 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "check": "astro check",
+    "dev:worker": "wrangler dev",
+    "types:worker": "wrangler types worker/worker-configuration.d.ts",
+    "check": "astro check && tsc -p worker",
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",

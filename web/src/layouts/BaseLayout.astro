@@ -5,6 +5,8 @@ import SkipLink from "@/components/global/SkipLink.astro";
 import Nav from "@/components/global/Nav.astro";
 import Footer from "@/components/global/Footer.astro";
 import FooterMinimal from "@/components/global/FooterMinimal.astro";
+import Modal from "@/components/interactive/Modal.astro";
+import ContactModal from "@/components/content/ContactModal.astro";
 import type { SeoProps } from "@/types.ts";
 
 type Props = SeoProps & {
@@ -48,5 +50,8 @@ const {
     </main>
     {footer === "full" && <Footer />}
     {footer === "minimal" && <FooterMinimal message={footerMessage} />}
+    <Modal id="talk" label="Say hello" variant="side-panel" class="theme-brand">
+      <ContactModal />
+    </Modal>
   </body>
 </html>

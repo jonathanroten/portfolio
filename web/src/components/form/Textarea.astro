@@ -11,7 +11,7 @@ interface Props extends Omit<HTMLAttributes<"textarea">, "rows"> {
   value?: string;
   /** Submitted name. Defaults to the label slug. */
   name?: string;
-  /** Empty-field hint. */
+  /** Empty-field hint. Defaults to the label, marked when required and the label is hidden. */
   placeholder?: string;
   /** Minimum visible lines. Defaults to `3`.
    *
@@ -25,6 +25,8 @@ interface Props extends Omit<HTMLAttributes<"textarea">, "rows"> {
   maxLines?: number;
   /** Require the field and mark its label. */
   required?: boolean;
+  /** Visually hide the label. */
+  labelHidden?: boolean;
 }
 
 const {
@@ -36,9 +38,12 @@ const {
   minLines = 3,
   maxLines = 12,
   required = false,
+  labelHidden = false,
   class: className,
   ...rest
 } = Astro.props;
+
+const hint = labelHidden && required ? `${label} *` : label;
 ---
 
 {
@@ -47,7 +52,9 @@ const {
       class:list={["field", "form-textarea", className]}
       style={`--_min-lines: ${minLines}; --_max-lines: ${maxLines};`}
     >
-      <span class="field-label text-style-main">
+      <span
+        class:list={["field-label text-style-small", labelHidden && "sr-only"]}
+      >
         <span>{label}</span>
         {required && (
           <span class="field-star" aria-hidden="true">
@@ -56,15 +63,14 @@ const {
         )}
       </span>
       <textarea
-        class="field-control form-textarea_field text-style-main"
+        class="field-control form-textarea_field text-style-small"
         name={name ?? slug(label)}
-        placeholder={placeholder}
+        placeholder={placeholder ?? hint}
         required={required || undefined}
         rows={minLines}
         {...rest}
-      >
-        {value}
-      </textarea>
+        set:text={value}
+      />
     </label>
   )
 }
@@ -75,11 +81,11 @@ const {
       field-sizing: content;
       min-height: calc(
         var(--_min-lines, 3) * 1lh + var(--_field-pad-block) * 2 +
-          var(--border-width) * 2
+          var(--border-width-medium) * 2
       );
       max-height: calc(
         var(--_max-lines, 12) * 1lh + var(--_field-pad-block) * 2 +
-          var(--border-width) * 2
+          var(--border-width-medium) * 2
       );
       resize: vertical;
     }
