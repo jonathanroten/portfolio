@@ -19,6 +19,9 @@
   "vars": {
     "CONTACT_FROM": "form@jonathanroten.com",
   },
+  // Deploys fail while a required secret is missing. A new Worker can't take
+  // `secret put` until it exists, so its first deploy passes them with
+  // `npx wrangler deploy --secrets-file <file>`. See the README.
   "secrets": {
     "required": ["CONTACT_TO", "TURNSTILE_SECRET_KEY"],
   },
