@@ -4,15 +4,12 @@
   --light-100: #ffffff;
   --light-200: color-mix(in srgb, var(--light-100), var(--dark-900) 7.5%);
   --light-300: color-mix(in srgb, var(--light-100), var(--dark-900) 15%);
-
   --dark-900: #19191a;
   --dark-800: color-mix(in srgb, var(--dark-900), var(--light-100) 7.5%);
   --dark-700: color-mix(in srgb, var(--dark-900), var(--light-100) 15%);
-
   --brand-500: #146ef5;
   --brand-300: #3b89ff;
   --brand-100: #5398ff;
-
   --brand-text: var(--light-100);
 
   /* Typography primitives */
