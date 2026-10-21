@@ -9,6 +9,8 @@ interface Props extends HTMLAttributes<"form"> {
   name?: string;
   /** Form endpoint. Omit to skip submission. */
   action?: string;
+  /** Submit button text while sending. */
+  sendingMessage?: string;
   /** Message shown after submission. */
   successMessage?: string;
   /** Message shown after an error. */
@@ -19,6 +21,7 @@ const {
   render = true,
   name,
   action,
+  sendingMessage = "Sending…",
   successMessage = "Thanks — we will be in touch.",
   errorMessage = "That did not send. Please try again.",
   method = "post",
@@ -35,6 +38,7 @@ const content = await slotContent(Astro.slots);
       class:list={["form_wrap", className]}
       data-state="idle"
       data-endpoint={action}
+      data-sending={sendingMessage}
     >
       <form
         class="form_fields"
@@ -64,6 +68,11 @@ const content = await slotContent(Astro.slots);
     const submit = fields.querySelector<HTMLButtonElement | HTMLInputElement>(
       'button:not([type]), button[type="submit"], input[type="submit"]',
     );
+    const label =
+      submit instanceof HTMLButtonElement
+        ? (submit.querySelector<HTMLElement>(".button_text") ?? submit)
+        : undefined;
+    const idle = label?.innerHTML;
 
     fields.addEventListener("submit", async (event) => {
       const endpoint = form.dataset.endpoint;
@@ -72,7 +81,11 @@ const content = await slotContent(Astro.slots);
 
       event.preventDefault();
       form.dataset.state = "sending";
+      fields.setAttribute("aria-busy", "true");
       if (submit) submit.disabled = true;
+      if (label && form.dataset.sending) {
+        label.textContent = form.dataset.sending;
+      }
 
       try {
         if (endpoint) {
@@ -88,6 +101,9 @@ const content = await slotContent(Astro.slots);
       } catch {
         form.dataset.state = "failed";
         if (submit) submit.disabled = false;
+      } finally {
+        fields.removeAttribute("aria-busy");
+        if (label && idle !== undefined) label.innerHTML = idle;
       }
     });
   }
@@ -113,6 +129,13 @@ const content = await slotContent(Astro.slots);
       display: none;
       padding: var(--space-4) var(--space-5);
       background: var(--background-2);
+    }
+
+    .form_wrap[data-state="sending"] .form_fields {
+      cursor: progress;
+      & * {
+        cursor: inherit;
+      }
     }
 
     .form_wrap[data-state="sent"] {
