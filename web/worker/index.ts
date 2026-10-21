@@ -2,6 +2,7 @@ const ENDPOINT = "/api/contact";
 const ACTION = "talk";
 const SITEVERIFY = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 const TOKEN = "cf-turnstile-response";
+const LOCAL = new Set(["localhost", "127.0.0.1"]);
 
 const REQUIRED = ["first-name", "last-name", "email", "message"];
 const HIDDEN = new Set([TOKEN, "project", "message"]);
@@ -37,6 +38,12 @@ export default {
       return reply(413, "Too large");
     }
 
+    const ip = request.headers.get("CF-Connecting-IP");
+    const { success } = await env.CONTACT_LIMIT.limit({ key: ip ?? "unknown" });
+    if (!success) {
+      return reply(429, "Too many requests", { "Retry-After": "60" });
+    }
+
     let form: FormData;
     try {
       form = await request.formData();
@@ -44,12 +51,12 @@ export default {
       return reply(400, "Unreadable form");
     }
 
-    if (!(await verify(form.get(TOKEN), request, url.hostname, env))) {
-      return reply(403, "Verification failed");
-    }
-
     const fields = collect(form);
     if (!fields) return reply(400, "Missing or invalid fields");
+
+    if (!(await verify(form.get(TOKEN), ip, url.hostname, env))) {
+      return reply(403, "Verification failed");
+    }
 
     try {
       await sendEmail(env, compose(fields));
@@ -65,7 +72,7 @@ export default {
 
 async function verify(
   token: File | string | null,
-  request: Request,
+  ip: string | null,
   hostname: string,
   env: Env,
 ): Promise<boolean> {
@@ -75,7 +82,6 @@ async function verify(
     secret: env.TURNSTILE_SECRET_KEY,
     response: token,
   });
-  const ip = request.headers.get("CF-Connecting-IP");
   if (ip) body.set("remoteip", ip);
 
   let result: Siteverify;
@@ -96,7 +102,11 @@ async function verify(
     console.warn("Turnstile rejected", result["error-codes"]);
     return false;
   }
-  if (result.metadata?.result_with_testing_key) return true;
+  if (result.metadata?.result_with_testing_key) {
+    if (LOCAL.has(hostname)) return true;
+    console.warn("Turnstile test key outside local development", hostname);
+    return false;
+  }
   if (result.action !== ACTION || result.hostname !== hostname) {
     console.warn("Turnstile mismatch", result.action, result.hostname);
     return false;

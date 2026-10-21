@@ -50,10 +50,18 @@ const content = await slotContent(Astro.slots);
         <Fragment set:html={content} />
       </form>
 
-      <p class="form_note form_note-sent text-style-main" role="status">
+      <p
+        class="form_note form_note-sent text-style-main"
+        role="status"
+        tabindex="-1"
+      >
         {successMessage}
       </p>
-      <p class="form_note form_note-failed text-style-main" role="alert">
+      <p
+        class="form_note form_note-failed text-style-main"
+        role="alert"
+        tabindex="-1"
+      >
         {errorMessage}
       </p>
     </div>
@@ -104,6 +112,9 @@ const content = await slotContent(Astro.slots);
       } finally {
         fields.removeAttribute("aria-busy");
         if (label && idle !== undefined) label.innerHTML = idle;
+        form
+          .querySelector<HTMLElement>(`.form_note-${form.dataset.state}`)
+          ?.focus();
       }
     });
   }

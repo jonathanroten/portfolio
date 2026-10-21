@@ -51,7 +51,13 @@ const timelines = [
         <Input variant="last-name" labelHidden required />
         <Input variant="email" labelHidden required />
         <Input label="Company Website" labelHidden />
-        <Textarea label="Your Message" name="message" labelHidden required />
+        <Textarea
+          label="Your Message"
+          name="message"
+          labelHidden
+          required
+          maxlength={5000}
+        />
         <div class="contact-modal_project">
           <Choice
             label="Start a Project"
