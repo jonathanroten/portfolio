@@ -7,10 +7,25 @@ import "lenis/dist/lenis.css";
 
   // Inner scroll areas (sliders, menus) keep their own scrolling, and dialogs
   // are left alone so the page behind an open modal stays put.
-  new Lenis({
+  const lenis = new Lenis({
     autoRaf: true,
     lerp: 0.05,
     allowNestedScroll: true,
     prevent: (node) => node instanceof HTMLDialogElement,
   });
+
+  // A glide ignores scrolling it didn't start, so settle it on a click or key
+  // press. Otherwise it overwrites scrolls those trigger, like the accordion
+  // centering an item.
+  for (const type of ["pointerdown", "keydown"]) {
+    addEventListener(
+      type,
+      () => {
+        if (lenis.isScrolling === "smooth") {
+          lenis.scrollTo(lenis.actualScroll, { immediate: true });
+        }
+      },
+      { passive: true },
+    );
+  }
 </script>
