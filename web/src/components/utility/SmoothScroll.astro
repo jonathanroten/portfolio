@@ -5,9 +5,14 @@ import "lenis/dist/lenis.css";
 <script>
   import Lenis from "lenis";
 
+  const time = getComputedStyle(document.documentElement).getPropertyValue(
+    "--smooth-scroll-duration",
+  );
+  const seconds = parseFloat(time) / (time.trim().endsWith("ms") ? 1000 : 1);
+
   const lenis = new Lenis({
     autoRaf: true,
-    lerp: 0.05,
+    lerp: Math.log(1024) / (60 * seconds),
     allowNestedScroll: true,
     prevent: (node) => node instanceof HTMLDialogElement,
   });
