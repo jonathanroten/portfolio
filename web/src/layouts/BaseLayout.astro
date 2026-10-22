@@ -7,6 +7,7 @@ import Footer from "@/components/global/Footer.astro";
 import FooterMinimal from "@/components/global/FooterMinimal.astro";
 import Modal from "@/components/interactive/Modal.astro";
 import ContactModal from "@/components/content/ContactModal.astro";
+import SmoothScroll from "@/components/utility/SmoothScroll.astro";
 import type { SeoProps } from "@/types.ts";
 
 type Props = SeoProps & {
@@ -25,6 +26,8 @@ type Props = SeoProps & {
   footer?: "full" | "minimal";
   /** Text in the right corner of the `minimal` footer. Omit to leave it empty. */
   footerMessage?: string;
+  /** Smooth wheel and trackpad scrolling with Lenis. Touch scrolling stays native. */
+  smoothScroll?: boolean;
 };
 
 const {
@@ -32,6 +35,7 @@ const {
   overlap = false,
   footer = "full",
   footerMessage,
+  smoothScroll = false,
   ...seo
 } = Astro.props;
 ---
@@ -53,5 +57,6 @@ const {
     <Modal id="talk" label="Say hello" variant="side-panel" class="theme-brand">
       <ContactModal />
     </Modal>
+    {smoothScroll && <SmoothScroll />}
   </body>
 </html>

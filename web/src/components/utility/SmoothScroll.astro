@@ -1,0 +1,16 @@
+---
+import "lenis/dist/lenis.css";
+---
+
+<script>
+  import Lenis from "lenis";
+
+  // Inner scroll areas (sliders, menus) keep their own scrolling, and dialogs
+  // are left alone so the page behind an open modal stays put.
+  new Lenis({
+    autoRaf: true,
+    lerp: 0.05,
+    allowNestedScroll: true,
+    prevent: (node) => node instanceof HTMLDialogElement,
+  });
+</script>
