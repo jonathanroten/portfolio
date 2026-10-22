@@ -143,7 +143,10 @@ if (import.meta.env.DEV && render) {
       list-style: none;
       display: flex;
       flex-wrap: wrap;
-      gap: 0.75ch;
+      gap: 0 0.75ch;
+      @supports (text-box: trim-both cap alphabetic) {
+        row-gap: calc(1lh - 1cap);
+      }
 
       li:not(:last-child)::after {
         content: ",";

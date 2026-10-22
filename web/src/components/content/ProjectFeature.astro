@@ -66,7 +66,11 @@ const items = (projects ?? []).filter(
                       </>
                     )}
                     {project.description && (
-                      <Paragraph variant="h4" maxWidth={40}>
+                      <Paragraph
+                        variant="h4"
+                        maxWidth={40}
+                        class="margin-top-7"
+                      >
                         {project.description}
                       </Paragraph>
                     )}
@@ -156,7 +160,10 @@ const items = (projects ?? []).filter(
       ul {
         display: flex;
         flex-wrap: wrap;
-        gap: 0.5ch;
+        gap: 0 0.5ch;
+        @supports (text-box: trim-both cap alphabetic) {
+          row-gap: calc(1lh - 1cap);
+        }
       }
       li:not(:last-child)::after {
         content: ",";
