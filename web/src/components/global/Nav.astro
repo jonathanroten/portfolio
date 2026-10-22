@@ -245,13 +245,13 @@ const { render = true, overlap = false } = Astro.props;
       position: relative;
       display: block;
       width: var(--_icon-width);
-      height: calc(var(--_bar-gap) + var(--border-width));
+      height: calc(var(--_bar-gap) + var(--border-width-medium));
       &::before,
       &::after {
         content: "";
         position: absolute;
         inset-inline: 0;
-        height: var(--border-width);
+        height: var(--border-width-medium);
         background-color: currentcolor;
         transition: transform var(--open-duration) var(--open-ease);
       }
