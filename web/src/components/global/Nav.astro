@@ -245,13 +245,13 @@ const { render = true, overlap = false } = Astro.props;
       position: relative;
       display: block;
       width: var(--_icon-width);
-      height: calc(var(--_bar-gap) + var(--border-width));
+      height: calc(var(--_bar-gap) + var(--border-width-medium));
       &::before,
       &::after {
         content: "";
         position: absolute;
         inset-inline: 0;
-        height: var(--border-width);
+        height: var(--border-width-medium);
         background-color: currentcolor;
         transition: transform var(--open-duration) var(--open-ease);
       }
@@ -366,6 +366,7 @@ const { render = true, overlap = false } = Astro.props;
     }
 
     .nav_link_text {
+      display: block;
       @media (width >= 48rem) {
         font-family: var(--h6-font-family);
         font-size: var(--h6);
@@ -374,8 +375,6 @@ const { render = true, overlap = false } = Astro.props;
         letter-spacing: var(--h6-letter-spacing);
         text-transform: var(--h6-text-transform);
         text-wrap: var(--h6-text-wrap);
-        --_trim-top: var(--h6-trim-top);
-        --_trim-bottom: var(--h6-trim-bottom);
       }
     }
 
@@ -384,6 +383,9 @@ const { render = true, overlap = false } = Astro.props;
       flex-direction: column;
       gap: var(--space-2);
       padding-block: var(--space-6);
+      & > li {
+        display: flex;
+      }
       @media (width >= 48rem) {
         display: none;
       }
@@ -402,7 +404,7 @@ const { render = true, overlap = false } = Astro.props;
     }
 
     .nav_details {
-      --h6-line-height: var(--line-height-huge);
+      --h6-line-height: var(--line-height-giant);
       margin-top: auto;
       padding-top: var(--space-6);
       border-top: var(--border-width) solid var(--border);
