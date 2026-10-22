@@ -1,7 +1,3 @@
----
-import "lenis/dist/lenis.css";
----
-
 <script>
   import Lenis from "lenis";
 
@@ -29,3 +25,7 @@ import "lenis/dist/lenis.css";
     );
   }
 </script>
+
+<style is:global>
+  @import "lenis/dist/lenis.css" layer(components);
+</style>
