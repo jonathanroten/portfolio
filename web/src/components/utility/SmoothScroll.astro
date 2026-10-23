@@ -29,4 +29,11 @@
 
 <style is:global>
   @import "lenis/dist/lenis.css" layer(components);
+
+  @layer components {
+    html.lenis {
+      --scroll-duration: var(--smooth-scroll-duration);
+      --scroll-ease: var(--smooth-scroll-ease);
+    }
+  }
 </style>

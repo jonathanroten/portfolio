@@ -405,12 +405,6 @@
   color: var(--text);
 }
 
-/* Smooth scroll */
-html.lenis {
-  --scroll-duration: var(--smooth-scroll-duration);
-  --scroll-ease: var(--smooth-scroll-ease);
-}
-
 /* Reset & base */
 html {
   overflow-anchor: none;
