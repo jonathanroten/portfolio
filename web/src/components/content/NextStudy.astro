@@ -1,0 +1,67 @@
+---
+import type { HTMLAttributes } from "astro/types";
+
+interface Props extends HTMLAttributes<"a"> {
+  /** Set to `false` to omit the component. */
+  render?: boolean;
+  /** Title of the study it leads to. */
+  title?: string;
+  /** Link destination. */
+  href?: string;
+}
+
+const { render = true, title, href, class: className, ...rest } = Astro.props;
+---
+
+{
+  render && title && href && (
+    <a
+      class:list={["next-study_wrap", className]}
+      href={href}
+      rel="next"
+      {...rest}
+    >
+      <span class="text-style-h6">
+        <span class="sr-only">Next</span> {title}
+      </span>
+      <div class="next-study_image background-skeleton">
+        <div class="next-study_fade" />
+      </div>
+    </a>
+  )
+}
+
+<style is:global>
+  @layer components {
+    .next-study_wrap {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: var(--site-gutter);
+      padding-top: var(--site-margin);
+      border-top: var(--border-width) solid var(--border);
+      .next-study_image {
+        aspect-ratio: 32 / 9;
+        position: relative;
+      }
+      .next-study_fade {
+        position: absolute;
+        inset: calc(var(--site-gutter) * -1) 0 0;
+        background-image: linear-gradient(
+          to bottom,
+          transparent,
+          var(--background)
+        );
+        transition: opacity var(--hover-duration-gentle) var(--hover-ease);
+      }
+      &:focus-visible .next-study_fade {
+        opacity: 0.6;
+      }
+      @media (hover: hover) {
+        &:hover .next-study_fade {
+          opacity: 0.6;
+        }
+      }
+    }
+  }
+</style>

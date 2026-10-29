@@ -21,9 +21,9 @@ type Props = SeoProps & {
   overlap?: boolean;
   /**
    * Footer under the page. `minimal` is a slim strip fixed to the bottom for
-   * full-bleed pages.
+   * full-bleed pages. `none` ends the page on its last section.
    */
-  footer?: "full" | "minimal";
+  footer?: "full" | "minimal" | "none";
   /** Text in the right corner of the `minimal` footer. Omit to leave it empty. */
   footerMessage?: string;
   /** Smooth wheel and trackpad scrolling with Lenis. Touch scrolling stays native. */

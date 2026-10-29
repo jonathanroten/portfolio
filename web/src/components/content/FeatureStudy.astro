@@ -1,6 +1,6 @@
 ---
 import type { HTMLAttributes } from "astro/types";
-import { imageUrl, type getProjects } from "@/utils/sanity.ts";
+import { galleryCrops, imageUrl, type getProjects } from "@/utils/sanity.ts";
 
 import Heading from "@/components/typography/Heading.astro";
 import Paragraph from "@/components/typography/Paragraph.astro";
@@ -17,11 +17,6 @@ interface Props extends HTMLAttributes<"div"> {
 
 const { render = true, projects, class: className, ...rest } = Astro.props;
 
-const crops = {
-  half: { width: 960, ratio: 8 / 9 },
-  full: { width: 1600, ratio: 16 / 9 },
-};
-
 const items = (projects ?? []).filter(
   (project) =>
     project.title ||
@@ -34,15 +29,15 @@ const items = (projects ?? []).filter(
 {
   render && items.length > 0 && (
     <div
-      class:list={["project-feature_wrap", "width-full", className]}
+      class:list={["feature-study_wrap", "width-full", className]}
       role="list"
       {...rest}
     >
       {items.map((project, i) => (
-        <div class="project-feature_item" role="listitem">
-          <div class="project-feature_layout">
-            <div class="project-feature_column">
-              <div class="project-feature_counter text-style-h6">
+        <div class="feature-study_item" role="listitem">
+          <div class="feature-study_layout">
+            <div class="feature-study_column">
+              <div class="feature-study_counter text-style-h6">
                 <span>{String(i + 1).padStart(2, "0")}</span>
               </div>
               <ContentWrapper>
@@ -52,7 +47,7 @@ const items = (projects ?? []).filter(
                   </Heading>
                 )}
                 {(project.services?.length || project.description) && (
-                  <div class="project-feature_content">
+                  <div class="feature-study_content">
                     {!!project.services?.length && (
                       <>
                         <Heading tag="h3" variant="h5" class="margin-bottom-3">
@@ -79,11 +74,11 @@ const items = (projects ?? []).filter(
               </ContentWrapper>
             </div>
             {!!project.projectGallery?.length && (
-              <div class="project-feature_column">
+              <div class="feature-study_column">
                 <Grid xsmall={1} medium={2} class="gap-1">
                   {project.projectGallery.map((image) => {
                     const full = image.layout === "fullWidth";
-                    const crop = full ? crops.full : crops.half;
+                    const crop = full ? galleryCrops.full : galleryCrops.half;
                     return (
                       <Img
                         src={imageUrl(image, crop.width, crop.ratio)}
@@ -107,7 +102,7 @@ const items = (projects ?? []).filter(
 
 <style is:global>
   @layer components {
-    .project-feature_layout {
+    .feature-study_layout {
       width: 100%;
       display: flex;
       flex-direction: column;
@@ -117,18 +112,18 @@ const items = (projects ?? []).filter(
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
     }
-    .project-feature_column {
-      &:has(.project-feature_content) {
+    .feature-study_column {
+      &:has(.feature-study_content) {
         display: flex;
         flex-direction: column;
         padding: var(--space-8) 0 var(--space-6);
       }
-      &:not(:has(.project-feature_content)) {
+      &:not(:has(.feature-study_content)) {
         display: flex;
         flex-direction: column;
         gap: var(--space-1);
       }
-      .project-feature_counter {
+      .feature-study_counter {
         border: var(--border-width-medium) solid var(--text);
         display: flex;
         align-items: center;
@@ -141,22 +136,22 @@ const items = (projects ?? []).filter(
       }
       @media (width >= 64rem) {
         min-height: calc(100svh - var(--nav-total-height));
-        &:has(.project-feature_content) {
+        &:has(.feature-study_content) {
           justify-content: end;
           align-self: start;
           position: sticky;
           top: var(--nav-total-height);
         }
-        &:not(:has(.project-feature_content)) {
+        &:not(:has(.feature-study_content)) {
           padding-bottom: var(--space-1);
         }
-        .project-feature_counter {
+        .feature-study_counter {
           display: none;
         }
       }
     }
 
-    .project-feature_content {
+    .feature-study_content {
       ul {
         display: flex;
         flex-wrap: wrap;

@@ -9,9 +9,9 @@ export const SITE_LOCALE = "en-US";
  * served with a `robots: noindex, nofollow` tag, so the two can't disagree.
  *
  * Surrounding slashes are optional: `"/thanks"`, `"thanks"` and `"/thanks/"`
- * all match the same route.
+ * all match the same route. End one in `/*` to cover every route beneath it.
  */
-export const NOINDEX_ROUTES: string[] = ["/404"];
+export const NOINDEX_ROUTES: string[] = ["/404", "/studies/*"];
 /**
  * Public Turnstile site key for jonathanroten.com. Development uses
  * Cloudflare's always-pass test key instead.

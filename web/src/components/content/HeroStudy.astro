@@ -1,0 +1,93 @@
+---
+import type { HTMLAttributes } from "astro/types";
+
+interface Props extends HTMLAttributes<"div"> {
+  /** Set to `false` to omit the component. */
+  render?: boolean;
+  /** Position in the project order, shown as `01`. */
+  number?: number;
+  /** Study title. */
+  title?: string;
+  /** The project description, as Home shows it. */
+  description?: string;
+  /** Services provided. */
+  services?: string[];
+  /** How the work was taken on, such as `Freelance`. */
+  engagement?: string;
+}
+
+const {
+  render = true,
+  number,
+  title,
+  description,
+  services,
+  engagement,
+  class: className,
+  ...rest
+} = Astro.props;
+---
+
+{
+  render && title && (
+    <div class:list={["hero-study_wrap", className]} {...rest}>
+      {number !== undefined && (
+        <span class="hero-study_number text-style-h5">
+          {String(number).padStart(2, "0")}
+        </span>
+      )}
+      <h1 class="hero-study_title text-style-h5">{title}</h1>
+      {description && (
+        <p class="hero-study_text text-style-h4">{description}</p>
+      )}
+      {(!!services?.length || !!engagement) && (
+        <ul class="hero-study_meta">
+          {!!services?.length && (
+            <li class="text-style-main">{services.join(", ")}</li>
+          )}
+          {engagement && <li class="text-style-main">{engagement}</li>}
+        </ul>
+      )}
+    </div>
+  )
+}
+
+<style is:global>
+  @layer components {
+    .hero-study_wrap {
+      width: 100%;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      column-gap: var(--site-gutter);
+      align-items: start;
+      .hero-study_title {
+        grid-column: 2;
+      }
+      .hero-study_text {
+        grid-column: 1 / -1;
+        margin-top: var(--space-5);
+      }
+      .hero-study_meta {
+        grid-column: 1 / -1;
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-3);
+        margin-top: var(--space-8);
+      }
+      @media (width >= 64rem) {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        .hero-study_title {
+          grid-column: 2 / span 5;
+        }
+        .hero-study_text {
+          grid-column: 1 / span 8;
+        }
+        .hero-study_meta {
+          flex-direction: row;
+          justify-content: space-between;
+          gap: var(--site-gutter);
+        }
+      }
+    }
+  }
+</style>
