@@ -4,13 +4,27 @@ import type { HTMLAttributes } from "astro/types";
 interface Props extends HTMLAttributes<"a"> {
   /** Set to `false` to omit the component. */
   render?: boolean;
+  /**
+   * Position of the study it leads to, shown as `01`.
+   *
+   * @min 1
+   * @int
+   */
+  number?: number;
   /** Title of the study it leads to. */
   heading?: string;
   /** Link destination. */
   href?: string;
 }
 
-const { render = true, heading, href, class: className, ...rest } = Astro.props;
+const {
+  render = true,
+  number,
+  heading,
+  href,
+  class: className,
+  ...rest
+} = Astro.props;
 ---
 
 {
@@ -21,8 +35,12 @@ const { render = true, heading, href, class: className, ...rest } = Astro.props;
       rel="next"
       {...rest}
     >
-      <span class="text-style-h6">
-        <span class="sr-only">Next</span> {heading}
+      <span class="next-study_label">
+        <span class="sr-only">Next</span>
+        {number !== undefined && (
+          <span class="text-style-h5">{String(number).padStart(2, "0")}</span>
+        )}
+        <span class="text-style-h5">{heading}</span>
       </span>
       <div class="next-study_image background-skeleton">
         <div class="next-study_fade" />
@@ -38,8 +56,12 @@ const { render = true, heading, href, class: className, ...rest } = Astro.props;
       display: flex;
       flex-direction: column;
       gap: var(--site-gutter);
-      padding-top: var(--site-margin);
+      padding-top: var(--space-5);
       border-top: var(--border-width) solid var(--border);
+      .next-study_label {
+        display: flex;
+        gap: var(--space-4);
+      }
       .next-study_image {
         aspect-ratio: 32 / 9;
         position: relative;

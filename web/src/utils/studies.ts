@@ -8,6 +8,8 @@ export type StudyImage = {
 
 /** A case study, as the studies pages read it. */
 export type Study = {
+  /** Position in the project order, from 1. */
+  number: number;
   title: string;
   slug: string;
   /** The project description, as Home shows it. */
@@ -65,7 +67,8 @@ const standIns = {
  */
 export async function getStudies(): Promise<Study[]> {
   const projects = await getProjects("brand");
-  return projects.map(({ title, slug, description, services }) => ({
+  return projects.map(({ title, slug, description, services }, i) => ({
+    number: i + 1,
     title,
     slug,
     description: description ?? undefined,

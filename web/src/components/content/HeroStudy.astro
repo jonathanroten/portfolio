@@ -71,13 +71,14 @@ const {
       width: 100%;
       display: grid;
       grid-template-columns: auto minmax(0, 1fr);
-      column-gap: var(--site-gutter);
+      column-gap: var(--space-4);
       align-items: start;
       .hero-study_title {
         grid-column: 2;
       }
       .hero-study_text {
         grid-column: 1 / -1;
+        max-width: 50ch;
         margin-top: var(--space-5);
       }
       .hero-study_meta {
@@ -87,13 +88,9 @@ const {
         gap: var(--space-3);
         margin-top: var(--space-8);
       }
-      @media (width >= 64rem) {
-        grid-template-columns: repeat(12, minmax(0, 1fr));
-        .hero-study_title {
-          grid-column: 2 / span 5;
-        }
+      @media (width >= 48rem) {
         .hero-study_text {
-          grid-column: 1 / span 8;
+          text-wrap: pretty;
         }
         .hero-study_meta {
           flex-direction: row;

@@ -15,18 +15,16 @@ export async function getStaticPaths() {
   const studies = await getStudies();
   return studies.map((study, i) => ({
     params: { slug: study.slug },
-    props: { study, number: i + 1, next: studies[(i + 1) % studies.length] },
+    props: { study, next: studies[(i + 1) % studies.length] },
   }));
 }
 
 interface Props {
   study: Study;
-  /** Position in the project order. */
-  number: number;
   next: Study;
 }
 
-const { study, number, next } = Astro.props;
+const { study, next } = Astro.props;
 const hero = galleryCrops.fullWidth;
 const standIn = "/stand-in.svg";
 ---
@@ -44,7 +42,7 @@ const standIn = "/stand-in.svg";
     containerClass="gap-gutter"
   >
     <HeroStudy
-      number={number}
+      number={study.number}
       heading={study.title}
       description={study.description}
       services={study.services}
@@ -102,6 +100,10 @@ const standIn = "/stand-in.svg";
   }
   <!-- Next -->
   <Section paddingBottom="none">
-    <NextStudy heading={next.title} href={`/studies/${next.slug}`} />
+    <NextStudy
+      number={next.number}
+      heading={next.title}
+      href={`/studies/${next.slug}`}
+    />
   </Section>
 </Layout>
