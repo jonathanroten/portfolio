@@ -78,7 +78,7 @@ const items = (projects ?? []).filter(
                 <Grid xsmall={1} medium={2} class="gap-1">
                   {project.projectGallery.map((image) => {
                     const full = image.layout === "fullWidth";
-                    const crop = full ? galleryCrops.full : galleryCrops.half;
+                    const crop = galleryCrops[image.layout];
                     return (
                       <Img
                         src={imageUrl(image, crop.width, crop.ratio)}

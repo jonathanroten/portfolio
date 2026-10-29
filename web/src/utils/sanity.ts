@@ -179,11 +179,11 @@ export function imageUrl(
 }
 
 /**
- * Crops for gallery images, by their Studio `layout`: `half` sits in the
- * two-column grid and `full` spans both. Shared by the Home projects and the
- * studies pages, so their images keep the same shapes.
+ * Crops for gallery images, by their Studio `layout`: `default` sits in the
+ * two-column grid and `fullWidth` spans both. Shared by the Home projects and
+ * the studies pages, so their images keep the same shapes.
  */
 export const galleryCrops = {
-  half: { width: 960, ratio: 8 / 9 },
-  full: { width: 1600, ratio: 16 / 9 },
+  default: { width: 960, ratio: 8 / 9 },
+  fullWidth: { width: 1600, ratio: 16 / 9 },
 };

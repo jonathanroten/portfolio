@@ -3,6 +3,7 @@ import Layout from "@/layouts/BaseLayout.astro";
 import Section from "@/components/wrapper/Section.astro";
 import ContentWrapper from "@/components/wrapper/ContentWrapper.astro";
 import Grid from "@/components/wrapper/Grid.astro";
+import Heading from "@/components/typography/Heading.astro";
 import Paragraph from "@/components/typography/Paragraph.astro";
 import Img from "@/components/media/Img.astro";
 import HeroStudy from "@/components/content/HeroStudy.astro";
@@ -26,11 +27,16 @@ interface Props {
 }
 
 const { study, number, next } = Astro.props;
-const hero = galleryCrops.full;
+const hero = galleryCrops.fullWidth;
 const standIn = "/stand-in.svg";
 ---
 
-<Layout title={study.title} theme="dark" footer="none">
+<Layout
+  title={study.title}
+  description={study.description}
+  theme="dark"
+  footer="none"
+>
   <!-- Hero -->
   <Section
     class="padding-top-5"
@@ -39,7 +45,7 @@ const standIn = "/stand-in.svg";
   >
     <HeroStudy
       number={number}
-      title={study.title}
+      heading={study.title}
       description={study.description}
       services={study.services}
       engagement={study.engagement}
@@ -50,24 +56,36 @@ const standIn = "/stand-in.svg";
       width={hero.width}
       height={Math.round(hero.width / hero.ratio)}
       loading="eager"
+      fetchPriority="high"
     />
   </Section>
   <!-- Problem, then solution -->
   {
     [
-      { text: study.problem, gallery: study.problemGallery },
-      { text: study.solution, gallery: study.solutionGallery },
+      {
+        heading: "Problem",
+        text: study.problem,
+        gallery: study.problemGallery,
+      },
+      {
+        heading: "Solution",
+        text: study.solution,
+        gallery: study.solutionGallery,
+      },
     ].map((part) => (
       <Section paddingTop="small" paddingBottom="none">
         <Grid medium={2} class="gap-1">
           <ContentWrapper class="grid-column-full padding-bottom-5">
+            <Heading tag="h2" class="sr-only">
+              {part.heading}
+            </Heading>
             <Paragraph variant="main" maxWidth={95}>
               {part.text}
             </Paragraph>
           </ContentWrapper>
           {part.gallery.map((image) => {
             const full = image.layout === "fullWidth";
-            const crop = full ? galleryCrops.full : galleryCrops.half;
+            const crop = galleryCrops[image.layout];
             return (
               <Img
                 src={standIn}
@@ -84,6 +102,6 @@ const standIn = "/stand-in.svg";
   }
   <!-- Next -->
   <Section paddingBottom="none">
-    <NextStudy title={next.title} href={`/studies/${next.slug}`} />
+    <NextStudy heading={next.title} href={`/studies/${next.slug}`} />
   </Section>
 </Layout>

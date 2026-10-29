@@ -4,10 +4,15 @@ import type { HTMLAttributes } from "astro/types";
 interface Props extends HTMLAttributes<"div"> {
   /** Set to `false` to omit the component. */
   render?: boolean;
-  /** Position in the project order, shown as `01`. */
+  /**
+   * Position in the project order, shown as `01`.
+   *
+   * @min 1
+   * @int
+   */
   number?: number;
   /** Study title. */
-  title?: string;
+  heading?: string;
   /** The project description, as Home shows it. */
   description?: string;
   /** Services provided. */
@@ -19,7 +24,7 @@ interface Props extends HTMLAttributes<"div"> {
 const {
   render = true,
   number,
-  title,
+  heading,
   description,
   services,
   engagement,
@@ -29,24 +34,32 @@ const {
 ---
 
 {
-  render && title && (
+  render && heading && (
     <div class:list={["hero-study_wrap", className]} {...rest}>
       {number !== undefined && (
         <span class="hero-study_number text-style-h5">
           {String(number).padStart(2, "0")}
         </span>
       )}
-      <h1 class="hero-study_title text-style-h5">{title}</h1>
+      <h1 class="hero-study_title text-style-h5">{heading}</h1>
       {description && (
         <p class="hero-study_text text-style-h4">{description}</p>
       )}
       {(!!services?.length || !!engagement) && (
-        <ul class="hero-study_meta">
+        <dl class="hero-study_meta">
           {!!services?.length && (
-            <li class="text-style-main">{services.join(", ")}</li>
+            <div>
+              <dt class="sr-only">Services Provided</dt>
+              <dd class="text-style-main">{services.join(", ")}</dd>
+            </div>
           )}
-          {engagement && <li class="text-style-main">{engagement}</li>}
-        </ul>
+          {engagement && (
+            <div>
+              <dt class="sr-only">Engagement</dt>
+              <dd class="text-style-main">{engagement}</dd>
+            </div>
+          )}
+        </dl>
       )}
     </div>
   )

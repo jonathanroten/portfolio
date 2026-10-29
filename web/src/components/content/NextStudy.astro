@@ -5,16 +5,16 @@ interface Props extends HTMLAttributes<"a"> {
   /** Set to `false` to omit the component. */
   render?: boolean;
   /** Title of the study it leads to. */
-  title?: string;
+  heading?: string;
   /** Link destination. */
   href?: string;
 }
 
-const { render = true, title, href, class: className, ...rest } = Astro.props;
+const { render = true, heading, href, class: className, ...rest } = Astro.props;
 ---
 
 {
-  render && title && href && (
+  render && heading && href && (
     <a
       class:list={["next-study_wrap", className]}
       href={href}
@@ -22,7 +22,7 @@ const { render = true, title, href, class: className, ...rest } = Astro.props;
       {...rest}
     >
       <span class="text-style-h6">
-        <span class="sr-only">Next</span> {title}
+        <span class="sr-only">Next</span> {heading}
       </span>
       <div class="next-study_image background-skeleton">
         <div class="next-study_fade" />
