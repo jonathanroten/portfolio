@@ -11,7 +11,6 @@ export const service = defineType({
     defineField({
       name: 'title',
       type: 'string',
-      options: {aiAssist: {exclude: true}},
       validation: (rule) => rule.required(),
     }),
   ],

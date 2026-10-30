@@ -4,13 +4,7 @@ export const caseStudyImage = defineType({
   name: 'caseStudyImage',
   title: 'Case Study Image',
   type: 'image',
-  options: {
-    hotspot: true,
-    // Manual only: adds a "Generate image description" button to alt, never runs on upload
-    aiAssist: {
-      imageDescriptionField: {path: 'alt', updateOnImageChange: false},
-    },
-  },
+  options: {hotspot: true},
   fields: [
     defineField({
       name: 'alt',
@@ -30,7 +24,6 @@ export const caseStudyImage = defineType({
         ],
         layout: 'radio',
         direction: 'horizontal',
-        aiAssist: {exclude: true},
       },
       initialValue: 'default',
       validation: (rule) => rule.required(),

@@ -32,7 +32,6 @@ export const homePage = defineType({
           },
         }),
       ],
-      options: {aiAssist: {exclude: true}},
       validation: (rule) => rule.required().max(1).error('Keep the description to one paragraph'),
     }),
     defineField({
@@ -41,7 +40,7 @@ export const homePage = defineType({
       type: 'array',
       description: 'Images that follow the cursor in the hero. Drag to reorder.',
       of: [defineArrayMember({type: 'image', options: {hotspot: true}})],
-      options: {layout: 'grid', aiAssist: {exclude: true}},
+      options: {layout: 'grid'},
       validation: (rule) => rule.min(1),
     }),
   ],

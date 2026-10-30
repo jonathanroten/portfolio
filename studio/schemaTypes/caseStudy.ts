@@ -35,14 +35,13 @@ export const caseStudy = defineType({
       name: 'title',
       type: 'string',
       fieldset: 'overview',
-      options: {aiAssist: {exclude: true}},
       validation: (rule) => rule.required(),
     }),
     defineField({
       name: 'slug',
       type: 'slug',
       fieldset: 'overview',
-      options: {source: 'title', aiAssist: {exclude: true}},
+      options: {source: 'title'},
       validation: (rule) => rule.required(),
     }),
     defineField({
@@ -50,7 +49,6 @@ export const caseStudy = defineType({
       type: 'text',
       rows: 4,
       fieldset: 'overview',
-      options: {aiAssist: {exclude: true}},
     }),
     defineField({
       name: 'services',
@@ -59,7 +57,6 @@ export const caseStudy = defineType({
         'Pick from existing services, or create a new one. Renaming a service updates every case study.',
       fieldset: 'overview',
       of: [defineArrayMember({type: 'reference', to: [{type: 'service'}]})],
-      options: {aiAssist: {exclude: true}},
       validation: (rule) => rule.unique(),
     }),
     defineField({
@@ -74,7 +71,6 @@ export const caseStudy = defineType({
         ],
         layout: 'radio',
         direction: 'horizontal',
-        aiAssist: {exclude: true},
       },
     }),
     defineField({
@@ -84,13 +80,7 @@ export const caseStudy = defineType({
       description:
         'Shown at the top of the case study, and as the teaser at the end of the previous one.',
       fieldset: 'overview',
-      options: {
-        hotspot: true,
-        // Manual only: adds a "Generate image description" button to alt, never runs on upload
-        aiAssist: {
-          imageDescriptionField: {path: 'alt', updateOnImageChange: false},
-        },
-      },
+      options: {hotspot: true},
       fields: [
         defineField({
           name: 'alt',
@@ -118,7 +108,6 @@ export const caseStudy = defineType({
       rows: 4,
       description: 'Shown above the gallery. Each line is a paragraph.',
       fieldset: 'brief',
-      options: {aiAssist: {exclude: true}},
     }),
     defineField({
       name: 'briefGallery',
@@ -136,7 +125,6 @@ export const caseStudy = defineType({
       rows: 4,
       description: 'Shown above the gallery. Each line is a paragraph.',
       fieldset: 'approach',
-      options: {aiAssist: {exclude: true}},
     }),
     defineField({
       name: 'approachGallery',

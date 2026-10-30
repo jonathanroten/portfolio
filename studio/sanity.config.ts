@@ -1,11 +1,9 @@
 import {defineConfig} from 'sanity'
 import {structureTool} from 'sanity/structure'
 import {visionTool} from '@sanity/vision'
-import {assist} from '@sanity/assist'
 import {media, mediaAssetSource} from 'sanity-plugin-media'
 import {schemaTypes} from './schemaTypes'
 import {structure} from './structure'
-import {createBulkAltTextActions} from './helpers/bulkAltText'
 import {AssetDetails} from './helpers/assetDetails'
 
 const SINGLETON_TYPES = ['homePage', 'gallery', 'siteSettings']
@@ -17,24 +15,7 @@ export default defineConfig({
   projectId: 'fk2vli4s',
   dataset: 'production',
 
-  plugins: [
-    structureTool({structure}),
-    visionTool(),
-    media({components: {details: AssetDetails}}),
-    assist({
-      fieldActions: {
-        title: 'Images',
-        useFieldActions: createBulkAltTextActions({
-          targets: [
-            {documentType: 'caseStudy', arrayField: 'featureGallery'},
-            {documentType: 'caseStudy', arrayField: 'briefGallery'},
-            {documentType: 'caseStudy', arrayField: 'approachGallery'},
-            {documentType: 'gallery', arrayField: 'items'},
-          ],
-        }),
-      },
-    }),
-  ],
+  plugins: [structureTool({structure}), visionTool(), media({components: {details: AssetDetails}})],
 
   schema: {
     types: schemaTypes,
