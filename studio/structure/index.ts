@@ -6,20 +6,8 @@ import {UlistIcon} from '@sanity/icons/Ulist'
 import {orderableDocumentListDeskItem} from '@sanity/orderable-document-list'
 import type {StructureResolver} from 'sanity/structure'
 
-export const structure: StructureResolver = (S, context) => {
-  // A drag-to-order list of projects narrowed by a GROQ filter. Each list needs its own id
-  const projectList = (id: string, title: string, filter: string, params?: {projectType: string}) =>
-    orderableDocumentListDeskItem({
-      type: 'project',
-      id: `orderable-${id}-projects`,
-      title,
-      filter,
-      params,
-      S,
-      context,
-    })
-
-  return S.list()
+export const structure: StructureResolver = (S, context) =>
+  S.list()
     .title('Content')
     .items([
       S.listItem()
@@ -31,21 +19,13 @@ export const structure: StructureResolver = (S, context) => {
         .title('Services')
         .icon(UlistIcon)
         .child(S.documentTypeList('service').title('Services')),
-      S.listItem()
-        .title('Projects')
-        .icon(CaseIcon)
-        .child(
-          S.list()
-            .title('Projects')
-            .items([
-              projectList('brand', 'Brand', 'projectType == $projectType', {
-                projectType: 'brand',
-              }),
-              projectList('interactive', 'Interactive', 'projectType == $projectType', {
-                projectType: 'interactive',
-              }),
-            ]),
-        ),
+      orderableDocumentListDeskItem({
+        type: 'caseStudy',
+        title: 'Case Studies',
+        icon: CaseIcon,
+        S,
+        context,
+      }),
       S.listItem()
         .title('Gallery')
         .icon(ImagesIcon)
@@ -58,4 +38,3 @@ export const structure: StructureResolver = (S, context) => {
           S.document().title('Site Settings').schemaType('siteSettings').documentId('siteSettings'),
         ),
     ])
-}

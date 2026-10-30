@@ -1,8 +1,8 @@
 import {defineField, defineType} from 'sanity'
 
-export const projectImage = defineType({
-  name: 'projectImage',
-  title: 'Project Image',
+export const caseStudyImage = defineType({
+  name: 'caseStudyImage',
+  title: 'Case Study Image',
   type: 'image',
   options: {
     hotspot: true,

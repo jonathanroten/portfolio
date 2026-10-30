@@ -26,7 +26,9 @@ export default defineConfig({
         title: 'Images',
         useFieldActions: createBulkAltTextActions({
           targets: [
-            {documentType: 'project', arrayField: 'projectGallery'},
+            {documentType: 'caseStudy', arrayField: 'featureGallery'},
+            {documentType: 'caseStudy', arrayField: 'briefGallery'},
+            {documentType: 'caseStudy', arrayField: 'approachGallery'},
             {documentType: 'gallery', arrayField: 'items'},
           ],
         }),

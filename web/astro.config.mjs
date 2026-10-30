@@ -18,7 +18,7 @@ export default defineConfig({
     }),
   ],
   image: {
-    // Sanity-hosted images (project covers and galleries)
+    // Sanity-hosted images (case study heroes and galleries)
     domains: ["cdn.sanity.io"],
   },
   fonts: [

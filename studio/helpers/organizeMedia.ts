@@ -1,20 +1,20 @@
 /**
- * Files project images into one Media plugin folder per project and tags them "Project".
+ * Files case study images into one Media plugin folder per case study and tags them "Case Study".
  *
- * Run after adding or editing a project:
+ * Run after adding or editing a case study:
  *   npm run organize-media
  * Preview without writing anything:
  *   npm run organize-media -- --dry-run
  *
- * Safe to re-run. Only published projects are read. Each project gets a folder named after it
- * when the folder is first created; after that the name is yours to change in the Media tool.
- * Images already in a folder are never moved, so moves made by hand in the Media tool stick.
- * Every project image gets the "Project" tag, which makes its Alt Text read-only in the Media tool
- * (see assetDetails.tsx). Images no project uses stay unfiled and untagged, and folders and
- * tags are never deleted.
+ * Safe to re-run. Only published case studies are read. Each case study gets a folder named
+ * after it when the folder is first created; after that the name is yours to change in the Media
+ * tool. Images already in a folder are never moved, so moves made by hand in the Media tool stick.
+ * Every case study image gets the "Case Study" tag, which makes its Alt Text read-only in the
+ * Media tool (see assetDetails.tsx). Images no case study uses stay unfiled and untagged, and
+ * folders and tags are never deleted.
  */
 import {getCliClient} from 'sanity/cli'
-import {PROJECT_TAG_NAME} from './projectTag'
+import {CASE_STUDY_TAG_NAME} from './caseStudyTag'
 
 // The Studio doesn't ship @types/node; this script only needs these members
 declare const process: {argv: string[]; exitCode?: number}
@@ -25,54 +25,59 @@ const dryRun = process.argv.includes('--dry-run')
 const FOLDER_TYPE = 'media.folder'
 const TAG_TYPE = 'media.tag'
 
-type Project = {_id: string; title?: string; assetIds: string[]}
+type CaseStudy = {_id: string; title?: string; assetIds: string[]}
 type Asset = {_id: string; _rev: string; filed: boolean; tagged: boolean}
 
 const client = getCliClient({apiVersion: '2025-02-19'}).withConfig({useCdn: false})
 
-const folderIdFor = (projectId: string) => `${FOLDER_TYPE}.project-${projectId}`
+const folderIdFor = (caseStudyId: string) => `${FOLDER_TYPE}.case-study-${caseStudyId}`
 
 // Weak, like the Media plugin's own references, so deleting a folder or tag never fails
 const weakRef = (id: string) => ({_type: 'reference', _ref: id, _weak: true})
 
 async function main() {
-  const {projects, folderIds, tagId} = await client.fetch<{
-    projects: Project[]
+  const {caseStudies, folderIds, tagId} = await client.fetch<{
+    caseStudies: CaseStudy[]
     folderIds: string[]
     tagId: string | null
   }>(
     `{
-      "projects": *[_type == "project" && !(_id in path("drafts.**"))] | order(orderRank) {
-        _id, title, "assetIds": array::unique(projectGallery[defined(asset._ref)].asset._ref)
+      "caseStudies": *[_type == "caseStudy" && !(_id in path("drafts.**"))] | order(orderRank) {
+        _id, title, "assetIds": array::unique(array::compact(
+          [heroImage.asset._ref]
+            + coalesce(featureGallery[].asset._ref, [])
+            + coalesce(briefGallery[].asset._ref, [])
+            + coalesce(approachGallery[].asset._ref, [])
+        ))
       },
       "folderIds": *[_type == $folderType]._id,
       "tagId": *[_type == $tagType && name.current == $tagName][0]._id
     }`,
-    {folderType: FOLDER_TYPE, tagType: TAG_TYPE, tagName: PROJECT_TAG_NAME},
+    {folderType: FOLDER_TYPE, tagType: TAG_TYPE, tagName: CASE_STUDY_TAG_NAME},
   )
   const existingFolders = new Set(folderIds)
 
   const tx = client.transaction()
   let changes = 0
 
-  // Reuse a "Project" tag made by hand in the Media tool if there is one
-  const projectTagId = tagId ?? `${TAG_TYPE}.project`
+  // Reuse a "Case Study" tag made by hand in the Media tool if there is one
+  const caseStudyTagId = tagId ?? `${TAG_TYPE}.case-study`
   if (!tagId) {
-    console.log(`Create tag "${PROJECT_TAG_NAME}"`)
+    console.log(`Create tag "${CASE_STUDY_TAG_NAME}"`)
     tx.create({
-      _id: projectTagId,
+      _id: caseStudyTagId,
       _type: TAG_TYPE,
-      name: {_type: 'slug', current: PROJECT_TAG_NAME},
+      name: {_type: 'slug', current: CASE_STUDY_TAG_NAME},
     })
     changes++
   }
 
-  // An image in several galleries goes to the first project (in Studio order) that uses it
+  // An image in several galleries goes to the first case study (in Studio order) that uses it
   const claimed = new Set<string>()
 
-  for (const project of projects) {
-    const folderId = folderIdFor(project._id)
-    const name = project.title?.trim() || 'Untitled project'
+  for (const caseStudy of caseStudies) {
+    const folderId = folderIdFor(caseStudy._id)
+    const name = caseStudy.title?.trim() || 'Untitled case study'
 
     if (!existingFolders.has(folderId)) {
       console.log(`Create folder "${name}"`)
@@ -87,7 +92,7 @@ async function main() {
           "filed": defined(opt.media.folder),
           "tagged": $tagId in coalesce(opt.media.tags[]._ref, [])
         }`,
-        {ids: project.assetIds, tagId: projectTagId},
+        {ids: caseStudy.assetIds, tagId: caseStudyTagId},
       )
     ).filter((asset) => !claimed.has(asset._id))
     assets.forEach((asset) => claimed.add(asset._id))
@@ -95,7 +100,7 @@ async function main() {
     const toFile = assets.filter((asset) => !asset.filed).length
     const toTag = assets.filter((asset) => !asset.tagged).length
     if (toFile) console.log(`File ${toFile} image(s) into "${name}"`)
-    if (toTag) console.log(`Tag ${toTag} image(s) in "${name}" as "${PROJECT_TAG_NAME}"`)
+    if (toTag) console.log(`Tag ${toTag} image(s) in "${name}" as "${CASE_STUDY_TAG_NAME}"`)
 
     // The same patches the Media plugin applies when you move an image or add a tag
     for (const asset of assets) {
@@ -108,7 +113,7 @@ async function main() {
         if (!asset.tagged) {
           next = next
             .setIfMissing({'opt.media.tags': []})
-            .append('opt.media.tags', [{_key: 'project', ...weakRef(projectTagId)}])
+            .append('opt.media.tags', [{_key: 'case-study', ...weakRef(caseStudyTagId)}])
         }
         return next
       })

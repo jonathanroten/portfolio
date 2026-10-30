@@ -129,8 +129,8 @@ export type Service = {
   title: string;
 };
 
-export type ProjectImage = {
-  _type: "projectImage";
+export type CaseStudyImage = {
+  _type: "caseStudyImage";
   asset?: SanityImageAssetReference;
   media?: unknown;
   hotspot?: SanityImageHotspot;
@@ -139,23 +139,39 @@ export type ProjectImage = {
   layout: "default" | "fullWidth";
 };
 
-export type Project = {
+export type CaseStudy = {
   _id: string;
-  _type: "project";
+  _type: "caseStudy";
   _createdAt: string;
   _updatedAt: string;
   _rev: string;
   orderRank?: string;
   title: string;
   slug: Slug;
-  projectType: "brand" | "interactive";
   description?: string;
   services?: Array<{
     _key: string;
   } & ServiceReference>;
-  projectGallery?: Array<{
+  engagement?: "freelance" | "agency";
+  heroImage?: {
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    alt: string;
+    _type: "image";
+  };
+  featureGallery?: Array<{
     _key: string;
-  } & ProjectImage>;
+  } & CaseStudyImage>;
+  brief?: string;
+  briefGallery?: Array<{
+    _key: string;
+  } & CaseStudyImage>;
+  approach?: string;
+  approachGallery?: Array<{
+    _key: string;
+  } & CaseStudyImage>;
 };
 
 export type Slug = {
@@ -410,25 +426,7 @@ export type Geopoint = {
   alt?: number;
 };
 
-export type AllSanitySchemaTypes = SiteSettings | SanityImageAssetReference | HomePage | SanityImageCrop | SanityImageHotspot | ServiceReference | GalleryItem | Gallery | Service | ProjectImage | Project | Slug | SanityAssistInstructionTask | SanityAssistTaskStatus | SanityAssistSchemaTypeAnnotations | SanityAssistOutputType | SanityAssistOutputField | AssistInstructionContextReference | SanityAssistInstructionContext | AssistInstructionContext | SanityAssistInstructionUserInput | SanityAssistInstructionPrompt | SanityAssistInstructionFieldRef | SanityAssistInstruction | SanityAssistSchemaTypeField | MediaFolderReference | MediaFolder | MediaTag | SanityImagePaletteSwatch | SanityImagePalette | SanityImageDimensions | SanityImageMetadata | SanityFileAsset | SanityAssetSourceData | SanityImageAsset | Geopoint;
-
-// Source: ../web/src/utils/sanity.ts
-// Variable: PROJECTS_QUERY
-// Query: *[_type == "project" && projectType == $projectType && defined(slug.current)] | order(orderRank) {  _id,  title,  "slug": slug.current,  "services": services[defined(@->title)]->title,  description,  projectGallery[defined(asset)] { alt, asset, hotspot, crop, layout }}
-export type PROJECTS_QUERY_RESULT = Array<{
-  _id: string;
-  title: string;
-  slug: string;
-  services: Array<string> | null;
-  description: string | null;
-  projectGallery: Array<{
-    alt: string;
-    asset: SanityImageAssetReference | null;
-    hotspot: SanityImageHotspot | null;
-    crop: SanityImageCrop | null;
-    layout: "default" | "fullWidth";
-  }> | null;
-}>;
+export type AllSanitySchemaTypes = SiteSettings | SanityImageAssetReference | HomePage | SanityImageCrop | SanityImageHotspot | ServiceReference | GalleryItem | Gallery | Service | CaseStudyImage | CaseStudy | Slug | SanityAssistInstructionTask | SanityAssistTaskStatus | SanityAssistSchemaTypeAnnotations | SanityAssistOutputType | SanityAssistOutputField | AssistInstructionContextReference | SanityAssistInstructionContext | AssistInstructionContext | SanityAssistInstructionUserInput | SanityAssistInstructionPrompt | SanityAssistInstructionFieldRef | SanityAssistInstruction | SanityAssistSchemaTypeField | MediaFolderReference | MediaFolder | MediaTag | SanityImagePaletteSwatch | SanityImagePalette | SanityImageDimensions | SanityImageMetadata | SanityFileAsset | SanityAssetSourceData | SanityImageAsset | Geopoint;
 
 // Source: ../web/src/utils/sanity.ts
 // Variable: HERO_IMAGES_QUERY
@@ -455,6 +453,46 @@ export type GALLERY_QUERY_RESULT = Array<{
 // Variable: SERVICES_QUERY
 // Query: *[_type == "service" && defined(title)] | order(title asc).title
 export type SERVICES_QUERY_RESULT = Array<string>;
+
+// Source: ../web/src/utils/sanity.ts
+// Variable: CASE_STUDIES_QUERY
+// Query: *[_type == "caseStudy" && defined(slug.current)] | order(orderRank) {  title,  "slug": slug.current,  "services": services[defined(@->title)]->title,  description,  featureGallery[defined(asset)] { alt, asset, hotspot, crop, "layout": coalesce(layout, "default") },  engagement,  "heroImage": select(defined(heroImage.asset) => heroImage { alt, asset, hotspot, crop }, null),  brief,  briefGallery[defined(asset)] { alt, asset, hotspot, crop, "layout": coalesce(layout, "default") },  approach,  approachGallery[defined(asset)] { alt, asset, hotspot, crop, "layout": coalesce(layout, "default") }}
+export type CASE_STUDIES_QUERY_RESULT = Array<{
+  title: string;
+  slug: string;
+  services: Array<string> | null;
+  description: string | null;
+  featureGallery: Array<{
+    alt: string;
+    asset: SanityImageAssetReference | null;
+    hotspot: SanityImageHotspot | null;
+    crop: SanityImageCrop | null;
+    layout: "default" | "fullWidth";
+  }> | null;
+  engagement: "agency" | "freelance" | null;
+  heroImage: {
+    alt: string;
+    asset: SanityImageAssetReference;
+    hotspot: SanityImageHotspot | null;
+    crop: SanityImageCrop | null;
+  } | null;
+  brief: string | null;
+  briefGallery: Array<{
+    alt: string;
+    asset: SanityImageAssetReference | null;
+    hotspot: SanityImageHotspot | null;
+    crop: SanityImageCrop | null;
+    layout: "default" | "fullWidth";
+  }> | null;
+  approach: string | null;
+  approachGallery: Array<{
+    alt: string;
+    asset: SanityImageAssetReference | null;
+    hotspot: SanityImageHotspot | null;
+    crop: SanityImageCrop | null;
+    layout: "default" | "fullWidth";
+  }> | null;
+}>;
 
 // Source: ../web/src/utils/sanity.ts
 // Variable: SITE_SETTINGS_QUERY
@@ -488,10 +526,10 @@ export type DESCRIPTION_QUERY_RESULT = Array<{
 // Query TypeMap
 declare global {
   interface SanityQueries {
-    "*[_type == \"project\" && projectType == $projectType && defined(slug.current)] | order(orderRank) {\n  _id,\n  title,\n  \"slug\": slug.current,\n  \"services\": services[defined(@->title)]->title,\n  description,\n  projectGallery[defined(asset)] { alt, asset, hotspot, crop, layout }\n}": PROJECTS_QUERY_RESULT;
     "*[_id == \"homePage\"][0].heroImages[defined(asset)] { asset, hotspot, crop }": HERO_IMAGES_QUERY_RESULT;
     "*[_id == \"gallery\"][0].items[defined(asset)] { alt, aspectRatio, asset, hotspot, crop, \"services\": services[defined(@->title)]->title }": GALLERY_QUERY_RESULT;
     "*[_type == \"service\" && defined(title)] | order(title asc).title": SERVICES_QUERY_RESULT;
+    "*[_type == \"caseStudy\" && defined(slug.current)] | order(orderRank) {\n  title,\n  \"slug\": slug.current,\n  \"services\": services[defined(@->title)]->title,\n  description,\n  featureGallery[defined(asset)] { alt, asset, hotspot, crop, \"layout\": coalesce(layout, \"default\") },\n  engagement,\n  \"heroImage\": select(defined(heroImage.asset) => heroImage { alt, asset, hotspot, crop }, null),\n  brief,\n  briefGallery[defined(asset)] { alt, asset, hotspot, crop, \"layout\": coalesce(layout, \"default\") },\n  approach,\n  approachGallery[defined(asset)] { alt, asset, hotspot, crop, \"layout\": coalesce(layout, \"default\") }\n}": CASE_STUDIES_QUERY_RESULT;
     "*[_id == \"siteSettings\"][0] {\n  \"navigation\": navigation[defined(label) && defined(href)] { _key, label, href },\n  \"socialLinks\": socialLinks[defined(label) && defined(url)] { _key, label, url },\n  seoDescription\n}": SITE_SETTINGS_QUERY_RESULT;
     "*[_id == \"homePage\"][0].description[0].children[defined(text)] {\n  text,\n  \"highlight\": \"highlight\" in coalesce(marks, [])\n}": DESCRIPTION_QUERY_RESULT;
   }

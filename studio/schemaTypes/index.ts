@@ -1,14 +1,14 @@
 import {gallery} from './gallery'
 import {galleryItem} from './galleryItem'
-import {project} from './project'
-import {projectImage} from './projectImage'
+import {caseStudy} from './caseStudy'
+import {caseStudyImage} from './caseStudyImage'
 import {service} from './service'
 import {homePage} from './homePage'
 import {siteSettings} from './siteSettings'
 
 export const schemaTypes = [
-  project,
-  projectImage,
+  caseStudy,
+  caseStudyImage,
   service,
   gallery,
   galleryItem,
