@@ -1,0 +1,129 @@
+---
+import Layout from "@/layouts/BaseLayout.astro";
+import Section from "@/components/wrapper/Section.astro";
+import ContentWrapper from "@/components/wrapper/ContentWrapper.astro";
+import Grid from "@/components/wrapper/Grid.astro";
+import Heading from "@/components/typography/Heading.astro";
+import Paragraph from "@/components/typography/Paragraph.astro";
+import Img from "@/components/media/Img.astro";
+import HeroCaseStudy from "@/components/content/HeroCaseStudy.astro";
+import NextCaseStudy from "@/components/content/NextCaseStudy.astro";
+import { galleryCrops, imageUrl } from "@/utils/sanity.ts";
+import { getCaseStudies, type CaseStudy } from "@/utils/case-studies.ts";
+
+export async function getStaticPaths() {
+  const caseStudies = await getCaseStudies();
+  return caseStudies.map((caseStudy, i) => ({
+    params: { slug: caseStudy.slug },
+    props: { caseStudy, next: caseStudies[(i + 1) % caseStudies.length] },
+  }));
+}
+
+interface Props {
+  caseStudy: CaseStudy;
+  next: CaseStudy;
+}
+
+const { caseStudy, next } = Astro.props;
+const hero = galleryCrops.fullWidth;
+---
+
+<Layout
+  title={caseStudy.title}
+  description={caseStudy.description}
+  theme="dark"
+  footer="none"
+>
+  <!-- Hero -->
+  <Section
+    class="padding-top-5"
+    paddingBottom="none"
+    containerClass="gap-gutter"
+  >
+    <HeroCaseStudy
+      number={caseStudy.number}
+      heading={caseStudy.title}
+      description={caseStudy.description}
+      services={caseStudy.services}
+      engagement={caseStudy.engagement}
+    />
+    {
+      caseStudy.heroImage && (
+        <Img
+          src={imageUrl(caseStudy.heroImage, hero.width, hero.ratio)}
+          alt={caseStudy.heroImage.alt}
+          variant="full-width"
+          width={hero.width}
+          height={Math.round(hero.width / hero.ratio)}
+          loading="eager"
+          fetchPriority="high"
+        />
+      )
+    }
+  </Section>
+  <!-- Brief, then approach -->
+  {
+    [
+      {
+        heading: "Brief",
+        paragraphs: caseStudy.brief,
+        gallery: caseStudy.briefGallery,
+      },
+      {
+        heading: "Approach",
+        paragraphs: caseStudy.approach,
+        gallery: caseStudy.approachGallery,
+      },
+    ]
+      .filter((part) => part.paragraphs.length > 0 || part.gallery.length > 0)
+      .map((part) => (
+        <Section paddingTop="small" paddingBottom="none">
+          <Grid medium={2} class="gap-1">
+            <ContentWrapper class="grid-column-full padding-bottom-5">
+              <Heading tag="h2" class="sr-only">
+                {part.heading}
+              </Heading>
+              {part.paragraphs.map((text) => (
+                <Paragraph variant="main" maxWidth={95}>
+                  {text}
+                </Paragraph>
+              ))}
+            </ContentWrapper>
+            {part.gallery.map((image) => {
+              const full = image.layout === "fullWidth";
+              const crop = galleryCrops[image.layout];
+              return (
+                <Img
+                  src={imageUrl(image, crop.width, crop.ratio)}
+                  alt={image.alt}
+                  variant="full-width"
+                  width={crop.width}
+                  height={Math.round(crop.width / crop.ratio)}
+                  class={full ? "grid-column-full" : undefined}
+                />
+              );
+            })}
+          </Grid>
+        </Section>
+      ))
+  }
+  <!-- Next -->
+  <Section paddingBottom="none">
+    <NextCaseStudy
+      number={next.number}
+      heading={next.title}
+      href={`/case-studies/${next.slug}`}
+    >
+      {
+        next.heroImage && (
+          <Img
+            src={imageUrl(next.heroImage, hero.width, hero.ratio)}
+            variant="full-width"
+            width={hero.width}
+            height={Math.round(hero.width / hero.ratio)}
+          />
+        )
+      }
+    </NextCaseStudy>
+  </Section>
+</Layout>

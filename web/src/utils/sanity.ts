@@ -2,11 +2,10 @@ import { sanityClient } from "sanity:client";
 import { createImageUrlBuilder } from "@sanity/image-url";
 import { defineQuery } from "groq";
 import type {
+  CASE_STUDIES_QUERY_RESULT,
   DESCRIPTION_QUERY_RESULT,
   GALLERY_QUERY_RESULT,
   HERO_IMAGES_QUERY_RESULT,
-  PROJECTS_QUERY_RESULT,
-  Project,
   SanityImageAssetReference,
   SanityImageCrop,
   SanityImageHotspot,
@@ -24,19 +23,6 @@ type SanityImage = {
   hotspot: SanityImageHotspot | null;
   crop: SanityImageCrop | null;
 };
-
-/** Values of the Studio's `projectType` field on a project. */
-export type ProjectType = Project["projectType"];
-
-const PROJECTS_QUERY =
-  defineQuery(`*[_type == "project" && projectType == $projectType && defined(slug.current)] | order(orderRank) {
-  _id,
-  title,
-  "slug": slug.current,
-  "services": services[defined(@->title)]->title,
-  description,
-  projectGallery[defined(asset)] { alt, asset, hotspot, crop, layout }
-}`);
 
 const HERO_IMAGES_QUERY = defineQuery(
   `*[_id == "homePage"][0].heroImages[defined(asset)] { asset, hotspot, crop }`,
@@ -64,11 +50,24 @@ const SERVICES_QUERY = defineQuery(
   `*[_type == "service" && defined(title)] | order(title asc).title`,
 );
 
-/** Published projects of one type, in the order set in the Studio. */
-export async function getProjects(
-  projectType: ProjectType,
-): Promise<PROJECTS_QUERY_RESULT> {
-  return sanityClient.fetch(PROJECTS_QUERY, { projectType });
+const CASE_STUDIES_QUERY =
+  defineQuery(`*[_type == "caseStudy" && defined(slug.current)] | order(orderRank) {
+  title,
+  "slug": slug.current,
+  "services": services[defined(@->title)]->title,
+  description,
+  featureGallery[defined(asset)] { alt, asset, hotspot, crop, "layout": coalesce(layout, "default") },
+  engagement,
+  "heroImage": select(defined(heroImage.asset) => heroImage { alt, asset, hotspot, crop }, null),
+  brief,
+  briefGallery[defined(asset)] { alt, asset, hotspot, crop, "layout": coalesce(layout, "default") },
+  approach,
+  approachGallery[defined(asset)] { alt, asset, hotspot, crop, "layout": coalesce(layout, "default") }
+}`);
+
+/** Case studies as stored in the Studio, in its order. Read them through `getCaseStudies`. */
+export async function getCaseStudyDocuments(): Promise<CASE_STUDIES_QUERY_RESULT> {
+  return sanityClient.fetch(CASE_STUDIES_QUERY);
 }
 
 let servicesRequest: Promise<string[]> | undefined;
@@ -177,3 +176,14 @@ export function imageUrl(
     .auto("format")
     .url();
 }
+
+/**
+ * Crops for gallery images, by their Studio `layout`: `default` sits in the
+ * two-column grid and `fullWidth` spans both. Shared by the case studies on Home
+ * and the case study pages, so their images keep the same shapes. The queries fill in
+ * `default` for an image saved without a layout, so every image finds a crop.
+ */
+export const galleryCrops = {
+  default: { width: 960, ratio: 8 / 9 },
+  fullWidth: { width: 1600, ratio: 16 / 9 },
+};

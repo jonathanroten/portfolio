@@ -40,7 +40,6 @@ export const siteSettings = defineType({
           preview: {select: {title: 'label', subtitle: 'href'}},
         }),
       ],
-      options: {aiAssist: {exclude: true}},
     }),
     defineField({
       name: 'socialLinks',
@@ -67,7 +66,6 @@ export const siteSettings = defineType({
           preview: {select: {title: 'label', subtitle: 'url'}},
         }),
       ],
-      options: {aiAssist: {exclude: true}},
     }),
     defineField({
       name: 'seoDescription',
@@ -76,7 +74,6 @@ export const siteSettings = defineType({
       rows: 3,
       description:
         'Default description for search results and social shares, on every page that does not set its own.',
-      options: {aiAssist: {exclude: true}},
       validation: (rule) => [
         rule.required(),
         rule.max(160).warning('Search results cut off after about 160 characters'),

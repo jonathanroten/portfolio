@@ -1,0 +1,92 @@
+---
+import type { HTMLAttributes } from "astro/types";
+
+interface Props extends HTMLAttributes<"a"> {
+  /** Set to `false` to omit the component. */
+  render?: boolean;
+  /**
+   * Position of the case study it leads to, shown as `01`.
+   *
+   * @min 1
+   * @int
+   */
+  number?: number;
+  /** Title of the case study it leads to. */
+  heading?: string;
+  /** Link destination. */
+  href?: string;
+}
+
+const {
+  render = true,
+  number,
+  heading,
+  href,
+  class: className,
+  ...rest
+} = Astro.props;
+---
+
+{
+  render && heading && href && (
+    <a
+      class:list={["next-case-study_wrap", className]}
+      href={href}
+      rel="next"
+      {...rest}
+    >
+      <span class="next-case-study_label">
+        <span class="sr-only">Next</span>
+        {number !== undefined && (
+          <span class="text-style-h5">{String(number).padStart(2, "0")}</span>
+        )}
+        <span class="text-style-h5">{heading}</span>
+      </span>
+      <div class="next-case-study_image background-skeleton">
+        <slot />
+        <div class="next-case-study_fade" />
+      </div>
+    </a>
+  )
+}
+
+<style is:global>
+  @layer components {
+    .next-case-study_wrap {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: var(--site-gutter);
+      padding-top: var(--space-5);
+      border-top: var(--border-width) solid var(--border);
+      .next-case-study_label {
+        display: flex;
+        gap: var(--space-4);
+      }
+      .next-case-study_image {
+        aspect-ratio: 32 / 9;
+        min-height: 0;
+        position: relative;
+        overflow: clip;
+      }
+      .next-case-study_fade {
+        position: absolute;
+        inset: calc(var(--site-gutter) * -1) 0 0;
+        background-image: linear-gradient(
+          to bottom,
+          transparent,
+          var(--background)
+        );
+        transition: opacity var(--hover-duration-gentle) var(--hover-ease);
+      }
+      &:focus-visible .next-case-study_fade {
+        opacity: 0.6;
+      }
+      @media (hover: hover) {
+        &:hover .next-case-study_fade {
+          opacity: 0.6;
+        }
+      }
+    }
+  }
+</style>

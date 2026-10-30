@@ -11,13 +11,7 @@ export const galleryItem = defineType({
   name: 'galleryItem',
   title: 'Gallery Item',
   type: 'image',
-  options: {
-    hotspot: true,
-    // Manual only: adds a "Generate image description" button to alt, never runs on upload
-    aiAssist: {
-      imageDescriptionField: {path: 'alt', updateOnImageChange: false},
-    },
-  },
+  options: {hotspot: true},
   fields: [
     defineField({
       name: 'alt',
@@ -36,7 +30,6 @@ export const galleryItem = defineType({
         list: aspectRatios,
         layout: 'radio',
         direction: 'horizontal',
-        aiAssist: {exclude: true},
       },
       initialValue: '1:1',
       validation: (rule) => rule.required(),
@@ -47,7 +40,6 @@ export const galleryItem = defineType({
       description:
         'Shown under the image when it is selected. Pick from existing services, or create a new one. Renaming a service updates every image.',
       of: [defineArrayMember({type: 'reference', to: [{type: 'service'}]})],
-      options: {aiAssist: {exclude: true}},
       validation: (rule) => rule.required().unique(),
     }),
   ],

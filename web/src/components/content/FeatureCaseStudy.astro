@@ -1,6 +1,7 @@
 ---
 import type { HTMLAttributes } from "astro/types";
-import { imageUrl, type getProjects } from "@/utils/sanity.ts";
+import { galleryCrops, imageUrl } from "@/utils/sanity.ts";
+import type { CaseStudy } from "@/utils/case-studies.ts";
 
 import Heading from "@/components/typography/Heading.astro";
 import Paragraph from "@/components/typography/Paragraph.astro";
@@ -11,86 +12,81 @@ import Img from "@/components/media/Img.astro";
 interface Props extends HTMLAttributes<"div"> {
   /** Set to `false` to omit the component. */
   render?: boolean;
-  /** Projects to feature, as `getProjects` returns them. */
-  projects?: Awaited<ReturnType<typeof getProjects>>;
+  /** Case studies to feature, as `getCaseStudies` returns them. */
+  caseStudies?: CaseStudy[];
 }
 
-const { render = true, projects, class: className, ...rest } = Astro.props;
+const { render = true, caseStudies, class: className, ...rest } = Astro.props;
 
-const crops = {
-  half: { width: 960, ratio: 8 / 9 },
-  full: { width: 1600, ratio: 16 / 9 },
-};
-
-const items = (projects ?? []).filter(
-  (project) =>
-    project.title ||
-    project.services?.length ||
-    project.description ||
-    project.projectGallery?.length,
+const items = (caseStudies ?? []).filter(
+  (caseStudy) =>
+    caseStudy.title ||
+    caseStudy.services.length ||
+    caseStudy.description ||
+    caseStudy.featureGallery.length,
 );
 ---
 
 {
   render && items.length > 0 && (
     <div
-      class:list={["project-feature_wrap", "width-full", className]}
+      class:list={["feature-case-study_wrap", "width-full", className]}
       role="list"
       {...rest}
     >
-      {items.map((project, i) => (
-        <div class="project-feature_item" role="listitem">
-          <div class="project-feature_layout">
-            <div class="project-feature_column">
-              <div class="project-feature_counter text-style-h6">
+      {items.map((caseStudy, i) => (
+        <div class="feature-case-study_item" role="listitem">
+          <div class="feature-case-study_layout">
+            <div class="feature-case-study_column">
+              <div class="feature-case-study_counter text-style-h6">
                 <span>{String(i + 1).padStart(2, "0")}</span>
               </div>
               <ContentWrapper>
-                {project.title && (
+                {caseStudy.title && (
                   <Heading tag="h2" variant="h3" maxWidth={18}>
-                    {project.title}
+                    {caseStudy.title}
                   </Heading>
                 )}
-                {(project.services?.length || project.description) && (
-                  <div class="project-feature_content">
-                    {!!project.services?.length && (
+                {(caseStudy.services.length || caseStudy.description) && (
+                  <div class="feature-case-study_content">
+                    {!!caseStudy.services.length && (
                       <>
                         <Heading tag="h3" variant="h5" class="margin-bottom-3">
                           Services Provided
                         </Heading>
                         <ul>
-                          {project.services.map((service) => (
+                          {caseStudy.services.map((service) => (
                             <li class="text-style-main">{service}</li>
                           ))}
                         </ul>
                       </>
                     )}
-                    {project.description && (
+                    {caseStudy.description && (
                       <Paragraph
                         variant="h4"
                         maxWidth={40}
                         class="margin-top-7"
                       >
-                        {project.description}
+                        {caseStudy.description}
                       </Paragraph>
                     )}
                   </div>
                 )}
               </ContentWrapper>
             </div>
-            {!!project.projectGallery?.length && (
-              <div class="project-feature_column">
+            {!!caseStudy.featureGallery.length && (
+              <div class="feature-case-study_column">
                 <Grid xsmall={1} medium={2} class="gap-1">
-                  {project.projectGallery.map((image) => {
+                  {caseStudy.featureGallery.map((image) => {
                     const full = image.layout === "fullWidth";
-                    const crop = full ? crops.full : crops.half;
+                    const crop = galleryCrops[image.layout];
                     return (
                       <Img
                         src={imageUrl(image, crop.width, crop.ratio)}
                         variant="full-width"
                         width={crop.width}
                         height={Math.round(crop.width / crop.ratio)}
-                        alt={image.alt ?? undefined}
+                        alt={image.alt}
                         class={full ? "grid-column-full" : undefined}
                       />
                     );
@@ -107,7 +103,7 @@ const items = (projects ?? []).filter(
 
 <style is:global>
   @layer components {
-    .project-feature_layout {
+    .feature-case-study_layout {
       width: 100%;
       display: flex;
       flex-direction: column;
@@ -117,18 +113,18 @@ const items = (projects ?? []).filter(
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
     }
-    .project-feature_column {
-      &:has(.project-feature_content) {
+    .feature-case-study_column {
+      &:has(.feature-case-study_content) {
         display: flex;
         flex-direction: column;
         padding: var(--space-8) 0 var(--space-6);
       }
-      &:not(:has(.project-feature_content)) {
+      &:not(:has(.feature-case-study_content)) {
         display: flex;
         flex-direction: column;
         gap: var(--space-1);
       }
-      .project-feature_counter {
+      .feature-case-study_counter {
         border: var(--border-width-medium) solid var(--text);
         display: flex;
         align-items: center;
@@ -141,22 +137,22 @@ const items = (projects ?? []).filter(
       }
       @media (width >= 64rem) {
         min-height: calc(100svh - var(--nav-total-height));
-        &:has(.project-feature_content) {
+        &:has(.feature-case-study_content) {
           justify-content: end;
           align-self: start;
           position: sticky;
           top: var(--nav-total-height);
         }
-        &:not(:has(.project-feature_content)) {
+        &:not(:has(.feature-case-study_content)) {
           padding-bottom: var(--space-1);
         }
-        .project-feature_counter {
+        .feature-case-study_counter {
           display: none;
         }
       }
     }
 
-    .project-feature_content {
+    .feature-case-study_content {
       ul {
         display: flex;
         flex-wrap: wrap;

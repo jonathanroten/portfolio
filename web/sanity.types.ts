@@ -129,8 +129,8 @@ export type Service = {
   title: string;
 };
 
-export type ProjectImage = {
-  _type: "projectImage";
+export type CaseStudyImage = {
+  _type: "caseStudyImage";
   asset?: SanityImageAssetReference;
   media?: unknown;
   hotspot?: SanityImageHotspot;
@@ -139,152 +139,45 @@ export type ProjectImage = {
   layout: "default" | "fullWidth";
 };
 
-export type Project = {
+export type CaseStudy = {
   _id: string;
-  _type: "project";
+  _type: "caseStudy";
   _createdAt: string;
   _updatedAt: string;
   _rev: string;
   orderRank?: string;
   title: string;
   slug: Slug;
-  projectType: "brand" | "interactive";
   description?: string;
   services?: Array<{
     _key: string;
   } & ServiceReference>;
-  projectGallery?: Array<{
+  engagement?: "freelance" | "agency";
+  heroImage?: {
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    alt: string;
+    _type: "image";
+  };
+  featureGallery?: Array<{
     _key: string;
-  } & ProjectImage>;
+  } & CaseStudyImage>;
+  brief?: string;
+  briefGallery?: Array<{
+    _key: string;
+  } & CaseStudyImage>;
+  approach?: string;
+  approachGallery?: Array<{
+    _key: string;
+  } & CaseStudyImage>;
 };
 
 export type Slug = {
   _type: "slug";
   current: string;
   source?: string;
-};
-
-export type SanityAssistInstructionTask = {
-  _type: "sanity.assist.instructionTask";
-  path?: string;
-  instructionKey?: string;
-  started?: string;
-  updated?: string;
-  info?: string;
-};
-
-export type SanityAssistTaskStatus = {
-  _type: "sanity.assist.task.status";
-  tasks?: Array<{
-    _key: string;
-  } & SanityAssistInstructionTask>;
-};
-
-export type SanityAssistSchemaTypeAnnotations = {
-  _type: "sanity.assist.schemaType.annotations";
-  title?: string;
-  fields?: Array<{
-    _key: string;
-  } & SanityAssistSchemaTypeField>;
-};
-
-export type SanityAssistOutputType = {
-  _type: "sanity.assist.output.type";
-  type?: string;
-};
-
-export type SanityAssistOutputField = {
-  _type: "sanity.assist.output.field";
-  path?: string;
-};
-
-export type AssistInstructionContextReference = {
-  _ref: string;
-  _type: "reference";
-  _weak?: boolean;
-  [internalGroqTypeReferenceTo]?: "assist.instruction.context";
-};
-
-export type SanityAssistInstructionContext = {
-  _type: "sanity.assist.instruction.context";
-  reference: AssistInstructionContextReference;
-};
-
-export type AssistInstructionContext = {
-  _id: string;
-  _type: "assist.instruction.context";
-  _createdAt: string;
-  _updatedAt: string;
-  _rev: string;
-  title?: string;
-  context?: Array<{
-    children?: Array<{
-      marks?: Array<string>;
-      text?: string;
-      _type: "span";
-      _key: string;
-    }>;
-    style?: "normal";
-    listItem?: never;
-    markDefs?: null;
-    level?: number;
-    _type: "block";
-    _key: string;
-  }>;
-};
-
-export type SanityAssistInstructionUserInput = {
-  _type: "sanity.assist.instruction.userInput";
-  message: string;
-  description?: string;
-};
-
-export type SanityAssistInstructionPrompt = Array<{
-  children?: Array<{
-    marks?: Array<string>;
-    text?: string;
-    _type: "span";
-    _key: string;
-  } | {
-    _key: string;
-  } & SanityAssistInstructionFieldRef | {
-    _key: string;
-  } & SanityAssistInstructionContext | {
-    _key: string;
-  } & SanityAssistInstructionUserInput>;
-  style?: "normal";
-  listItem?: never;
-  markDefs?: null;
-  level?: number;
-  _type: "block";
-  _key: string;
-}>;
-
-export type SanityAssistInstructionFieldRef = {
-  _type: "sanity.assist.instruction.fieldRef";
-  path?: string;
-};
-
-export type SanityAssistInstruction = {
-  _type: "sanity.assist.instruction";
-  prompt?: SanityAssistInstructionPrompt;
-  icon?: string;
-  title?: string;
-  userId?: string;
-  createdById?: string;
-  output?: Array<{
-    _key: string;
-  } & SanityAssistOutputField | {
-    _key: string;
-  } & SanityAssistOutputType>;
-};
-
-export type SanityAssistSchemaTypeField = {
-  _type: "sanity.assist.schemaType.field";
-  path?: string;
-  instructions?: Array<{
-    _key: string;
-  } & SanityAssistInstruction>;
 };
 
 export type MediaFolderReference = {
@@ -410,25 +303,7 @@ export type Geopoint = {
   alt?: number;
 };
 
-export type AllSanitySchemaTypes = SiteSettings | SanityImageAssetReference | HomePage | SanityImageCrop | SanityImageHotspot | ServiceReference | GalleryItem | Gallery | Service | ProjectImage | Project | Slug | SanityAssistInstructionTask | SanityAssistTaskStatus | SanityAssistSchemaTypeAnnotations | SanityAssistOutputType | SanityAssistOutputField | AssistInstructionContextReference | SanityAssistInstructionContext | AssistInstructionContext | SanityAssistInstructionUserInput | SanityAssistInstructionPrompt | SanityAssistInstructionFieldRef | SanityAssistInstruction | SanityAssistSchemaTypeField | MediaFolderReference | MediaFolder | MediaTag | SanityImagePaletteSwatch | SanityImagePalette | SanityImageDimensions | SanityImageMetadata | SanityFileAsset | SanityAssetSourceData | SanityImageAsset | Geopoint;
-
-// Source: ../web/src/utils/sanity.ts
-// Variable: PROJECTS_QUERY
-// Query: *[_type == "project" && projectType == $projectType && defined(slug.current)] | order(orderRank) {  _id,  title,  "slug": slug.current,  "services": services[defined(@->title)]->title,  description,  projectGallery[defined(asset)] { alt, asset, hotspot, crop, layout }}
-export type PROJECTS_QUERY_RESULT = Array<{
-  _id: string;
-  title: string;
-  slug: string;
-  services: Array<string> | null;
-  description: string | null;
-  projectGallery: Array<{
-    alt: string;
-    asset: SanityImageAssetReference | null;
-    hotspot: SanityImageHotspot | null;
-    crop: SanityImageCrop | null;
-    layout: "default" | "fullWidth";
-  }> | null;
-}>;
+export type AllSanitySchemaTypes = SiteSettings | SanityImageAssetReference | HomePage | SanityImageCrop | SanityImageHotspot | ServiceReference | GalleryItem | Gallery | Service | CaseStudyImage | CaseStudy | Slug | MediaFolderReference | MediaFolder | MediaTag | SanityImagePaletteSwatch | SanityImagePalette | SanityImageDimensions | SanityImageMetadata | SanityFileAsset | SanityAssetSourceData | SanityImageAsset | Geopoint;
 
 // Source: ../web/src/utils/sanity.ts
 // Variable: HERO_IMAGES_QUERY
@@ -455,6 +330,46 @@ export type GALLERY_QUERY_RESULT = Array<{
 // Variable: SERVICES_QUERY
 // Query: *[_type == "service" && defined(title)] | order(title asc).title
 export type SERVICES_QUERY_RESULT = Array<string>;
+
+// Source: ../web/src/utils/sanity.ts
+// Variable: CASE_STUDIES_QUERY
+// Query: *[_type == "caseStudy" && defined(slug.current)] | order(orderRank) {  title,  "slug": slug.current,  "services": services[defined(@->title)]->title,  description,  featureGallery[defined(asset)] { alt, asset, hotspot, crop, "layout": coalesce(layout, "default") },  engagement,  "heroImage": select(defined(heroImage.asset) => heroImage { alt, asset, hotspot, crop }, null),  brief,  briefGallery[defined(asset)] { alt, asset, hotspot, crop, "layout": coalesce(layout, "default") },  approach,  approachGallery[defined(asset)] { alt, asset, hotspot, crop, "layout": coalesce(layout, "default") }}
+export type CASE_STUDIES_QUERY_RESULT = Array<{
+  title: string;
+  slug: string;
+  services: Array<string> | null;
+  description: string | null;
+  featureGallery: Array<{
+    alt: string;
+    asset: SanityImageAssetReference | null;
+    hotspot: SanityImageHotspot | null;
+    crop: SanityImageCrop | null;
+    layout: "default" | "fullWidth";
+  }> | null;
+  engagement: "agency" | "freelance" | null;
+  heroImage: {
+    alt: string;
+    asset: SanityImageAssetReference;
+    hotspot: SanityImageHotspot | null;
+    crop: SanityImageCrop | null;
+  } | null;
+  brief: string | null;
+  briefGallery: Array<{
+    alt: string;
+    asset: SanityImageAssetReference | null;
+    hotspot: SanityImageHotspot | null;
+    crop: SanityImageCrop | null;
+    layout: "default" | "fullWidth";
+  }> | null;
+  approach: string | null;
+  approachGallery: Array<{
+    alt: string;
+    asset: SanityImageAssetReference | null;
+    hotspot: SanityImageHotspot | null;
+    crop: SanityImageCrop | null;
+    layout: "default" | "fullWidth";
+  }> | null;
+}>;
 
 // Source: ../web/src/utils/sanity.ts
 // Variable: SITE_SETTINGS_QUERY
@@ -488,10 +403,10 @@ export type DESCRIPTION_QUERY_RESULT = Array<{
 // Query TypeMap
 declare global {
   interface SanityQueries {
-    "*[_type == \"project\" && projectType == $projectType && defined(slug.current)] | order(orderRank) {\n  _id,\n  title,\n  \"slug\": slug.current,\n  \"services\": services[defined(@->title)]->title,\n  description,\n  projectGallery[defined(asset)] { alt, asset, hotspot, crop, layout }\n}": PROJECTS_QUERY_RESULT;
     "*[_id == \"homePage\"][0].heroImages[defined(asset)] { asset, hotspot, crop }": HERO_IMAGES_QUERY_RESULT;
     "*[_id == \"gallery\"][0].items[defined(asset)] { alt, aspectRatio, asset, hotspot, crop, \"services\": services[defined(@->title)]->title }": GALLERY_QUERY_RESULT;
     "*[_type == \"service\" && defined(title)] | order(title asc).title": SERVICES_QUERY_RESULT;
+    "*[_type == \"caseStudy\" && defined(slug.current)] | order(orderRank) {\n  title,\n  \"slug\": slug.current,\n  \"services\": services[defined(@->title)]->title,\n  description,\n  featureGallery[defined(asset)] { alt, asset, hotspot, crop, \"layout\": coalesce(layout, \"default\") },\n  engagement,\n  \"heroImage\": select(defined(heroImage.asset) => heroImage { alt, asset, hotspot, crop }, null),\n  brief,\n  briefGallery[defined(asset)] { alt, asset, hotspot, crop, \"layout\": coalesce(layout, \"default\") },\n  approach,\n  approachGallery[defined(asset)] { alt, asset, hotspot, crop, \"layout\": coalesce(layout, \"default\") }\n}": CASE_STUDIES_QUERY_RESULT;
     "*[_id == \"siteSettings\"][0] {\n  \"navigation\": navigation[defined(label) && defined(href)] { _key, label, href },\n  \"socialLinks\": socialLinks[defined(label) && defined(url)] { _key, label, url },\n  seoDescription\n}": SITE_SETTINGS_QUERY_RESULT;
     "*[_id == \"homePage\"][0].description[0].children[defined(text)] {\n  text,\n  \"highlight\": \"highlight\" in coalesce(marks, [])\n}": DESCRIPTION_QUERY_RESULT;
   }
