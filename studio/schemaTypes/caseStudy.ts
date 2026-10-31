@@ -1,4 +1,4 @@
-import {defineArrayMember, defineField, defineType} from 'sanity'
+import {ALL_FIELDS_GROUP, defineArrayMember, defineField, defineType} from 'sanity'
 import {CaseIcon} from '@sanity/icons/Case'
 import {orderRankField} from '@sanity/orderable-document-list'
 
@@ -6,27 +6,13 @@ export const caseStudy = defineType({
   name: 'caseStudy',
   title: 'Case Study',
   type: 'document',
-  fieldsets: [
-    {
-      name: 'overview',
-      title: 'Overview',
-      description:
-        'The top of the case study’s page at /case-studies/<slug>, and its feature on Home. Empty fields are left off the page.',
-      options: {collapsible: true, collapsed: false},
-    },
-    {
-      name: 'brief',
-      title: 'Brief',
-      description:
-        'The first section after the hero. Left off the page when both fields are empty.',
-      options: {collapsible: true, collapsed: false},
-    },
-    {
-      name: 'approach',
-      title: 'Approach',
-      description: 'Follows the brief. Left off the page when both fields are empty.',
-      options: {collapsible: true, collapsed: false},
-    },
+  // One tab per part of the page. All Fields is hidden because it would list the Brief and
+  // Approach fields as Text, Gallery, Text, Gallery with nothing to tell them apart.
+  groups: [
+    {name: 'overview', title: 'Overview', default: true},
+    {name: 'brief', title: 'Brief'},
+    {name: 'approach', title: 'Approach'},
+    {...ALL_FIELDS_GROUP, hidden: true},
   ],
   fields: [
     // Drag-and-drop order, managed by the Studio structure (see structure/index.ts)
@@ -34,13 +20,14 @@ export const caseStudy = defineType({
     defineField({
       name: 'title',
       type: 'string',
-      fieldset: 'overview',
+      group: 'overview',
       validation: (rule) => rule.required(),
     }),
     defineField({
       name: 'slug',
       type: 'slug',
-      fieldset: 'overview',
+      description: 'The page’s address: /case-studies/<slug>.',
+      group: 'overview',
       options: {source: 'title'},
       validation: (rule) => rule.required(),
     }),
@@ -48,14 +35,14 @@ export const caseStudy = defineType({
       name: 'description',
       type: 'text',
       rows: 4,
-      fieldset: 'overview',
+      group: 'overview',
     }),
     defineField({
       name: 'services',
       type: 'array',
       description:
         'Pick from existing services, or create a new one. Renaming a service updates every case study.',
-      fieldset: 'overview',
+      group: 'overview',
       of: [defineArrayMember({type: 'reference', to: [{type: 'service'}]})],
       validation: (rule) => rule.unique(),
     }),
@@ -63,7 +50,7 @@ export const caseStudy = defineType({
       name: 'engagement',
       type: 'string',
       description: 'How the work was taken on.',
-      fieldset: 'overview',
+      group: 'overview',
       options: {
         list: [
           {title: 'Freelance', value: 'freelance'},
@@ -79,7 +66,7 @@ export const caseStudy = defineType({
       type: 'image',
       description:
         'Shown at the top of the case study, and as the teaser at the end of the previous one.',
-      fieldset: 'overview',
+      group: 'overview',
       options: {hotspot: true},
       fields: [
         defineField({
@@ -97,7 +84,7 @@ export const caseStudy = defineType({
       type: 'array',
       description:
         'Shown with the case study on Home. Drop multiple images here at once. Drag to reorder.',
-      fieldset: 'overview',
+      group: 'overview',
       options: {layout: 'grid'},
       of: [defineArrayMember({type: 'caseStudyImage'})],
     }),
@@ -106,15 +93,16 @@ export const caseStudy = defineType({
       title: 'Text',
       type: 'text',
       rows: 4,
-      description: 'Shown above the gallery. Each line is a paragraph.',
-      fieldset: 'brief',
+      description:
+        'The first section after the hero, shown above the gallery. Each line is a paragraph. Leave this and the gallery empty to leave the section off the page.',
+      group: 'brief',
     }),
     defineField({
       name: 'briefGallery',
       title: 'Gallery',
       type: 'array',
       description: 'Drop multiple images here at once. Drag to reorder.',
-      fieldset: 'brief',
+      group: 'brief',
       options: {layout: 'grid'},
       of: [defineArrayMember({type: 'caseStudyImage'})],
     }),
@@ -123,15 +111,16 @@ export const caseStudy = defineType({
       title: 'Text',
       type: 'text',
       rows: 4,
-      description: 'Shown above the gallery. Each line is a paragraph.',
-      fieldset: 'approach',
+      description:
+        'Follows the brief, shown above the gallery. Each line is a paragraph. Leave this and the gallery empty to leave the section off the page.',
+      group: 'approach',
     }),
     defineField({
       name: 'approachGallery',
       title: 'Gallery',
       type: 'array',
       description: 'Drop multiple images here at once. Drag to reorder.',
-      fieldset: 'approach',
+      group: 'approach',
       options: {layout: 'grid'},
       of: [defineArrayMember({type: 'caseStudyImage'})],
     }),
