@@ -83,7 +83,7 @@ export const caseStudy = defineType({
       title: 'Feature Gallery',
       type: 'array',
       description:
-        'Shown with the case study on Home. Drop multiple images here at once. Drag to reorder.',
+        'Shown with the case study on Home, which shows the first 5 rows: a Full Width image fills a row, and two Default images share one. Images past that are kept but not shown. Drop multiple images here at once. Drag to reorder.',
       group: 'overview',
       options: {layout: 'grid'},
       of: [defineArrayMember({type: 'caseStudyImage'})],

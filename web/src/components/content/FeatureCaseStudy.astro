@@ -18,13 +18,31 @@ interface Props extends HTMLAttributes<"div"> {
 
 const { render = true, caseStudies, class: className, ...rest } = Astro.props;
 
-const items = (caseStudies ?? []).filter(
-  (caseStudy) =>
-    caseStudy.title ||
-    caseStudy.services.length ||
-    caseStudy.description ||
-    caseStudy.featureGallery.length,
-);
+const galleryRows = 5;
+
+const countRows = (gallery: CaseStudy["featureGallery"]) => {
+  const rows: CaseStudy["featureGallery"][] = [];
+  for (const image of gallery) {
+    const lastRow = rows.at(-1);
+    const hasRoom = lastRow?.length === 1 && lastRow[0].layout === "default";
+    if (image.layout === "default" && hasRoom) lastRow.push(image);
+    else rows.push([image]);
+  }
+  return rows.slice(0, galleryRows).flat();
+};
+
+const items = (caseStudies ?? [])
+  .filter(
+    (caseStudy) =>
+      caseStudy.title ||
+      caseStudy.services.length ||
+      caseStudy.description ||
+      caseStudy.featureGallery.length,
+  )
+  .map((caseStudy) => ({
+    ...caseStudy,
+    featureGallery: countRows(caseStudy.featureGallery),
+  }));
 ---
 
 {
