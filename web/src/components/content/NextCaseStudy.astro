@@ -44,7 +44,7 @@ const {
       </span>
       <div class="next-case-study_image background-skeleton">
         <slot />
-        <div class="next-case-study_fade" />
+        <div class="next-case-study_overlay" />
       </div>
     </a>
   )
@@ -69,7 +69,7 @@ const {
         position: relative;
         overflow: clip;
       }
-      .next-case-study_fade {
+      .next-case-study_overlay {
         position: absolute;
         inset: calc(var(--site-gutter) * -1) 0 0;
         background-image: linear-gradient(
@@ -79,11 +79,11 @@ const {
         );
         transition: opacity var(--hover-duration-gentle) var(--hover-ease);
       }
-      &:focus-visible .next-case-study_fade {
+      &:focus-visible .next-case-study_overlay {
         opacity: 0.6;
       }
       @media (hover: hover) {
-        &:hover .next-case-study_fade {
+        &:hover .next-case-study_overlay {
           opacity: 0.6;
         }
       }

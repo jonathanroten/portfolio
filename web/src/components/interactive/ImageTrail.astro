@@ -1,25 +1,33 @@
 ---
-import type { HTMLAttributes } from "astro/types";
-import { slotContent } from "@/utils/slots.ts";
+import type { ComponentProps, HTMLAttributes } from "astro/types";
+import Img from "@/components/media/Img.astro";
 
 interface Props extends HTMLAttributes<"div"> {
   /** Set to `false` to omit the component. */
   render?: boolean;
+  /** Image sources, in trail order. */
+  images?: ComponentProps<typeof Img>["src"][];
 }
 
-const { render = true, class: className, ...rest } = Astro.props;
-
-const items = await slotContent(Astro.slots);
+const { render = true, images, class: className, ...rest } = Astro.props;
 ---
 
 {
-  render && items && (
+  render && !!images?.length && (
     <div
       class:list={["image-trail_wrap", className]}
       aria-hidden="true"
       {...rest}
     >
-      <Fragment set:html={items} />
+      {images.map((src, i) => (
+        <div class="image-trail_item">
+          <Img
+            src={src}
+            loading="eager"
+            fetchPriority={i === 0 ? "high" : undefined}
+          />
+        </div>
+      ))}
     </div>
   )
 }
@@ -28,10 +36,10 @@ const items = await slotContent(Astro.slots);
   for (const trail of document.querySelectorAll<HTMLElement>(
     ".image-trail_wrap",
   )) {
-    const images = Array.from(
-      trail.querySelectorAll<HTMLElement>(":scope > img"),
+    const items = Array.from(
+      trail.querySelectorAll<HTMLElement>(":scope > .image-trail_item"),
     );
-    if (images.length === 0) continue;
+    if (items.length === 0) continue;
 
     const scope = trail.closest<HTMLElement>(".section") ?? trail;
     const nav = scope.matches("main > :first-child")
@@ -39,7 +47,7 @@ const items = await slotContent(Astro.slots);
       : null;
 
     const config = { threshold: 32, life: 750, flipMs: 1500 };
-    const total = images.length;
+    const total = items.length;
 
     const desktopQuery = window.matchMedia("(width >= 64rem)");
     const reducedMotionQuery = window.matchMedia(
@@ -57,22 +65,22 @@ const items = await slotContent(Astro.slots);
     let mouseHandler: ((event: MouseEvent) => void) | null = null;
 
     const advance = () => {
-      images.forEach((img, i) =>
-        img.classList.toggle("is-active", i === index),
+      items.forEach((item, i) =>
+        item.classList.toggle("is-active", i === index),
       );
       index = (index + 1) % total;
     };
 
     const showImage = () => {
-      const img = images[index];
+      const item = items[index];
       const inset =
         parseFloat(
           getComputedStyle(trail).getPropertyValue("--_bounds-inset"),
         ) || 0;
       const bounds = scope.getBoundingClientRect();
       const top = bounds.top - (nav?.offsetHeight ?? 0);
-      const halfW = img.offsetWidth / 2;
-      const halfH = img.offsetHeight / 2;
+      const halfW = item.offsetWidth / 2;
+      const halfH = item.offsetHeight / 2;
       const clamp = (value: number, min: number, max: number) =>
         Math.max(min, Math.min(value, max));
       const x = clamp(
@@ -88,15 +96,18 @@ const items = await slotContent(Astro.slots);
       const rect = trail.getBoundingClientRect();
       const offsetX = x - (rect.left + rect.width / 2);
       const offsetY = y - (rect.top + rect.height / 2);
-      img.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
-      img.style.zIndex = String(stackTop);
+      item.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+      item.style.zIndex = String(stackTop);
       stackTop += 1;
-      img.classList.add("is-active");
-      const existing = timers.get(img);
+      item.classList.add("is-active");
+      const existing = timers.get(item);
       if (existing) window.clearTimeout(existing);
       timers.set(
-        img,
-        window.setTimeout(() => img.classList.remove("is-active"), config.life),
+        item,
+        window.setTimeout(
+          () => item.classList.remove("is-active"),
+          config.life,
+        ),
       );
       index = (index + 1) % total;
     };
@@ -126,12 +137,12 @@ const items = await slotContent(Astro.slots);
         scope.removeEventListener("mousemove", mouseHandler);
         mouseHandler = null;
       }
-      images.forEach((img) => {
-        const existing = timers.get(img);
+      items.forEach((item) => {
+        const existing = timers.get(item);
         if (existing) window.clearTimeout(existing);
-        img.classList.remove("is-active");
-        img.style.transform = "";
-        img.style.zIndex = "";
+        item.classList.remove("is-active");
+        item.style.transform = "";
+        item.style.zIndex = "";
       });
       index = 0;
       stackTop = 1;
@@ -203,10 +214,9 @@ const items = await slotContent(Astro.slots);
       z-index: 1;
       pointer-events: none;
 
-      > img {
+      .image-trail_item {
         opacity: 0;
         width: var(--_img-width);
-        background: var(--background-skeleton);
         will-change: transform, opacity;
         aspect-ratio: var(--_img-ratio);
         position: absolute;
