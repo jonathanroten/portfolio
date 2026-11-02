@@ -13,7 +13,7 @@ const { render = true, class: className, ...rest } = Astro.props;
   render && (
     <div class:list={["cursor_wrap", className]} aria-hidden="true" {...rest}>
       <div class="cursor_dot" />
-      <div class="cursor_tag text-style-h6" />
+      <div class="cursor_tag text-style-small text-transform-uppercase" />
     </div>
   )
 }
@@ -229,7 +229,6 @@ const { render = true, class: className, ...rest } = Astro.props;
         transparent
       );
       color: var(--cursor-text);
-      font-size: var(--text-small);
       white-space: nowrap;
       transform: translateY(-50%);
       transform-origin: left center;
