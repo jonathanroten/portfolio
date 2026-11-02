@@ -1,0 +1,64 @@
+---
+import type { HTMLAttributes } from "astro/types";
+import type { Description } from "@/utils/sanity.ts";
+import { widestAccentWord } from "@/utils/text-width.ts";
+
+interface Props extends HTMLAttributes<"div"> {
+  /** Set to `false` to omit the component. */
+  render?: boolean;
+  /** The Home description, as `getDescription` returns it. */
+  description?: Description;
+}
+
+const { render = true, description, class: className, ...rest } = Astro.props;
+
+const greeting = [
+  { text: "Hi, I'm ", highlight: false },
+  { text: "Jonathan", highlight: true },
+  { text: ".", highlight: false },
+];
+const runs = description?.runs ?? [];
+const fit = Math.max(widestAccentWord(greeting), widestAccentWord(runs));
+---
+
+{
+  render && (
+    <div
+      class:list={["intro-home_wrap", className]}
+      style={`--_fit: ${fit.toFixed(3)}`}
+      {...rest}
+    >
+      <p class="intro-home_greeting text-style-h2 text-accent">
+        {greeting.map((run) =>
+          run.highlight ? <span>{run.text}</span> : run.text,
+        )}
+      </p>
+      {runs.length > 0 && (
+        <p class="intro-home_description text-style-h2 text-accent">
+          {runs.map((run) =>
+            run.highlight ? <span>{run.text}</span> : run.text,
+          )}
+        </p>
+      )}
+    </div>
+  )
+}
+
+<style is:global>
+  @layer components {
+    .intro-home_wrap {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: inherit;
+      container-type: inline-size;
+      :is(.intro-home_greeting, .intro-home_description) {
+        font-size: min(var(--h2), 100cqi / var(--_fit));
+      }
+      .intro-home_description {
+        max-width: 30ch;
+        margin-block: var(--space-8);
+      }
+    }
+  }
+</style>
