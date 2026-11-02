@@ -6,7 +6,7 @@ import Grid from "@/components/wrapper/Grid.astro";
 import Heading from "@/components/typography/Heading.astro";
 import Paragraph from "@/components/typography/Paragraph.astro";
 import Img from "@/components/media/Img.astro";
-import HeroCaseStudy from "@/components/content/HeroCaseStudy.astro";
+import IntroCaseStudy from "@/components/content/IntroCaseStudy.astro";
 import NextCaseStudy from "@/components/content/NextCaseStudy.astro";
 import { galleryCrops, imageUrl } from "@/utils/sanity.ts";
 import { getCaseStudies, type CaseStudy } from "@/utils/case-studies.ts";
@@ -40,7 +40,7 @@ const hero = galleryCrops.fullWidth;
     paddingBottom="none"
     containerClass="gap-gutter"
   >
-    <HeroCaseStudy
+    <IntroCaseStudy
       number={caseStudy.number}
       heading={caseStudy.title}
       description={caseStudy.description}

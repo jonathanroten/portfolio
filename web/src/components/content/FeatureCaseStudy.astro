@@ -37,7 +37,7 @@ const items = (caseStudies ?? []).filter(
       {items.map((caseStudy, i) => (
         <div class="feature-case-study_item" role="listitem">
           <div class="feature-case-study_layout">
-            <div class="feature-case-study_column">
+            <div class="feature-case-study_info">
               <div class="feature-case-study_counter text-style-h6">
                 <span>{String(i + 1).padStart(2, "0")}</span>
               </div>
@@ -75,7 +75,7 @@ const items = (caseStudies ?? []).filter(
               </ContentWrapper>
             </div>
             {!!caseStudy.featureGallery.length && (
-              <div class="feature-case-study_column">
+              <div class="feature-case-study_gallery">
                 <Grid xsmall={1} medium={2} class="gap-1">
                   {caseStudy.featureGallery.map((image) => {
                     const full = image.layout === "fullWidth";
@@ -108,18 +108,12 @@ const items = (caseStudies ?? []).filter(
       display: flex;
       flex-direction: column;
       column-gap: var(--site-gutter);
-      @media (width >= 64rem) {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-    }
-    .feature-case-study_column {
-      &:has(.feature-case-study_content) {
+      .feature-case-study_info {
         display: flex;
         flex-direction: column;
         padding: var(--space-8) 0 var(--space-6);
       }
-      &:not(:has(.feature-case-study_content)) {
+      .feature-case-study_gallery {
         display: flex;
         flex-direction: column;
         gap: var(--space-1);
@@ -136,14 +130,18 @@ const items = (caseStudies ?? []).filter(
         margin-bottom: var(--space-6);
       }
       @media (width >= 64rem) {
-        min-height: calc(100svh - var(--nav-total-height));
-        &:has(.feature-case-study_content) {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        :is(.feature-case-study_info, .feature-case-study_gallery) {
+          min-height: calc(100svh - var(--nav-total-height));
+        }
+        .feature-case-study_info {
           justify-content: end;
           align-self: start;
           position: sticky;
           top: var(--nav-total-height);
         }
-        &:not(:has(.feature-case-study_content)) {
+        .feature-case-study_gallery {
           padding-bottom: var(--space-1);
         }
         .feature-case-study_counter {
