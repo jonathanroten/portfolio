@@ -1,17 +1,21 @@
 <script>
   import Lenis from "lenis";
 
-  const time = getComputedStyle(document.documentElement).getPropertyValue(
+  const root = document.documentElement;
+  const time = getComputedStyle(root).getPropertyValue(
     "--smooth-scroll-duration",
   );
   const seconds = parseFloat(time) / (time.trim().endsWith("ms") ? 1000 : 1);
 
+  const locked = () =>
+    ["hidden", "clip"].includes(getComputedStyle(root).overflowY);
+
   const lenis = new Lenis({
     autoRaf: true,
-    autoToggle: true,
     lerp: Math.log(1024) / (60 * seconds),
     allowNestedScroll: true,
     prevent: (node) => node instanceof HTMLDialogElement,
+    virtualScroll: () => !locked(),
   });
 
   for (const type of ["pointerdown", "keydown"]) {
