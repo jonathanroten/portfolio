@@ -153,8 +153,8 @@ export type CaseStudy = {
     _key: string;
   } & ServiceReference>;
   engagement?: "freelance" | "agency";
-  heroImage?: {
-    asset?: SanityImageAssetReference;
+  heroImage: {
+    asset: SanityImageAssetReference;
     media?: unknown;
     hotspot?: SanityImageHotspot;
     crop?: SanityImageCrop;
@@ -352,7 +352,7 @@ export type CASE_STUDIES_QUERY_RESULT = Array<{
     asset: SanityImageAssetReference;
     hotspot: SanityImageHotspot | null;
     crop: SanityImageCrop | null;
-  } | null;
+  };
   brief: string | null;
   briefGallery: Array<{
     alt: string;
