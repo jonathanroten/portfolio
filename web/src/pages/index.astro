@@ -3,9 +3,9 @@ import Layout from "@/layouts/BaseLayout.astro";
 import Section from "@/components/wrapper/Section.astro";
 import ContentWrapper from "@/components/wrapper/ContentWrapper.astro";
 import Heading from "@/components/typography/Heading.astro";
-import Paragraph from "@/components/typography/Paragraph.astro";
 import FormattedDate from "@/components/utility/FormattedDate.astro";
 import LiveClock from "@/components/utility/LiveClock.astro";
+import IntroHome from "@/components/content/IntroHome.astro";
 import ImageTrail from "@/components/content/ImageTrail.astro";
 import FeatureCaseStudy from "@/components/content/FeatureCaseStudy.astro";
 import Img from "@/components/media/Img.astro";
@@ -28,16 +28,7 @@ const description = await getDescription();
   >
     <ContentWrapper class="flex-grow justify-content-end zindex-2">
       <Heading tag="h1" class="sr-only">Jonathan Roten's Portfolio</Heading>
-      <Paragraph variant="h2" class="text-accent"
-        >Hi, I&apos;m <span>Jonathan</span>.</Paragraph
-      >
-      <Paragraph variant="h2" maxWidth={30} class="text-accent margin-block-8">
-        {
-          description.runs.map((run) =>
-            run.highlight ? <span>{run.text}</span> : run.text,
-          )
-        }
-      </Paragraph>
+      <IntroHome description={description} />
       <div class="width-full display-inline-flex justify-content-between">
         <span class="text-style-h6"
           ><FormattedDate
