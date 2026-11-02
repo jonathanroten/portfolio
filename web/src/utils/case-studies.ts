@@ -13,18 +13,22 @@ const paragraphs = (text: string | null) =>
 /**
  * The case studies, in the order set in the Studio and numbered from 1. Fields
  * left empty in the Studio come back empty, and the page leaves them out. A
- * case study is `ready` once its Brief or Approach has text or images; only
- * ready ones get a page.
+ * case study is `ready` once it has a Hero Image and its Brief or Approach has
+ * text or images; only ready ones get a page. The Studio requires a Hero Image,
+ * but documents published before that rule may still lack one, so it can be
+ * `null` here.
  */
 export async function getCaseStudies() {
   const caseStudies = await getCaseStudyDocuments();
   return caseStudies.map((caseStudy, i) => {
+    const heroImage: typeof caseStudy.heroImage | null = caseStudy.heroImage;
     const brief = paragraphs(caseStudy.brief);
     const briefGallery = caseStudy.briefGallery ?? [];
     const approach = paragraphs(caseStudy.approach);
     const approachGallery = caseStudy.approachGallery ?? [];
     return {
       ...caseStudy,
+      heroImage,
       number: i + 1,
       description: caseStudy.description ?? undefined,
       engagement: caseStudy.engagement
@@ -36,9 +40,11 @@ export async function getCaseStudies() {
       briefGallery,
       approach,
       approachGallery,
-      ready: [brief, briefGallery, approach, approachGallery].some(
-        (part) => part.length > 0,
-      ),
+      ready:
+        !!heroImage &&
+        [brief, briefGallery, approach, approachGallery].some(
+          (part) => part.length > 0,
+        ),
     };
   });
 }

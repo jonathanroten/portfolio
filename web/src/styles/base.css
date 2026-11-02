@@ -404,7 +404,7 @@
   --link-text-hover: var(--text);
   --link-border-hover: var(--text);
 
-  --cursor-background: var(--brand-text);
+  --cursor-background: var(--dark-900);
   --cursor-text: var(--cursor-background);
 }
 

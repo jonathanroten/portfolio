@@ -105,6 +105,7 @@ const images: GalleryImage[] = items.map((item) => {
     keySpeed: 1.1,
     click: { distance: 8, time: 400 },
     seatDistance: 32,
+    popDelay: 400,
   };
 
   type Shape = keyof typeof config.shapes;
@@ -295,8 +296,11 @@ const images: GalleryImage[] = items.map((item) => {
         image.src = items[index].src;
         image.decode().then(
           () => {
-            image.classList.add("is-loaded");
-            label(image);
+            const delay = calm.matches ? 0 : Math.random() * config.popDelay;
+            setTimeout(() => {
+              image.classList.add("is-loaded");
+              label(image);
+            }, delay);
           },
           () => {},
         );
@@ -727,7 +731,6 @@ const images: GalleryImage[] = items.map((item) => {
       position: absolute;
       opacity: 0;
       transition:
-        opacity var(--open-duration-gentle) var(--open-ease),
         filter var(--open-duration-gentle) var(--open-ease),
         scale var(--open-duration-slow) var(--open-ease),
         translate var(--open-duration-slow) var(--open-ease);
