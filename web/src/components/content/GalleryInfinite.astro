@@ -230,6 +230,20 @@ const images: GalleryImage[] = items.map((item) => {
     const viewSize = { width: 0, height: 0 };
     const tileSize = { width: 0, height: 0 };
 
+    const label = (image: HTMLElement) => {
+      if (focused || !image.classList.contains("is-loaded")) {
+        delete image.dataset.cursor;
+      } else image.dataset.cursor = "";
+    };
+
+    const relabel = () => {
+      if (focused) gallery.dataset.cursor = "Close";
+      else delete gallery.dataset.cursor;
+      for (const tile of tiles.values()) {
+        for (const image of tile.children) label(image as HTMLElement);
+      }
+    };
+
     const pushOf = (image: Element) => {
       const place = placed.get(image);
       if (!clearing || !place || image === focused) return "";
@@ -280,7 +294,10 @@ const images: GalleryImage[] = items.map((item) => {
         image.style.zIndex = String(stacking.get(slot) ?? "");
         image.src = items[index].src;
         image.decode().then(
-          () => image.classList.add("is-loaded"),
+          () => {
+            image.classList.add("is-loaded");
+            label(image);
+          },
           () => {},
         );
         Object.assign(image.style, style);
@@ -405,6 +422,7 @@ const images: GalleryImage[] = items.map((item) => {
       center.x += (target.x - center.x) * blend;
       center.y += (target.y - center.y) * blend;
       syncTiles();
+      gallery.dispatchEvent(new Event("scroll"));
       const pending = Math.hypot(
         (target.x - center.x) * tileSize.width,
         (target.y - center.y) * tileSize.height,
@@ -436,6 +454,7 @@ const images: GalleryImage[] = items.map((item) => {
       focused = null;
       seated = false;
       gallery.classList.remove("is-seated");
+      if (image) relabel();
     };
 
     const focusOn = (image: HTMLImageElement) => {
@@ -443,6 +462,7 @@ const images: GalleryImage[] = items.map((item) => {
       if (!place) return;
       const { anchor, index, slot } = place;
       focused = image;
+      relabel();
       const { service, fullSrc } = items[index];
       for (const animation of caption.box?.getAnimations() ?? []) {
         animation.finish();
@@ -515,6 +535,7 @@ const images: GalleryImage[] = items.map((item) => {
         target.y = center.y;
       }
       gallery.classList.add("is-dragging");
+      gallery.dataset.cursorState = "grabbing";
       start();
     });
 
@@ -551,6 +572,7 @@ const images: GalleryImage[] = items.map((item) => {
       if (event.pointerId !== drag.id) return;
       drag.id = -1;
       gallery.classList.remove("is-dragging");
+      delete gallery.dataset.cursorState;
       const clicked =
         event.type === "pointerup" &&
         !drag.moved &&
