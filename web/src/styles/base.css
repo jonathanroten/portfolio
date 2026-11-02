@@ -310,6 +310,9 @@
   --link-border: var(--border);
   --link-text-hover: var(--text);
   --link-border-hover: var(--brand-500);
+
+  --cursor-background: var(--brand-500);
+  --cursor-text: var(--cursor-background);
 }
 
 .theme-dark,
@@ -354,6 +357,9 @@
   --link-border: var(--border);
   --link-text-hover: var(--text);
   --link-border-hover: var(--text);
+
+  --cursor-background: var(--brand-500);
+  --cursor-text: var(--cursor-background);
 }
 
 .theme-brand {
@@ -397,6 +403,9 @@
   --link-border: var(--border);
   --link-text-hover: var(--text);
   --link-border-hover: var(--text);
+
+  --cursor-background: var(--brand-text);
+  --cursor-text: var(--cursor-background);
 }
 
 :root,

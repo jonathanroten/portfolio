@@ -66,7 +66,12 @@ const items = (caseStudies ?? [])
           : {};
         return (
           <div class="feature-case-study_item" role="listitem">
-            <Tag class="feature-case-study_layout" {...linkAttrs}>
+            <Tag
+              class="feature-case-study_layout"
+              data-cursor={caseStudy.ready ? "View Study" : "Coming Soon"}
+              data-cursor-state={caseStudy.ready ? undefined : "disabled"}
+              {...linkAttrs}
+            >
               <div class="feature-case-study_info">
                 <div class="feature-case-study_counter text-style-h6">
                   <span>{String(i + 1).padStart(2, "0")}</span>

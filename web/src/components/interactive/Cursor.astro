@@ -1,0 +1,250 @@
+---
+import type { HTMLAttributes } from "astro/types";
+
+interface Props extends HTMLAttributes<"div"> {
+  /** Set to `false` to omit the component. */
+  render?: boolean;
+}
+
+const { render = true, class: className, ...rest } = Astro.props;
+---
+
+{
+  render && (
+    <div class:list={["cursor_wrap", className]} aria-hidden="true" {...rest}>
+      <div class="cursor_dot" />
+      <div class="cursor_tag text-style-h6" />
+    </div>
+  )
+}
+
+<script>
+  const cursor = document.querySelector<HTMLElement>(".cursor_wrap");
+  const dot = cursor?.querySelector<HTMLElement>(".cursor_dot");
+  const tag = cursor?.querySelector<HTMLElement>(".cursor_tag");
+
+  if (cursor && dot && tag) {
+    const root = document.documentElement;
+    const fine = matchMedia("(hover: hover) and (pointer: fine)");
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)");
+    const typing =
+      "input:not([type=checkbox], [type=radio], [type=range], [type=button], [type=submit], [type=reset], [type=color], [type=file]), textarea, [contenteditable]:not([contenteditable=false])";
+    const clickable =
+      "a[href], button:not(:disabled), label, summary, select, [role=button]";
+
+    const duration = (token: string) => {
+      const time = getComputedStyle(root).getPropertyValue(token).trim();
+      return parseFloat(time) * (time.endsWith("ms") ? 1 : 1000);
+    };
+
+    const parts = [
+      { element: dot, token: "--hover-duration-gentle", x: 0, y: 0 },
+      { element: tag, token: "--open-duration-slow", x: 0, y: 0 },
+    ].map((part) => ({
+      ...part,
+      rate: Math.log(1024) / duration(part.token),
+    }));
+    const point = { x: 0, y: 0 };
+    let target: Element | null = null;
+    let frame = 0;
+    let lastTime = 0;
+
+    const place = () => {
+      for (const part of parts) {
+        part.element.style.translate = `${part.x}px ${part.y}px`;
+      }
+    };
+
+    const snap = () => {
+      for (const part of parts) {
+        part.x = point.x;
+        part.y = point.y;
+      }
+      place();
+    };
+
+    const step = (now: number) => {
+      const elapsed = Math.min(now - lastTime, 50);
+      lastTime = now;
+      let moving = false;
+      for (const part of parts) {
+        const blend = 1 - Math.exp(-part.rate * elapsed);
+        part.x += (point.x - part.x) * blend;
+        part.y += (point.y - part.y) * blend;
+        if (Math.hypot(point.x - part.x, point.y - part.y) > 0.1) {
+          moving = true;
+        } else {
+          part.x = point.x;
+          part.y = point.y;
+        }
+      }
+      place();
+      frame = moving ? requestAnimationFrame(step) : 0;
+    };
+
+    const follow = () => {
+      if (reduce.matches) return snap();
+      if (frame) return;
+      lastTime = performance.now();
+      frame = requestAnimationFrame(step);
+    };
+
+    const update = () => {
+      const labelled = target?.closest<HTMLElement>("[data-cursor]");
+      const label = labelled?.dataset.cursor ?? "";
+      const disabled = labelled?.dataset.cursorState === "disabled";
+      if (label && tag.textContent !== label) tag.textContent = label;
+      cursor.classList.toggle("is-labelled", !!label);
+      cursor.classList.toggle(
+        "is-grown",
+        !disabled && (!!label || !!target?.closest(clickable)),
+      );
+      cursor.classList.toggle("is-typing", !!target?.closest(typing));
+    };
+
+    const host = () => {
+      const parent = document.querySelector("dialog[open]") ?? document.body;
+      if (cursor.parentElement !== parent) parent.append(cursor);
+    };
+
+    const hide = () => cursor.classList.remove("is-visible");
+
+    const stop = () => {
+      hide();
+      root.classList.remove("has-cursor");
+    };
+
+    addEventListener(
+      "pointermove",
+      (event) => {
+        if (event.pointerType !== "mouse" || !fine.matches) return stop();
+        if (event.target instanceof HTMLIFrameElement) return hide();
+        const shown = cursor.classList.contains("is-visible");
+        point.x = event.clientX;
+        point.y = event.clientY;
+        target = event.target instanceof Element ? event.target : null;
+        host();
+        root.classList.add("has-cursor");
+        cursor.classList.add("is-visible");
+        update();
+        if (shown) follow();
+        else snap();
+      },
+      { passive: true },
+    );
+
+    addEventListener(
+      "pointerdown",
+      (event) => {
+        if (event.pointerType !== "mouse") stop();
+      },
+      { passive: true },
+    );
+
+    const refresh = () => {
+      host();
+      if (!cursor.classList.contains("is-visible")) return;
+      target = document.elementFromPoint(point.x, point.y);
+      update();
+    };
+
+    addEventListener("scroll", refresh, { passive: true, capture: true });
+
+    document.addEventListener("pointerout", (event) => {
+      if (!event.relatedTarget) hide();
+    });
+
+    document.addEventListener("pointerover", (event) => {
+      if (event.target instanceof HTMLIFrameElement) hide();
+    });
+
+    for (const type of ["toggle", "close"]) {
+      document.addEventListener(type, refresh, true);
+    }
+
+    fine.addEventListener("change", () => {
+      if (!fine.matches) stop();
+    });
+  }
+</script>
+
+<style is:global>
+  @layer components {
+    .cursor_wrap {
+      --_dot: 0.375rem;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 1000;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity var(--hover-duration) var(--hover-ease);
+      &.is-visible:not(.is-typing) {
+        opacity: 1;
+      }
+    }
+
+    .cursor_dot {
+      position: absolute;
+      top: calc(var(--_dot) / -2);
+      left: calc(var(--_dot) / -2);
+      width: var(--_dot);
+      height: var(--_dot);
+      border-radius: var(--radius-round);
+      background-color: var(--cursor-background);
+      transition: scale var(--hover-duration-gentle) var(--hover-ease);
+      .cursor_wrap.is-grown & {
+        scale: 1.5;
+      }
+    }
+
+    .cursor_tag {
+      position: absolute;
+      top: 0;
+      left: calc(var(--_dot) / 2 + var(--space-2));
+      padding: var(--space-1) var(--space-2);
+      border: var(--border-width-medium) solid transparent;
+      background-color: color-mix(
+        in lab,
+        var(--cursor-background) 20%,
+        transparent
+      );
+      color: var(--cursor-text);
+      white-space: nowrap;
+      transform: translateY(-50%);
+      transform-origin: left center;
+      scale: 0.9;
+      opacity: 0;
+      transition:
+        opacity var(--hover-duration) var(--hover-ease),
+        scale var(--hover-duration-gentle) var(--hover-ease);
+      .cursor_wrap.is-labelled & {
+        scale: 1;
+        opacity: 1;
+      }
+    }
+
+    :root.has-cursor,
+    :root.has-cursor * {
+      cursor: none !important;
+    }
+
+    :root.has-cursor
+      :is(
+        input:not(
+          [type="checkbox"],
+          [type="radio"],
+          [type="range"],
+          [type="button"],
+          [type="submit"],
+          [type="reset"],
+          [type="color"],
+          [type="file"]
+        ),
+        textarea,
+        [contenteditable]:not([contenteditable="false"])
+      ) {
+      cursor: text !important;
+    }
+  }
+</style>
