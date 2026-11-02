@@ -2,7 +2,9 @@
 import type { HTMLAttributes } from "astro/types";
 import { galleryCrops, imageUrl } from "@/utils/sanity.ts";
 import type { CaseStudy } from "@/utils/case-studies.ts";
+import { uid } from "@/utils/unique-id.ts";
 
+import Button from "@/components/Button.astro";
 import Heading from "@/components/typography/Heading.astro";
 import Paragraph from "@/components/typography/Paragraph.astro";
 import ContentWrapper from "@/components/wrapper/ContentWrapper.astro";
@@ -52,80 +54,109 @@ const items = (caseStudies ?? [])
       role="list"
       {...rest}
     >
-      {items.map((caseStudy, i) => (
-        <div class="feature-case-study_item" role="listitem">
-          <div class="feature-case-study_layout">
-            <div class="feature-case-study_info">
-              <div class="feature-case-study_counter text-style-h6">
-                <span>{String(i + 1).padStart(2, "0")}</span>
+      {items.map((caseStudy, i) => {
+        const href = `/case-studies/${caseStudy.slug}`;
+        const titleId = uid("feature-case-study-title");
+        const Tag = caseStudy.ready ? "a" : "div";
+        const linkAttrs = caseStudy.ready
+          ? {
+              href,
+              "aria-labelledby": caseStudy.title ? titleId : undefined,
+            }
+          : {};
+        return (
+          <div class="feature-case-study_item" role="listitem">
+            <Tag class="feature-case-study_layout" {...linkAttrs}>
+              <div class="feature-case-study_info">
+                <div class="feature-case-study_counter text-style-h6">
+                  <span>{String(i + 1).padStart(2, "0")}</span>
+                </div>
+                <ContentWrapper>
+                  {caseStudy.title && (
+                    <Heading tag="h2" variant="h3" maxWidth={18} id={titleId}>
+                      {caseStudy.title}
+                    </Heading>
+                  )}
+                  {(caseStudy.services.length || caseStudy.description) && (
+                    <div class="feature-case-study_content">
+                      {!!caseStudy.services.length && (
+                        <>
+                          <Heading
+                            tag="h3"
+                            variant="h5"
+                            class="margin-bottom-3"
+                          >
+                            Services Provided
+                          </Heading>
+                          <ul>
+                            {caseStudy.services.map((service) => (
+                              <li class="text-style-main">{service}</li>
+                            ))}
+                          </ul>
+                        </>
+                      )}
+                      {caseStudy.description && (
+                        <Paragraph
+                          variant="h4"
+                          maxWidth={40}
+                          class="margin-top-7"
+                        >
+                          {caseStudy.description}
+                        </Paragraph>
+                      )}
+                    </div>
+                  )}
+                </ContentWrapper>
               </div>
-              <ContentWrapper>
-                {caseStudy.title && (
-                  <Heading tag="h2" variant="h3" maxWidth={18}>
-                    {caseStudy.title}
-                  </Heading>
-                )}
-                {(caseStudy.services.length || caseStudy.description) && (
-                  <div class="feature-case-study_content">
-                    {!!caseStudy.services.length && (
-                      <>
-                        <Heading tag="h3" variant="h5" class="margin-bottom-3">
-                          Services Provided
-                        </Heading>
-                        <ul>
-                          {caseStudy.services.map((service) => (
-                            <li class="text-style-main">{service}</li>
-                          ))}
-                        </ul>
-                      </>
-                    )}
-                    {caseStudy.description && (
-                      <Paragraph
-                        variant="h4"
-                        maxWidth={40}
-                        class="margin-top-7"
-                      >
-                        {caseStudy.description}
-                      </Paragraph>
-                    )}
-                  </div>
-                )}
-              </ContentWrapper>
+              {!!caseStudy.featureGallery.length && (
+                <div class="feature-case-study_gallery">
+                  <Grid xsmall={1} medium={2} class="gap-1">
+                    {caseStudy.featureGallery.map((image) => {
+                      const full = image.layout === "fullWidth";
+                      const crop = galleryCrops[image.layout];
+                      return (
+                        <Img
+                          src={imageUrl(image, crop.width, crop.ratio)}
+                          variant="full-width"
+                          width={crop.width}
+                          height={Math.round(crop.width / crop.ratio)}
+                          alt={image.alt}
+                          class={full ? "grid-column-full" : undefined}
+                        />
+                      );
+                    })}
+                  </Grid>
+                </div>
+              )}
+            </Tag>
+            <div class="feature-case-study_action">
+              {caseStudy.ready ? (
+                <Button element="link" href={href} class="width-full">
+                  View Study<span class="sr-only">: {caseStudy.title}</span>
+                </Button>
+              ) : (
+                <Button disabled class="width-full">
+                  Coming Soon
+                </Button>
+              )}
             </div>
-            {!!caseStudy.featureGallery.length && (
-              <div class="feature-case-study_gallery">
-                <Grid xsmall={1} medium={2} class="gap-1">
-                  {caseStudy.featureGallery.map((image) => {
-                    const full = image.layout === "fullWidth";
-                    const crop = galleryCrops[image.layout];
-                    return (
-                      <Img
-                        src={imageUrl(image, crop.width, crop.ratio)}
-                        variant="full-width"
-                        width={crop.width}
-                        height={Math.round(crop.width / crop.ratio)}
-                        alt={image.alt}
-                        class={full ? "grid-column-full" : undefined}
-                      />
-                    );
-                  })}
-                </Grid>
-              </div>
-            )}
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   )
 }
 
 <style is:global>
   @layer components {
-    .feature-case-study_layout {
-      width: 100%;
-      display: flex;
-      flex-direction: column;
+    .feature-case-study_item {
       column-gap: var(--site-gutter);
+      .feature-case-study_layout {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        column-gap: var(--site-gutter);
+      }
       .feature-case-study_info {
         display: flex;
         flex-direction: column;
@@ -147,9 +178,20 @@ const items = (caseStudies ?? [])
         line-height: 1;
         margin-bottom: var(--space-6);
       }
+      .feature-case-study_action {
+        padding-top: var(--space-3);
+        @media (hover: hover) and (pointer: fine) {
+          display: none;
+        }
+      }
       @media (width >= 64rem) {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
+        .feature-case-study_layout {
+          grid-column: 1 / -1;
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
         :is(.feature-case-study_info, .feature-case-study_gallery) {
           min-height: calc(100svh - var(--nav-total-height));
         }
@@ -164,6 +206,11 @@ const items = (caseStudies ?? [])
         }
         .feature-case-study_counter {
           display: none;
+        }
+        .feature-case-study_action {
+          grid-column: 2;
+          padding-top: calc(var(--space-3) - var(--space-1));
+          padding-bottom: var(--space-3);
         }
       }
     }

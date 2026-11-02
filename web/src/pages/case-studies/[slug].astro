@@ -12,16 +12,19 @@ import { galleryCrops, imageUrl } from "@/utils/sanity.ts";
 import { getCaseStudies, type CaseStudy } from "@/utils/case-studies.ts";
 
 export async function getStaticPaths() {
-  const caseStudies = await getCaseStudies();
-  return caseStudies.map((caseStudy, i) => ({
+  const ready = (await getCaseStudies()).filter((caseStudy) => caseStudy.ready);
+  return ready.map((caseStudy, i) => ({
     params: { slug: caseStudy.slug },
-    props: { caseStudy, next: caseStudies[(i + 1) % caseStudies.length] },
+    props: {
+      caseStudy,
+      next: ready.length > 1 ? ready[(i + 1) % ready.length] : undefined,
+    },
   }));
 }
 
 interface Props {
   caseStudy: CaseStudy;
-  next: CaseStudy;
+  next?: CaseStudy;
 }
 
 const { caseStudy, next } = Astro.props;
@@ -32,7 +35,7 @@ const hero = galleryCrops.fullWidth;
   title={caseStudy.title}
   description={caseStudy.description}
   theme="dark"
-  footer="none"
+  footer={next ? "none" : "full"}
 >
   <!-- Hero -->
   <Section
@@ -108,22 +111,24 @@ const hero = galleryCrops.fullWidth;
       ))
   }
   <!-- Next -->
-  <Section paddingBottom="none">
-    <NextCaseStudy
-      number={next.number}
-      heading={next.title}
-      href={`/case-studies/${next.slug}`}
-    >
-      {
-        next.heroImage && (
-          <Img
-            src={imageUrl(next.heroImage, hero.width, hero.ratio)}
-            variant="full-width"
-            width={hero.width}
-            height={Math.round(hero.width / hero.ratio)}
-          />
-        )
-      }
-    </NextCaseStudy>
-  </Section>
+  {
+    next && (
+      <Section paddingBottom="none">
+        <NextCaseStudy
+          number={next.number}
+          heading={next.title}
+          href={`/case-studies/${next.slug}`}
+        >
+          {next.heroImage && (
+            <Img
+              src={imageUrl(next.heroImage, hero.width, hero.ratio)}
+              variant="full-width"
+              width={hero.width}
+              height={Math.round(hero.width / hero.ratio)}
+            />
+          )}
+        </NextCaseStudy>
+      </Section>
+    )
+  }
 </Layout>
