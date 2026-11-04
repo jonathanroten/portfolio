@@ -82,7 +82,9 @@ const total = String(items.length).padStart(2, "0");
                 <ContentWrapper>
                   {caseStudy.title && (
                     <Heading tag="h2" variant="h3" maxWidth={18} id={titleId}>
-                      {caseStudy.title}
+                      <span class="feature-case-study_title">
+                        {caseStudy.title}
+                      </span>
                     </Heading>
                   )}
                   {(caseStudy.services.length || caseStudy.description) && (
@@ -170,6 +172,9 @@ const total = String(items.length).padStart(2, "0");
         flex-direction: column;
         padding: var(--space-8) 0 var(--space-6);
       }
+      .feature-case-study_title {
+        transition: opacity var(--hover-duration-gentle) var(--hover-ease);
+      }
       .feature-case-study_gallery {
         display: flex;
         flex-direction: column;
@@ -188,7 +193,12 @@ const total = String(items.length).padStart(2, "0");
       }
       .feature-case-study_action {
         padding-top: var(--space-3);
-        @media (hover: hover) and (pointer: fine) {
+      }
+      @media (hover: hover) and (pointer: fine) {
+        a .feature-case-study_title:hover {
+          opacity: 0.6;
+        }
+        .feature-case-study_action {
           display: none;
         }
       }
