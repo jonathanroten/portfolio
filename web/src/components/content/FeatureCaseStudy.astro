@@ -173,7 +173,7 @@ const total = String(items.length).padStart(2, "0");
         padding: var(--space-8) 0 var(--space-6);
       }
       .feature-case-study_title {
-        transition: opacity var(--hover-duration-gentle) var(--hover-ease);
+        transition: color var(--hover-duration-gentle) var(--hover-ease);
       }
       .feature-case-study_gallery {
         display: flex;
@@ -196,7 +196,7 @@ const total = String(items.length).padStart(2, "0");
       }
       @media (hover: hover) and (pointer: fine) {
         a .feature-case-study_title:hover {
-          opacity: 0.6;
+          color: var(--text-2);
         }
         .feature-case-study_action {
           display: none;
