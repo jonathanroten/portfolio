@@ -226,6 +226,7 @@ const { render = true, class: className, ...rest } = Astro.props;
       }
       cursor.classList.toggle("is-labelled", !!label);
       cursor.classList.toggle("is-grabbing", grabbing);
+      cursor.classList.toggle("theme-dark", !!target?.matches("dialog"));
       root.classList.toggle("is-native", !!native);
     };
 
