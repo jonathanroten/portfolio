@@ -49,49 +49,56 @@ const timelines = [
         errorMessage="Hmmmm… That didn’t work. Please try again, or email hello@jonathanroten.com."
         class="margin-top-5 flex-grow"
       >
-        <Input variant="first-name" labelHidden required />
-        <Input variant="last-name" labelHidden required />
-        <Input variant="email" labelHidden required />
-        <Input label="Company Website" labelHidden />
-        <Textarea
-          label="Your Message"
-          name="message"
-          labelHidden
-          required
-          maxlength={5000}
-        />
-        <div class="contact-modal_project">
-          <Choice
-            label="Start a Project"
-            name="project"
-            value="yes"
-            size="large"
-            data-contact-project
+        <div class="contact-modal_entries" data-cursor-native>
+          <Input variant="first-name" labelHidden required />
+          <Input variant="last-name" labelHidden required />
+          <Input variant="email" labelHidden required />
+          <Input label="Company Website" labelHidden />
+          <Textarea
+            label="Your Message"
+            name="message"
+            labelHidden
+            required
+            maxlength={5000}
           />
-          <fieldset class="contact-modal_fields" disabled>
-            <Fieldset
-              legend="Type"
-              hint="(Select all that apply)"
-              variant="chips"
-              legendStyle="label"
-              required
-            >
-              {types.map((type) => (
-                <Choice
-                  label={type}
-                  name="type"
-                  value={type}
-                  variant="chip"
-                  data-contact-other={type === "Other" || undefined}
-                />
-              ))}
-            </Fieldset>
-            <fieldset class="contact-modal_other" disabled>
-              <Input label="Specify" name="type-other" labelHidden required />
+          <div class="contact-modal_project">
+            <Choice
+              label="Start a Project"
+              name="project"
+              value="yes"
+              size="large"
+              data-contact-project
+            />
+            <fieldset class="contact-modal_fields" disabled>
+              <Fieldset
+                legend="Type"
+                hint="(Select all that apply)"
+                variant="chips"
+                legendStyle="label"
+                required
+              >
+                {types.map((type) => (
+                  <Choice
+                    label={type}
+                    name="type"
+                    value={type}
+                    variant="chip"
+                    data-contact-other={type === "Other" || undefined}
+                  />
+                ))}
+              </Fieldset>
+              <fieldset class="contact-modal_other" disabled>
+                <Input label="Specify" name="type-other" labelHidden required />
+              </fieldset>
+              <Select label="Budget" options={budgets} labelHidden required />
+              <Select
+                label="Timeline"
+                options={timelines}
+                labelHidden
+                required
+              />
             </fieldset>
-            <Select label="Budget" options={budgets} labelHidden required />
-            <Select label="Timeline" options={timelines} labelHidden required />
-          </fieldset>
+          </div>
         </div>
         <Turnstile />
         <ButtonWrapper marginTop="auto">
@@ -147,6 +154,7 @@ const timelines = [
       border-top: var(--border-width) solid var(--border);
     }
 
+    .contact-modal_entries,
     .contact-modal_fields,
     .contact-modal_other {
       display: grid;

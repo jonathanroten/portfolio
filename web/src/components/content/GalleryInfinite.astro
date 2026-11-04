@@ -537,9 +537,9 @@ const images: GalleryImage[] = items.map((item) => {
       if (drag.grabbed) {
         target.x = center.x;
         target.y = center.y;
+        gallery.dataset.cursorState = "grabbing";
       }
       gallery.classList.add("is-dragging");
-      gallery.dataset.cursorState = "grabbing";
       start();
     });
 
@@ -558,6 +558,7 @@ const images: GalleryImage[] = items.map((item) => {
           drag.grabbed = true;
           target.x = center.x;
           target.y = center.y;
+          gallery.dataset.cursorState = "grabbing";
         }
         unfocus();
       }
@@ -580,7 +581,7 @@ const images: GalleryImage[] = items.map((item) => {
       const clicked =
         event.type === "pointerup" &&
         !drag.moved &&
-        event.timeStamp - drag.startTime < config.click.time;
+        (!!focused || event.timeStamp - drag.startTime < config.click.time);
       if (clicked) {
         const image =
           drag.target instanceof HTMLImageElement &&

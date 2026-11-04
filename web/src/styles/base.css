@@ -302,7 +302,7 @@
   --button-3-background: transparent;
   --button-3-border: transparent;
   --button-3-text: var(--text);
-  --button-3-background-hover: var(--background-3);
+  --button-3-background-hover: transparent;
   --button-3-border-hover: var(--button-3-background-hover);
   --button-3-text-hover: var(--text);
 
@@ -349,7 +349,7 @@
   --button-3-background: transparent;
   --button-3-border: transparent;
   --button-3-text: var(--text);
-  --button-3-background-hover: var(--background-3);
+  --button-3-background-hover: transparent;
   --button-3-border-hover: var(--button-3-background-hover);
   --button-3-text-hover: var(--text);
 
@@ -395,7 +395,7 @@
   --button-3-background: transparent;
   --button-3-border: transparent;
   --button-3-text: var(--text);
-  --button-3-background-hover: var(--background-2);
+  --button-3-background-hover: transparent;
   --button-3-border-hover: var(--button-3-background-hover);
   --button-3-text-hover: var(--text);
 

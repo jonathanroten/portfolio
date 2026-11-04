@@ -45,6 +45,8 @@ const items = (caseStudies ?? [])
     ...caseStudy,
     featureGallery: countRows(caseStudy.featureGallery),
   }));
+
+const total = String(items.length).padStart(2, "0");
 ---
 
 {
@@ -56,6 +58,7 @@ const items = (caseStudies ?? [])
     >
       {items.map((caseStudy, i) => {
         const href = `/case-studies/${caseStudy.slug}`;
+        const number = String(i + 1).padStart(2, "0");
         const titleId = uid("feature-case-study-title");
         const Tag = caseStudy.ready ? "a" : "div";
         const linkAttrs = caseStudy.ready
@@ -68,18 +71,26 @@ const items = (caseStudies ?? [])
           <div class="feature-case-study_item" role="listitem">
             <Tag
               class="feature-case-study_layout"
-              data-cursor={caseStudy.ready ? "View Study" : "Coming Soon"}
+              data-cursor={`${number}_${total}`}
               data-cursor-state={caseStudy.ready ? undefined : "disabled"}
               {...linkAttrs}
             >
               <div class="feature-case-study_info">
                 <div class="feature-case-study_counter text-style-h6">
-                  <span>{String(i + 1).padStart(2, "0")}</span>
+                  <span>{number}</span>
                 </div>
                 <ContentWrapper>
                   {caseStudy.title && (
-                    <Heading tag="h2" variant="h3" maxWidth={18} id={titleId}>
-                      {caseStudy.title}
+                    <Heading
+                      tag="h2"
+                      variant="h3"
+                      maxWidth={18}
+                      id={titleId}
+                      data-cursor={caseStudy.ready ? "" : undefined}
+                    >
+                      <span class="feature-case-study_title">
+                        {caseStudy.title}
+                      </span>
                     </Heading>
                   )}
                   {(caseStudy.services.length || caseStudy.description) && (
@@ -167,6 +178,9 @@ const items = (caseStudies ?? [])
         flex-direction: column;
         padding: var(--space-8) 0 var(--space-6);
       }
+      .feature-case-study_title {
+        transition: color var(--hover-duration-gentle) var(--hover-ease);
+      }
       .feature-case-study_gallery {
         display: flex;
         flex-direction: column;
@@ -185,7 +199,12 @@ const items = (caseStudies ?? [])
       }
       .feature-case-study_action {
         padding-top: var(--space-3);
-        @media (hover: hover) and (pointer: fine) {
+      }
+      @media (hover: hover) and (pointer: fine) {
+        a .feature-case-study_title:hover {
+          color: var(--text-2);
+        }
+        .feature-case-study_action {
           display: none;
         }
       }

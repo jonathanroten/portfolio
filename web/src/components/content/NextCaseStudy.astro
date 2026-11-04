@@ -33,10 +33,10 @@ const {
       class:list={["next-case-study_wrap", className]}
       href={href}
       rel="next"
-      data-cursor="View Study"
+      data-cursor-free
       {...rest}
     >
-      <span class="next-case-study_label">
+      <span class="next-case-study_label" data-cursor="">
         <span class="sr-only">Next</span>
         {number !== undefined && (
           <span class="text-style-h5">{String(number).padStart(2, "0")}</span>
@@ -63,6 +63,7 @@ const {
       .next-case-study_label {
         display: flex;
         gap: var(--space-4);
+        width: fit-content;
       }
       .next-case-study_image {
         aspect-ratio: 32 / 9;
