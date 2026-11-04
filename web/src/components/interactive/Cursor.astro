@@ -13,7 +13,7 @@ const { render = true, class: className, ...rest } = Astro.props;
   render && (
     <div class:list={["cursor_wrap", className]} aria-hidden="true" {...rest}>
       <div class="cursor_dot" />
-      <div class="cursor_tag text-style-small text-transform-uppercase" />
+      <div class="cursor_tag text-style-h6" />
     </div>
   )
 }
@@ -166,8 +166,10 @@ const { render = true, class: className, ...rest } = Astro.props;
         : target?.closest<HTMLElement>("[data-cursor]");
       const label = marked?.dataset.cursor ?? "";
       if (marked && label) {
-        const canRoll =
-          cursor.classList.contains("is-labelled") && !reduce.matches;
+        const shown = cursor.classList.contains("is-labelled");
+        tag.classList.toggle("is-shown", shown);
+        tag.classList.toggle("is-disabled", state === "disabled");
+        const canRoll = shown && !reduce.matches;
         if (canRoll && current && current !== marked) {
           const later =
             current.compareDocumentPosition(marked) &
@@ -194,7 +196,7 @@ const { render = true, class: className, ...rest } = Astro.props;
     };
 
     const hide = () => {
-      cursor.classList.remove("is-visible");
+      cursor.classList.remove("is-visible", "is-labelled");
       current = null;
     };
 
@@ -271,7 +273,7 @@ const { render = true, class: className, ...rest } = Astro.props;
 <style is:global>
   @layer components {
     .cursor_wrap {
-      --_dot: 0.5rem;
+      --_dot: 0.625rem;
       position: fixed;
       top: 0;
       left: 0;
@@ -294,7 +296,7 @@ const { render = true, class: className, ...rest } = Astro.props;
       background-color: var(--cursor-background);
       transition: scale var(--hover-duration-gentle) var(--hover-ease);
       .cursor_wrap.is-grown & {
-        scale: 1.5;
+        scale: 1.75;
       }
       .cursor_wrap.is-grabbing & {
         scale: 0.75;
@@ -302,12 +304,12 @@ const { render = true, class: className, ...rest } = Astro.props;
     }
 
     .cursor_tag {
+      --_color-duration: 0s;
       position: absolute;
       top: 0;
-      left: calc(var(--_dot) / 2 + var(--space-2));
+      left: calc(var(--_dot) * 0.875 + var(--space-2));
       display: flex;
-      padding-inline: var(--space-2);
-      border: var(--border-width-medium) solid transparent;
+      padding-inline: var(--space-1);
       background-color: color-mix(
         in lab,
         var(--cursor-background) 20%,
@@ -321,10 +323,19 @@ const { render = true, class: className, ...rest } = Astro.props;
       opacity: 0;
       transition:
         opacity var(--hover-duration) var(--hover-ease),
-        scale var(--hover-duration-gentle) var(--hover-ease);
+        scale var(--hover-duration-gentle) var(--hover-ease),
+        color var(--_color-duration) var(--hover-ease),
+        background-color var(--_color-duration) var(--hover-ease);
       .cursor_wrap.is-labelled & {
         scale: 1;
         opacity: 1;
+      }
+      &.is-shown {
+        --_color-duration: var(--hover-duration-gentle);
+      }
+      &.is-disabled {
+        background-color: color-mix(in lab, var(--light-100) 10%, transparent);
+        color: color-mix(in lab, var(--light-100) 20%, transparent);
       }
     }
 
