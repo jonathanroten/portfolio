@@ -45,6 +45,8 @@ const items = (caseStudies ?? [])
     ...caseStudy,
     featureGallery: countRows(caseStudy.featureGallery),
   }));
+
+const total = String(items.length).padStart(2, "0");
 ---
 
 {
@@ -56,6 +58,7 @@ const items = (caseStudies ?? [])
     >
       {items.map((caseStudy, i) => {
         const href = `/case-studies/${caseStudy.slug}`;
+        const number = String(i + 1).padStart(2, "0");
         const titleId = uid("feature-case-study-title");
         const Tag = caseStudy.ready ? "a" : "div";
         const linkAttrs = caseStudy.ready
@@ -68,13 +71,13 @@ const items = (caseStudies ?? [])
           <div class="feature-case-study_item" role="listitem">
             <Tag
               class="feature-case-study_layout"
-              data-cursor={caseStudy.ready ? "View Study" : "Coming Soon"}
+              data-cursor={`${number}/${total} View Study`}
               data-cursor-state={caseStudy.ready ? undefined : "disabled"}
               {...linkAttrs}
             >
               <div class="feature-case-study_info">
                 <div class="feature-case-study_counter text-style-h6">
-                  <span>{String(i + 1).padStart(2, "0")}</span>
+                  <span>{number}</span>
                 </div>
                 <ContentWrapper>
                   {caseStudy.title && (

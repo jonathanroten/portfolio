@@ -89,6 +89,74 @@ const { render = true, class: className, ...rest } = Astro.props;
       frame = requestAnimationFrame(step);
     };
 
+    const rollOptions: KeyframeAnimationOptions = {
+      duration: duration("--hover-duration-gentle"),
+      easing: getComputedStyle(root).getPropertyValue("--hover-ease").trim(),
+      fill: "forwards",
+    };
+    let tagLabel = "";
+    let current: HTMLElement | null = null;
+    let rolls: Animation[] = [];
+
+    const tokens = (label: string) => label.match(/\d|\D+/g) ?? [];
+
+    const makeLine = (text: string) => {
+      const line = document.createElement("span");
+      line.className = "cursor_line";
+      line.textContent = text;
+      return line;
+    };
+
+    const build = (texts: string[]) => {
+      tag.replaceChildren(
+        ...texts.map((text) => {
+          const slot = document.createElement("span");
+          slot.className = "cursor_slot";
+          slot.append(makeLine(text));
+          return slot;
+        }),
+      );
+    };
+
+    const settle = () => {
+      for (const animation of rolls) animation.cancel();
+      rolls = [];
+      build(tokens(tagLabel));
+    };
+
+    const roll = (label: string, up: boolean) => {
+      settle();
+      let before = tokens(tagLabel);
+      let after = tokens(label);
+      if (before.length !== after.length) {
+        before = [tagLabel];
+        after = [label];
+        build(before);
+      }
+      tagLabel = label;
+      const [exit, enter] = up ? ["-100%", "100%"] : ["100%", "-100%"];
+      [...tag.children].forEach((slot, i) => {
+        if (before[i] === after[i]) return;
+        const old = slot.firstElementChild as HTMLElement;
+        const line = makeLine(after[i]);
+        slot.append(line);
+        rolls.push(
+          slot.animate(
+            {
+              width: [
+                getComputedStyle(old).width,
+                getComputedStyle(line).width,
+              ],
+            },
+            rollOptions,
+          ),
+          old.animate({ translate: ["0 0", `0 ${exit}`] }, rollOptions),
+          line.animate({ translate: [`0 ${enter}`, "0 0"] }, rollOptions),
+        );
+      });
+      rolls.at(-1)?.addEventListener("finish", settle);
+    };
+
     const update = () => {
       const state = target?.closest<HTMLElement>("[data-cursor-state]")?.dataset
         .cursorState;
@@ -97,7 +165,20 @@ const { render = true, class: className, ...rest } = Astro.props;
         ? null
         : target?.closest<HTMLElement>("[data-cursor]");
       const label = marked?.dataset.cursor ?? "";
-      if (label && tag.textContent !== label) tag.textContent = label;
+      if (marked && label) {
+        const canRoll =
+          cursor.classList.contains("is-labelled") && !reduce.matches;
+        if (canRoll && current && current !== marked) {
+          const later =
+            current.compareDocumentPosition(marked) &
+            Node.DOCUMENT_POSITION_FOLLOWING;
+          roll(label, !!later);
+        } else if (label !== tagLabel) {
+          tagLabel = label;
+          settle();
+        }
+        current = marked;
+      }
       cursor.classList.toggle("is-labelled", !!label);
       cursor.classList.toggle(
         "is-grown",
@@ -112,7 +193,10 @@ const { render = true, class: className, ...rest } = Astro.props;
       if (cursor.parentElement !== parent) parent.append(cursor);
     };
 
-    const hide = () => cursor.classList.remove("is-visible");
+    const hide = () => {
+      cursor.classList.remove("is-visible");
+      current = null;
+    };
 
     const stop = () => {
       hide();
@@ -187,7 +271,7 @@ const { render = true, class: className, ...rest } = Astro.props;
 <style is:global>
   @layer components {
     .cursor_wrap {
-      --_dot: 0.4375rem;
+      --_dot: 0.5rem;
       position: fixed;
       top: 0;
       left: 0;
@@ -213,7 +297,7 @@ const { render = true, class: className, ...rest } = Astro.props;
         scale: 1.5;
       }
       .cursor_wrap.is-grabbing & {
-        scale: 0.5;
+        scale: 0.75;
       }
     }
 
@@ -221,7 +305,8 @@ const { render = true, class: className, ...rest } = Astro.props;
       position: absolute;
       top: 0;
       left: calc(var(--_dot) / 2 + var(--space-2));
-      padding: var(--space-1) var(--space-2);
+      display: flex;
+      padding-inline: var(--space-2);
       border: var(--border-width-medium) solid transparent;
       background-color: color-mix(
         in lab,
@@ -241,6 +326,20 @@ const { render = true, class: className, ...rest } = Astro.props;
         scale: 1;
         opacity: 1;
       }
+    }
+
+    .cursor_slot {
+      display: grid;
+      overflow: clip;
+      text-box: inherit;
+    }
+
+    .cursor_line {
+      grid-area: 1 / 1;
+      justify-self: start;
+      padding-block: var(--space-1);
+      white-space: pre;
+      text-box: inherit;
     }
 
     :root.has-cursor,
