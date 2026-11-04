@@ -25,7 +25,7 @@ const { render = true, overlap = false } = Astro.props;
   render && (
     <header class:list={["nav_wrap", overlap && "overlap"]}>
       <div class="nav_inner">
-        <a class="nav_logo" href="/" aria-label={SITE_NAME}>
+        <a class="nav_logo" href="/" aria-label={SITE_NAME} data-cursor-free>
           <Icon src={logo} variant="full-width" />
         </a>
         <button
@@ -208,14 +208,6 @@ const { render = true, overlap = false } = Astro.props;
       align-items: center;
       > svg {
         height: inherit;
-      }
-      @media (hover: hover) {
-        &:hover {
-          color: var(--text-2);
-        }
-      }
-      @media (width >= 48rem) {
-        transition: color var(--hover-duration-gentle) var(--hover-ease);
       }
     }
 

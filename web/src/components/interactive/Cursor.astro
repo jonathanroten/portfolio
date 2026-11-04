@@ -12,6 +12,10 @@ const { render = true, class: className, ...rest } = Astro.props;
 {
   render && (
     <div class:list={["cursor_wrap", className]} aria-hidden="true" {...rest}>
+      <div class="cursor_corner" />
+      <div class="cursor_corner" />
+      <div class="cursor_corner" />
+      <div class="cursor_corner" />
       <div class="cursor_dot" />
       <div class="cursor_tag text-style-h6" />
     </div>
@@ -22,63 +26,113 @@ const { render = true, class: className, ...rest } = Astro.props;
   const cursor = document.querySelector<HTMLElement>(".cursor_wrap");
   const dot = cursor?.querySelector<HTMLElement>(".cursor_dot");
   const tag = cursor?.querySelector<HTMLElement>(".cursor_tag");
+  const corners = cursor?.querySelectorAll<HTMLElement>(".cursor_corner");
 
-  if (cursor && dot && tag) {
+  if (cursor && dot && tag && corners) {
     const root = document.documentElement;
     const fine = matchMedia("(hover: hover) and (pointer: fine)");
     const reduce = matchMedia("(prefers-reduced-motion: reduce)");
-    const typing =
-      "input:not([type=checkbox], [type=radio], [type=range], [type=button], [type=submit], [type=reset], [type=color], [type=file]), textarea, [contenteditable]:not([contenteditable=false])";
-    const clickable =
-      "a[href], button:not(:disabled), label, summary, select, [role=button]";
+    const nativeCursor = "[data-cursor-native], input, textarea";
+    const lockable =
+      '[data-cursor=""], :is(a[href], button:not(:disabled), summary, [role=button]):not([data-cursor], [data-cursor-free], [aria-current="page"])';
+    const axes = ["x", "y", "w", "h", "labelX", "labelY"] as const;
 
     const duration = (token: string) => {
       const time = getComputedStyle(root).getPropertyValue(token).trim();
       return parseFloat(time) * (time.endsWith("ms") ? 1 : 1000);
     };
 
-    const parts = [
-      { element: dot, token: "--hover-duration-gentle", x: 0, y: 0 },
-      { element: tag, token: "--open-duration-slow", x: 0, y: 0 },
-    ].map((part) => ({
-      ...part,
-      rate: Math.log(1024) / duration(part.token),
-    }));
+    const length = (token: string) => {
+      cursor.style.width = `var(${token})`;
+      const { width } = cursor.getBoundingClientRect();
+      cursor.style.removeProperty("width");
+      return width;
+    };
+
+    const gentleRate = Math.log(1024) / duration("--hover-duration-gentle");
+    const quickRate = Math.log(1024) / duration("--hover-duration");
     const point = { x: 0, y: 0 };
+    const reticle = { x: 0, y: 0, w: 0, h: 0, labelX: 0, labelY: 0 };
+    let roamSize = 0;
+    let lockPadding = 0;
+    let labelGap = 0;
     let target: Element | null = null;
+    let lock: Element | null = null;
+    let pressed = false;
     let frame = 0;
     let lastTime = 0;
 
+    const measure = () => {
+      roamSize = length("--space-4");
+      lockPadding = length("--space-1");
+      labelGap = length("--space-3");
+    };
+
+    const range = document.createRange();
+
+    const frameOf = (element: Element) => {
+      const box = element.getBoundingClientRect();
+      if (!element.matches("h1, h2, h3, h4, h5, h6")) return box;
+      range.selectNodeContents(element);
+      const { left, width } = range.getBoundingClientRect();
+      return { left, width, top: box.top, height: box.height };
+    };
+
+    const aim = () => {
+      if (!lock?.getClientRects().length) lock = null;
+      const shape = lock?.querySelector(":scope > svg:only-child") ?? lock;
+      const box = shape && frameOf(shape);
+      const squeeze = (half: number) =>
+        pressed ? half - Math.min(half * 0.14, lockPadding) : half;
+      const x = box ? box.left + box.width / 2 : point.x;
+      const y = box ? box.top + box.height / 2 : point.y;
+      const w = squeeze(box ? box.width / 2 + lockPadding : roamSize / 2);
+      const h = squeeze(box ? box.height / 2 + lockPadding : roamSize / 2);
+      const right = x + w + labelGap;
+      const fits = right + tag.offsetWidth <= innerWidth;
+      const beside = fits ? right : x - w - labelGap - tag.offsetWidth;
+      return {
+        x,
+        y,
+        w,
+        h,
+        labelX: box ? x - w : beside,
+        labelY: box ? y - h : y + tag.offsetHeight / 2,
+      };
+    };
+
     const place = () => {
-      for (const part of parts) {
-        part.element.style.translate = `${part.x}px ${part.y}px`;
-      }
+      const { x, y, w, h, labelX, labelY } = reticle;
+      dot.style.translate = `${point.x}px ${point.y}px`;
+      corners.forEach((corner, i) => {
+        const across = i === 1 || i === 2 ? w : -w;
+        const down = i > 1 ? h : -h;
+        corner.style.translate = `${x + across}px ${y + down}px`;
+      });
+      const left = Math.min(labelX, innerWidth - tag.offsetWidth);
+      const bottom = Math.max(labelY, tag.offsetHeight);
+      tag.style.translate = `${Math.max(left, 0)}px ${Math.min(bottom, innerHeight)}px`;
     };
 
     const snap = () => {
-      for (const part of parts) {
-        part.x = point.x;
-        part.y = point.y;
-      }
+      Object.assign(reticle, aim());
       place();
     };
 
     const step = (now: number) => {
       const elapsed = Math.min(now - lastTime, 50);
       lastTime = now;
-      let moving = false;
-      for (const part of parts) {
-        const blend = 1 - Math.exp(-part.rate * elapsed);
-        part.x += (point.x - part.x) * blend;
-        part.y += (point.y - part.y) * blend;
-        if (Math.hypot(point.x - part.x, point.y - part.y) > 0.1) {
-          moving = true;
-        } else {
-          part.x = point.x;
-          part.y = point.y;
-        }
+      const goal = aim();
+      for (const axis of axes) {
+        const rate =
+          lock || axis === "w" || axis === "h" ? gentleRate : quickRate;
+        const blend = 1 - Math.exp(-rate * elapsed);
+        reticle[axis] += (goal[axis] - reticle[axis]) * blend;
       }
       place();
+      const moving = axes.some(
+        (axis) => Math.abs(goal[axis] - reticle[axis]) > 0.1,
+      );
       frame = moving ? requestAnimationFrame(step) : 0;
     };
 
@@ -126,14 +180,10 @@ const { render = true, class: className, ...rest } = Astro.props;
 
     const roll = (label: string, up: boolean) => {
       settle();
-      let before = tokens(tagLabel);
-      let after = tokens(label);
-      if (before.length !== after.length) {
-        before = [tagLabel];
-        after = [label];
-        build(before);
-      }
+      const before = tokens(tagLabel);
+      const after = tokens(label);
       tagLabel = label;
+      if (before.length !== after.length) return settle();
       const [exit, enter] = up ? ["-100%", "100%"] : ["100%", "-100%"];
       [...tag.children].forEach((slot, i) => {
         if (before[i] === after[i]) return;
@@ -141,15 +191,6 @@ const { render = true, class: className, ...rest } = Astro.props;
         const line = makeLine(after[i]);
         slot.append(line);
         rolls.push(
-          slot.animate(
-            {
-              width: [
-                getComputedStyle(old).width,
-                getComputedStyle(line).width,
-              ],
-            },
-            rollOptions,
-          ),
           old.animate({ translate: ["0 0", `0 ${exit}`] }, rollOptions),
           line.animate({ translate: [`0 ${enter}`, "0 0"] }, rollOptions),
         );
@@ -163,8 +204,10 @@ const { render = true, class: className, ...rest } = Astro.props;
       const grabbing = state === "grabbing";
       const marked = grabbing
         ? null
-        : target?.closest<HTMLElement>("[data-cursor]");
+        : target?.closest<HTMLElement>('[data-cursor]:not([data-cursor=""])');
       const label = marked?.dataset.cursor ?? "";
+      const native = target?.closest(nativeCursor);
+      lock = state || native ? null : (target?.closest(lockable) ?? null);
       if (marked && label) {
         const shown = cursor.classList.contains("is-labelled");
         tag.classList.toggle("is-shown", shown);
@@ -182,12 +225,8 @@ const { render = true, class: className, ...rest } = Astro.props;
         current = marked;
       }
       cursor.classList.toggle("is-labelled", !!label);
-      cursor.classList.toggle(
-        "is-grown",
-        !state && (!!marked || !!target?.closest(clickable)),
-      );
       cursor.classList.toggle("is-grabbing", grabbing);
-      cursor.classList.toggle("is-typing", !!target?.closest(typing));
+      root.classList.toggle("is-native", !!native);
     };
 
     const host = () => {
@@ -198,6 +237,8 @@ const { render = true, class: className, ...rest } = Astro.props;
     const hide = () => {
       cursor.classList.remove("is-visible", "is-labelled");
       current = null;
+      lock = null;
+      pressed = false;
     };
 
     const stop = () => {
@@ -227,13 +268,24 @@ const { render = true, class: className, ...rest } = Astro.props;
     addEventListener(
       "pointerdown",
       (event) => {
-        if (event.pointerType !== "mouse") stop();
-        else refresh();
+        if (event.pointerType !== "mouse") return stop();
+        pressed = event.button === 0;
+        refresh();
       },
       { passive: true },
     );
 
-    addEventListener("pointerup", () => refresh(), { passive: true });
+    addEventListener(
+      "pointerup",
+      () => {
+        pressed = false;
+        refresh();
+      },
+      { passive: true },
+    );
+
+    measure();
+    addEventListener("resize", measure, { passive: true });
 
     let pending = 0;
 
@@ -244,6 +296,7 @@ const { render = true, class: className, ...rest } = Astro.props;
         pending = 0;
         target = document.elementFromPoint(point.x, point.y);
         update();
+        follow();
       });
     };
 
@@ -273,7 +326,7 @@ const { render = true, class: className, ...rest } = Astro.props;
 <style is:global>
   @layer components {
     .cursor_wrap {
-      --_dot: 0.625rem;
+      --_dot: 0.25rem;
       position: fixed;
       top: 0;
       left: 0;
@@ -281,8 +334,33 @@ const { render = true, class: className, ...rest } = Astro.props;
       pointer-events: none;
       opacity: 0;
       transition: opacity var(--hover-duration) var(--hover-ease);
-      &.is-visible:not(.is-typing) {
+      &.is-visible {
         opacity: 1;
+      }
+      :root.is-native & {
+        opacity: 0;
+        transition: none;
+      }
+    }
+
+    .cursor_corner {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: var(--space-1);
+      height: var(--space-1);
+      border-top: var(--border-width-medium) solid var(--cursor-background);
+      border-left: var(--border-width-medium) solid var(--cursor-background);
+      border-top-left-radius: calc(var(--radius-xsmall) / 2);
+      transform-origin: 0 0;
+      &:nth-child(2) {
+        rotate: 90deg;
+      }
+      &:nth-child(3) {
+        rotate: 180deg;
+      }
+      &:nth-child(4) {
+        rotate: 270deg;
       }
     }
 
@@ -295,9 +373,6 @@ const { render = true, class: className, ...rest } = Astro.props;
       border-radius: var(--radius-round);
       background-color: var(--cursor-background);
       transition: scale var(--hover-duration-gentle) var(--hover-ease);
-      .cursor_wrap.is-grown & {
-        scale: 1.75;
-      }
       .cursor_wrap.is-grabbing & {
         scale: 0.75;
       }
@@ -306,26 +381,18 @@ const { render = true, class: className, ...rest } = Astro.props;
     .cursor_tag {
       --_color-duration: 0s;
       position: absolute;
-      top: 0;
-      left: calc(var(--_dot) * 0.875 + var(--space-2));
+      bottom: 100%;
+      left: 0;
       display: flex;
-      padding-inline: var(--space-1);
-      background-color: color-mix(
-        in lab,
-        var(--cursor-background) 20%,
-        transparent
-      );
       color: var(--cursor-text);
       white-space: nowrap;
-      transform: translateY(-50%);
       transform-origin: left center;
       scale: 0.9;
       opacity: 0;
       transition:
         opacity var(--hover-duration) var(--hover-ease),
         scale var(--hover-duration-gentle) var(--hover-ease),
-        color var(--_color-duration) var(--hover-ease),
-        background-color var(--_color-duration) var(--hover-ease);
+        color var(--_color-duration) var(--hover-ease);
       .cursor_wrap.is-labelled & {
         scale: 1;
         opacity: 1;
@@ -334,7 +401,6 @@ const { render = true, class: className, ...rest } = Astro.props;
         --_color-duration: var(--hover-duration-gentle);
       }
       &.is-disabled {
-        background-color: color-mix(in lab, var(--light-100) 10%, transparent);
         color: color-mix(in lab, var(--light-100) 20%, transparent);
       }
     }
@@ -348,32 +414,14 @@ const { render = true, class: className, ...rest } = Astro.props;
     .cursor_line {
       grid-area: 1 / 1;
       justify-self: start;
-      padding-block: var(--space-1);
+      padding-block: var(--space-2);
       white-space: pre;
       text-box: inherit;
     }
 
-    :root.has-cursor,
-    :root.has-cursor * {
+    :root.has-cursor:not(.is-native),
+    :root.has-cursor:not(.is-native) * {
       cursor: none !important;
-    }
-
-    :root.has-cursor
-      :is(
-        input:not(
-          [type="checkbox"],
-          [type="radio"],
-          [type="range"],
-          [type="button"],
-          [type="submit"],
-          [type="reset"],
-          [type="color"],
-          [type="file"]
-        ),
-        textarea,
-        [contenteditable]:not([contenteditable="false"])
-      ) {
-      cursor: text !important;
     }
   }
 </style>

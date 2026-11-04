@@ -81,7 +81,13 @@ const total = String(items.length).padStart(2, "0");
                 </div>
                 <ContentWrapper>
                   {caseStudy.title && (
-                    <Heading tag="h2" variant="h3" maxWidth={18} id={titleId}>
+                    <Heading
+                      tag="h2"
+                      variant="h3"
+                      maxWidth={18}
+                      id={titleId}
+                      data-cursor={caseStudy.ready ? "" : undefined}
+                    >
                       <span class="feature-case-study_title">
                         {caseStudy.title}
                       </span>
