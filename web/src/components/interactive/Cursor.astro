@@ -61,9 +61,9 @@ const { render = true, class: className, ...rest } = Astro.props;
     let lastTime = 0;
 
     const measure = () => {
-      roamSize = length("--space-4");
+      roamSize = length("--space-3");
       lockPadding = length("--space-1");
-      labelGap = length("--space-3");
+      labelGap = length("--space-1");
     };
 
     const range = document.createRange();
@@ -325,7 +325,7 @@ const { render = true, class: className, ...rest } = Astro.props;
 <style is:global>
   @layer components {
     .cursor_wrap {
-      --_dot: 0.25rem;
+      --_dot: 0.2rem;
       position: fixed;
       top: 0;
       left: 0;
@@ -346,8 +346,8 @@ const { render = true, class: className, ...rest } = Astro.props;
       position: absolute;
       top: 0;
       left: 0;
-      width: var(--space-1);
-      height: var(--space-1);
+      width: calc(var(--space-1) * 0.75);
+      height: calc(var(--space-1) * 0.75);
       border-top: var(--border-width-medium) solid var(--cursor-background);
       border-left: var(--border-width-medium) solid var(--cursor-background);
       border-top-left-radius: calc(var(--radius-xsmall) / 2);
