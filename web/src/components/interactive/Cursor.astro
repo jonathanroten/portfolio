@@ -33,6 +33,7 @@ const { render = true, class: className, ...rest } = Astro.props;
     const nativeCursor = "[data-cursor-native], input, textarea";
     const lockable =
       '[data-cursor=""], :is(a[href], button:not(:disabled), summary, [role=button]):not([data-cursor], [data-cursor-free], [aria-current="page"])';
+    const lockShape = ":scope > svg:only-child, :scope.link > .button_text";
     const axes = ["x", "y", "w", "h", "labelX", "labelY"] as const;
 
     const duration = (token: string) => {
@@ -61,9 +62,9 @@ const { render = true, class: className, ...rest } = Astro.props;
     let lastTime = 0;
 
     const measure = () => {
-      roamSize = length("--space-4");
+      roamSize = length("--space-3");
       lockPadding = length("--space-1");
-      labelGap = length("--space-3");
+      labelGap = length("--space-1");
     };
 
     const range = document.createRange();
@@ -78,7 +79,7 @@ const { render = true, class: className, ...rest } = Astro.props;
 
     const aim = () => {
       if (!lock?.getClientRects().length) lock = null;
-      const shape = lock?.querySelector(":scope > svg:only-child") ?? lock;
+      const shape = lock?.querySelector(lockShape) ?? lock;
       const box = shape && frameOf(shape);
       const squeeze = (half: number) =>
         pressed ? half - Math.min(half * 0.14, lockPadding) : half;
@@ -325,7 +326,7 @@ const { render = true, class: className, ...rest } = Astro.props;
 <style is:global>
   @layer components {
     .cursor_wrap {
-      --_dot: 0.25rem;
+      --_dot: 0.2rem;
       position: fixed;
       top: 0;
       left: 0;
@@ -346,8 +347,8 @@ const { render = true, class: className, ...rest } = Astro.props;
       position: absolute;
       top: 0;
       left: 0;
-      width: var(--space-1);
-      height: var(--space-1);
+      width: calc(var(--space-1) * 0.75);
+      height: calc(var(--space-1) * 0.75);
       border-top: var(--border-width-medium) solid var(--cursor-background);
       border-left: var(--border-width-medium) solid var(--cursor-background);
       border-top-left-radius: calc(var(--radius-xsmall) / 2);
