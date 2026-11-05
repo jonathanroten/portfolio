@@ -307,9 +307,8 @@
   --button-3-text-hover: var(--text);
 
   --link-text: var(--text);
-  --link-border: var(--border);
+  --link-border: var(--brand-500);
   --link-text-hover: var(--text);
-  --link-border-hover: var(--brand-500);
 
   --cursor-background: var(--brand-500);
   --cursor-text: var(--cursor-background);
@@ -354,9 +353,8 @@
   --button-3-text-hover: var(--text);
 
   --link-text: var(--text);
-  --link-border: var(--border);
+  --link-border: var(--text);
   --link-text-hover: var(--text);
-  --link-border-hover: var(--text);
 
   --cursor-background: var(--brand-500);
   --cursor-text: var(--cursor-background);
@@ -400,9 +398,8 @@
   --button-3-text-hover: var(--text);
 
   --link-text: var(--text);
-  --link-border: var(--border);
+  --link-border: var(--text);
   --link-text-hover: var(--text);
-  --link-border-hover: var(--text);
 
   --cursor-background: var(--dark-900);
   --cursor-text: var(--cursor-background);

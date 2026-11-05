@@ -33,6 +33,7 @@ const { render = true, class: className, ...rest } = Astro.props;
     const nativeCursor = "[data-cursor-native], input, textarea";
     const lockable =
       '[data-cursor=""], :is(a[href], button:not(:disabled), summary, [role=button]):not([data-cursor], [data-cursor-free], [aria-current="page"])';
+    const lockShape = ":scope > svg:only-child, :scope.link > .button_text";
     const axes = ["x", "y", "w", "h", "labelX", "labelY"] as const;
 
     const duration = (token: string) => {
@@ -78,7 +79,7 @@ const { render = true, class: className, ...rest } = Astro.props;
 
     const aim = () => {
       if (!lock?.getClientRects().length) lock = null;
-      const shape = lock?.querySelector(":scope > svg:only-child") ?? lock;
+      const shape = lock?.querySelector(lockShape) ?? lock;
       const box = shape && frameOf(shape);
       const squeeze = (half: number) =>
         pressed ? half - Math.min(half * 0.14, lockPadding) : half;

@@ -221,31 +221,30 @@ const named = {
       &.link {
         --button-background: transparent;
         --button-text: var(--link-text);
-        --button-border: var(--link-border);
+        --button-border: transparent;
         --button-background-hover: transparent;
         --button-text-hover: var(--link-text-hover);
-        --button-border-hover: var(--link-border);
+        --button-border-hover: transparent;
 
         padding: var(--link-border-gap) 0;
         border: 0;
         border-bottom: var(--border-width-medium) solid var(--button-border);
         border-radius: 0;
         background-image: linear-gradient(
-          var(--link-border-hover),
-          var(--link-border-hover)
+          var(--link-border),
+          var(--link-border)
         );
         background-repeat: no-repeat;
         background-origin: border-box;
-        background-position: 100% 100%;
-        background-size: 0 var(--border-width-medium);
+        background-position: 0 100%;
+        background-size: 100% var(--border-width-medium);
         transition:
           background-size calc(var(--hover-duration) * 2) var(--hover-ease),
-          color var(--hover-duration) var(--hover-ease),
-          border-color var(--hover-duration) var(--hover-ease);
+          color var(--hover-duration) var(--hover-ease);
         @media (hover: hover) {
           &:hover:not(:disabled) {
-            background-position: 0 100%;
-            background-size: 100% var(--border-width-medium);
+            background-position: 100% 100%;
+            background-size: 0 var(--border-width-medium);
           }
         }
       }
