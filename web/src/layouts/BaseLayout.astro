@@ -26,7 +26,9 @@ type Props = SeoProps & {
    */
   footer?: "full" | "minimal" | "none";
   /** Text in the right corner of the `minimal` footer. Omit to leave it empty. */
-  footerMessage?: string;
+  footerHint?: string;
+  /** Shorter `footerHint` for small screens. Defaults to `footerHint`. */
+  footerCompactHint?: string;
   /** Smooth wheel and trackpad scrolling with Lenis. Touch scrolling stays native. */
   smoothScroll?: boolean;
 };
@@ -35,7 +37,8 @@ const {
   theme = "inherit",
   overlap = false,
   footer = "full",
-  footerMessage,
+  footerHint,
+  footerCompactHint,
   smoothScroll = false,
   ...seo
 } = Astro.props;
@@ -54,7 +57,9 @@ const {
       <slot />
     </main>
     {footer === "full" && <Footer />}
-    {footer === "minimal" && <FooterMinimal message={footerMessage} />}
+    {footer === "minimal" && (
+      <FooterMinimal hint={footerHint} compactHint={footerCompactHint} />
+    )}
     <Modal id="talk" label="Say hello" variant="side-panel" class="theme-brand">
       <ContactModal />
     </Modal>

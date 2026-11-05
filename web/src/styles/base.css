@@ -206,7 +206,7 @@
   --text-small-min: 12;
   --text-small-max: 14;
   --text-small-line-height: var(--line-height-huge);
-  --text-small-letter-spacing: var(--letter-spacing-small);
+  --text-small-letter-spacing: var(--letter-spacing-medium);
   --text-small-text-transform: none;
   --text-small-margin-top: var(--space-4);
   --text-small-margin-bottom: var(--space-4);
