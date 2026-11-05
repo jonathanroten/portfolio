@@ -207,6 +207,14 @@ const { render = true, overlap = false } = Astro.props;
       > svg {
         height: inherit;
       }
+      @media (hover: hover) {
+        &:hover {
+          color: var(--text-2);
+        }
+      }
+      @media (width >= 48rem) {
+        transition: color var(--hover-duration-gentle) var(--hover-ease);
+      }
     }
 
     .nav_toggle {
