@@ -72,55 +72,53 @@ if (import.meta.env.DEV && render) {
 }
 ---
 
-{
-  render && hasContent && (
-    <div
-      class:list={[
-        "footer-item_wrap",
-        variant !== "default" && variant,
-        className,
-      ]}
-      role="listitem"
-      {...rest}
-    >
-      <div class="footer-item_element">
-        <div class="footer-item_header margin-trim">
-          <Heading tag={headingTag} variant="h5">
-            <Fragment set:html={heading} />
-          </Heading>
-        </div>
-        <div class="footer-item_content margin-trim">
-          {hasText && (
-            <Paragraph>
-              <Fragment set:html={text} />
-            </Paragraph>
-          )}
-          {hasList && (
-            <ul class="footer-item_list fade-siblings">
-              {items!.map((item) => (
-                <li class="text-style-main">
-                  {item.href ? (
-                    <a
-                      class="footer-item_link"
-                      href={item.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {item.label}
-                      <span class="sr-only">{" (opens in new tab)"}</span>
-                    </a>
-                  ) : (
-                    item.label
-                  )}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+{render && hasContent && (
+  <div
+    class:list={[
+      "footer-item_wrap",
+      variant !== "default" && variant,
+      className,
+    ]}
+    role="listitem"
+    {...rest}
+  >
+    <div class="footer-item_element">
+      <div class="footer-item_header margin-trim">
+        <Heading tag={headingTag} variant="h5">
+          <Fragment set:html={heading} />
+        </Heading>
+      </div>
+      <div class="footer-item_content margin-trim">
+        {hasText && (
+          <Paragraph>
+            <Fragment set:html={text} />
+          </Paragraph>
+        )}
+        {hasList && (
+          <ul class="footer-item_list fade-siblings">
+            {items!.map((item) => (
+              <li class="text-style-main">
+                {item.href ? (
+                  <a
+                    class="footer-item_link"
+                    href={item.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {item.label}
+                    <span class="sr-only">{" (opens in new tab)"}</span>
+                  </a>
+                ) : (
+                  item.label
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
-  )
-}
+  </div>
+)}
 
 <style is:global>
   @layer components {

@@ -31,39 +31,33 @@ const {
 const content = await slotContent(Astro.slots);
 ---
 
-{
-  render && heading && content && (
-    <details
-      class:list={[
-        "accordion_item",
-        variant !== "default" && variant,
-        className,
-      ]}
-      open={open}
-      data-accordion-group
-      {...rest}
-    >
-      <summary class="accordion_toggle">
-        <Heading
-          tag={headingTag}
-          variant={variant === "alternate" ? "h1" : "h5"}
-          class="accordion_title"
-        >
-          {heading}
-        </Heading>
-        {variant === "alternate" ? (
-          <span class="accordion_marker" aria-hidden="true" />
-        ) : (
-          <Icon class="accordion_icon" src={arrow} variant="small" />
-        )}
-      </summary>
+{render && heading && content && (
+  <details
+    class:list={["accordion_item", variant !== "default" && variant, className]}
+    open={open}
+    data-accordion-group
+    {...rest}
+  >
+    <summary class="accordion_toggle">
+      <Heading
+        tag={headingTag}
+        variant={variant === "alternate" ? "h1" : "h5"}
+        class="accordion_title"
+      >
+        {heading}
+      </Heading>
+      {variant === "alternate" ? (
+        <span class="accordion_marker" aria-hidden="true" />
+      ) : (
+        <Icon class="accordion_icon" src={arrow} variant="small" />
+      )}
+    </summary>
 
-      <div class="accordion_body margin-trim">
-        <Fragment set:html={content} />
-      </div>
-    </details>
-  )
-}
+    <div class="accordion_body margin-trim">
+      <Fragment set:html={content} />
+    </div>
+  </details>
+)}
 
 <style is:global>
   @layer components {
@@ -179,9 +173,15 @@ const content = await slotContent(Astro.slots);
       block-size: 0;
       overflow: hidden;
       content-visibility: hidden;
-      transition:
-        block-size var(--open-duration) var(--open-ease),
-        content-visibility var(--open-duration) var(--open-ease) allow-discrete;
+    }
+
+    @supports (interpolate-size: allow-keywords) {
+      .accordion_item::details-content {
+        transition:
+          block-size var(--open-duration) var(--open-ease),
+          content-visibility var(--open-duration) var(--open-ease)
+            allow-discrete;
+      }
     }
 
     .accordion_item.alternate::details-content {

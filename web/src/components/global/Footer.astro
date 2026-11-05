@@ -23,99 +23,97 @@ interface Props {
 const { render = true } = Astro.props;
 ---
 
-{
-  render && (
-    <footer class="footer_wrap">
-      <div class="footer_inner">
-        <Grid xsmall={1} medium={3} class="gap-row-8">
-          <div>
-            <Heading tag="h2" variant="h5">
-              My Approach
-            </Heading>
-          </div>
-          <div class="footer_intro">
-            <Paragraph variant="h4">
-              I’m motivated by a genuine love of learning and artistic
-              expression. I hope to make a positive impact on the world around
-              me, and I work toward that through design. I believe creativity is
-              interpersonal and that it’s most fulfilling when recognized as a
-              shared experience.
-            </Paragraph>
-            <ButtonWrapper>
-              <Button variant="link" element="link" href="#talk">
-                Say Hello
-              </Button>
-            </ButtonWrapper>
-          </div>
-        </Grid>
-        <Grid xsmall={1} small={2} medium={3} class="gap-row-8" role="list">
+{render && (
+  <footer class="footer_wrap">
+    <div class="footer_inner">
+      <Grid xsmall={1} medium={3} class="gap-row-8">
+        <div>
+          <Heading tag="h2" variant="h5">
+            My Approach
+          </Heading>
+        </div>
+        <div class="footer_intro">
+          <Paragraph variant="h4">
+            I’m motivated by a genuine love of learning and artistic expression.
+            I hope to make a positive impact on the world around me, and I work
+            toward that through design. I believe creativity is interpersonal
+            and that it’s most fulfilling when recognized as a shared
+            experience.
+          </Paragraph>
+          <ButtonWrapper>
+            <Button variant="link" element="link" href="#talk">
+              Say Hello
+            </Button>
+          </ButtonWrapper>
+        </div>
+      </Grid>
+      <Grid xsmall={1} small={2} medium={3} class="gap-row-8" role="list">
+        <FooterItem
+          heading="Experience"
+          variant="list-stacked"
+          items={[
+            { label: "Elephant In The Room: June 2021 – Present" },
+            { label: "Novant Health: Oct 2020 – June 2021" },
+            { label: "Airtype Studio: Aug 2014 – Oct 2020" },
+            { label: "Woodbine: Jan 2013 – July 2014" },
+            { label: "MullenLowe: June 2010 – Aug 2012" },
+          ]}
+        />
+        {services.length > 0 && (
           <FooterItem
-            heading="Experience"
-            variant="list-stacked"
-            items={[
-              { label: "Elephant In The Room: June 2021 – Present" },
-              { label: "Novant Health: Oct 2020 – June 2021" },
-              { label: "Airtype Studio: Aug 2014 – Oct 2020" },
-              { label: "Woodbine: Jan 2013 – July 2014" },
-              { label: "MullenLowe: June 2010 – Aug 2012" },
-            ]}
+            heading="Services"
+            variant="list-inline"
+            items={services.map((label) => ({ label }))}
           />
-          {services.length > 0 && (
-            <FooterItem
-              heading="Services"
-              variant="list-inline"
-              items={services.map((label) => ({ label }))}
-            />
-          )}
-          <FooterItem
-            heading="Education"
-            variant="default"
-            text={
-              "Appalachian State University, 2010<br/>BS, Communication<br/>Summa Cum Laude"
-            }
-          />
-          <FooterItem
-            heading="Profile"
-            variant="list-stacked"
-            items={[
-              { label: "Favorite Food: Mom's Mac + Cheese" },
-              { label: "Childhood Hero: Mugsy Bogues" },
-              { label: "Go-To Karaoke: Kiss From A Rose" },
-            ]}
-          />
-          <FooterItem
-            heading="Certifications"
-            variant="list-stacked"
-            items={[
-              { label: "Webflow Practitioner", href: webflowCertificate },
-              {
-                label: "Javascript Masterclass",
-                href: javascriptCertificate,
-              },
-            ]}
-          />
-          <FooterItem
-            heading="Additional Info"
-            variant="list-stacked"
-            items={[
-              {
-                label: "Follow Me On Instagram",
-                href: "https://www.instagram.com/jonathan.roten",
-              },
-              { label: `© ${currentYear} Copyright. All Rights Reserved.` },
-            ]}
-          />
-        </Grid>
+        )}
+        <FooterItem
+          heading="Education"
+          variant="default"
+          text={
+            "Appalachian State University, 2010<br/>BS, Communication<br/>Summa Cum Laude"
+          }
+        />
+        <FooterItem
+          heading="Profile"
+          variant="list-stacked"
+          items={[
+            { label: "Favorite Food: Mom's Mac + Cheese" },
+            { label: "Childhood Hero: Mugsy Bogues" },
+            { label: "Go-To Karaoke: Kiss From A Rose" },
+          ]}
+        />
+        <FooterItem
+          heading="Certifications"
+          variant="list-stacked"
+          items={[
+            { label: "Webflow Practitioner", href: webflowCertificate },
+            {
+              label: "Javascript Masterclass",
+              href: javascriptCertificate,
+            },
+          ]}
+        />
+        <FooterItem
+          heading="Additional Info"
+          variant="list-stacked"
+          items={[
+            {
+              label: "Follow Me On Instagram",
+              href: "https://www.instagram.com/jonathan.roten",
+            },
+            { label: `© ${currentYear} Copyright. All Rights Reserved.` },
+          ]}
+        />
+      </Grid>
 
-        <div class="footer_bottom">
-          <div class="footer_logo" role="img" aria-label={SITE_NAME}>
-            <Icon src={logo} variant="full-width" />
-          </div>
+      <div class="footer_bottom">
+        <div class="footer_logo" role="img" aria-label={SITE_NAME}>
+          <Icon src={logo} variant="full-width" />
         </div>
       </div>
-    </footer>
-  )
-}
+    </div>
+  </footer>
+)}
 
 <style is:global>
   @layer components {

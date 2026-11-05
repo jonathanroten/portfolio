@@ -37,34 +37,32 @@ const LEGEND_STYLES: Record<NonNullable<Props["legendStyle"]>, string> = {
 const content = await slotContent(Astro.slots);
 ---
 
-{
-  render && legend && content && (
-    <fieldset
-      class:list={["form-fieldset", variant !== "stack" && variant, className]}
-      data-required={required || undefined}
-      {...rest}
+{render && legend && content && (
+  <fieldset
+    class:list={["form-fieldset", variant !== "stack" && variant, className]}
+    data-required={required || undefined}
+    {...rest}
+  >
+    <legend
+      class:list={[
+        "form-fieldset_legend",
+        `form-fieldset_legend-${legendStyle}`,
+        LEGEND_STYLES[legendStyle],
+      ]}
     >
-      <legend
-        class:list={[
-          "form-fieldset_legend",
-          `form-fieldset_legend-${legendStyle}`,
-          LEGEND_STYLES[legendStyle],
-        ]}
-      >
-        <span>{legend}</span>
-        {hint && <span class="form-fieldset_hint">{hint}</span>}
-        {required && (
-          <span class="field-star" aria-hidden="true">
-            *
-          </span>
-        )}
-      </legend>
-      <div class="form-fieldset_fields">
-        <Fragment set:html={content} />
-      </div>
-    </fieldset>
-  )
-}
+      <span>{legend}</span>
+      {hint && <span class="form-fieldset_hint">{hint}</span>}
+      {required && (
+        <span class="field-star" aria-hidden="true">
+          *
+        </span>
+      )}
+    </legend>
+    <div class="form-fieldset_fields">
+      <Fragment set:html={content} />
+    </div>
+  </fieldset>
+)}
 
 <script>
   for (const group of document.querySelectorAll<HTMLFieldSetElement>(

@@ -22,16 +22,14 @@ const {
 } = Astro.props;
 ---
 
-{
-  render && siteKey && (
-    <div
-      class:list={["form-turnstile_wrap", className]}
-      data-sitekey={siteKey}
-      data-action={action}
-      {...rest}
-    />
-  )
-}
+{render && siteKey && (
+  <div
+    class:list={["form-turnstile_wrap", className]}
+    data-sitekey={siteKey}
+    data-action={action}
+    {...rest}
+  />
+)}
 
 <script>
   type Turnstile = {

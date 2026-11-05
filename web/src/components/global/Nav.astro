@@ -21,81 +21,79 @@ interface Props {
 const { render = true, overlap = false } = Astro.props;
 ---
 
-{
-  render && (
-    <header class:list={["nav_wrap", overlap && "overlap"]}>
-      <div class="nav_inner">
-        <a class="nav_logo" href="/" aria-label={SITE_NAME} data-cursor-free>
-          <Icon src={logo} variant="full-width" />
-        </a>
-        <button
-          class="nav_toggle"
-          type="button"
-          aria-label="Menu"
-          aria-expanded="false"
-          aria-controls="nav-menu"
-        >
-          <span class="nav_toggle_icon" />
-        </button>
-        <nav class="nav_menu" id="nav-menu" aria-label="Main">
-          <div class="nav_menu_inner">
-            <div class="nav_menu_content">
-              {navigation.length > 0 && (
-                <ul class="nav_links fade-siblings">
-                  {navigation.map((link) => (
-                    <NavLink href={link.href}>{link.label}</NavLink>
-                  ))}
-                </ul>
-              )}
-              {socialLinks.length > 0 && (
-                <ul class="nav_socials">
-                  {socialLinks.map((social) => (
-                    <li>
-                      <a
-                        class="nav_social"
-                        href={social.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <Icon
-                          src={arrow}
-                          variant="small"
-                          class="nav_social_icon"
-                        />
-                        <span class="text-style-h6">{social.label}</span>
-                        <span class="sr-only">{" (opens in new tab)"}</span>
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              )}
-              <div class="nav_details margin-trim">
-                <Paragraph variant="h6">Hi, I&apos;m Jonathan.</Paragraph>
-                <Paragraph variant="h6" maxWidth={60} class="text-wrap-pretty">
-                  {description.text}
-                </Paragraph>
-                <div class="nav_meta">
-                  <span class="text-style-h6">
-                    <LiveClock
-                      format={{
-                        month: "long",
-                        day: "2-digit",
-                        year: "numeric",
-                      }}
-                    />
-                  </span>
-                  <span class="text-style-h6">
-                    <LiveClock />
-                  </span>
-                </div>
+{render && (
+  <header class:list={["nav_wrap", overlap && "overlap"]}>
+    <div class="nav_inner">
+      <a class="nav_logo" href="/" aria-label={SITE_NAME} data-cursor-free>
+        <Icon src={logo} variant="full-width" />
+      </a>
+      <button
+        class="nav_toggle"
+        type="button"
+        aria-label="Menu"
+        aria-expanded="false"
+        aria-controls="nav-menu"
+      >
+        <span class="nav_toggle_icon" />
+      </button>
+      <nav class="nav_menu" id="nav-menu" aria-label="Main">
+        <div class="nav_menu_inner">
+          <div class="nav_menu_content">
+            {navigation.length > 0 && (
+              <ul class="nav_links fade-siblings">
+                {navigation.map((link) => (
+                  <NavLink href={link.href}>{link.label}</NavLink>
+                ))}
+              </ul>
+            )}
+            {socialLinks.length > 0 && (
+              <ul class="nav_socials">
+                {socialLinks.map((social) => (
+                  <li>
+                    <a
+                      class="nav_social"
+                      href={social.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Icon
+                        src={arrow}
+                        variant="small"
+                        class="nav_social_icon"
+                      />
+                      <span class="text-style-h6">{social.label}</span>
+                      <span class="sr-only">{" (opens in new tab)"}</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div class="nav_details margin-trim">
+              <Paragraph variant="h6">Hi, I&apos;m Jonathan.</Paragraph>
+              <Paragraph variant="h6" maxWidth={60} class="text-wrap-pretty">
+                {description.text}
+              </Paragraph>
+              <div class="nav_meta">
+                <span class="text-style-h6">
+                  <LiveClock
+                    format={{
+                      month: "long",
+                      day: "2-digit",
+                      year: "numeric",
+                    }}
+                  />
+                </span>
+                <span class="text-style-h6">
+                  <LiveClock />
+                </span>
               </div>
             </div>
           </div>
-        </nav>
-      </div>
-    </header>
-  )
-}
+        </div>
+      </nav>
+    </div>
+  </header>
+)}
 
 {/* No-JS fallback */}
 <noscript>

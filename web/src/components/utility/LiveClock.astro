@@ -25,17 +25,15 @@ const formatted = new Intl.DateTimeFormat(locale, options).format(now);
 const config = JSON.stringify({ locale, options });
 ---
 
-{
-  render && (
-    <time
-      class="live-clock_wrap"
-      datetime={now.toISOString()}
-      data-live-clock={config}
-    >
-      {formatted}
-    </time>
-  )
-}
+{render && (
+  <time
+    class="live-clock_wrap"
+    datetime={now.toISOString()}
+    data-live-clock={config}
+  >
+    {formatted}
+  </time>
+)}
 
 <script>
   for (const el of document.querySelectorAll<HTMLTimeElement>(

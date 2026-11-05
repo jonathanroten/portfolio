@@ -9,18 +9,16 @@ interface Props extends HTMLAttributes<"div"> {
 const { render = true, class: className, ...rest } = Astro.props;
 ---
 
-{
-  render && (
-    <div class:list={["cursor_wrap", className]} aria-hidden="true" {...rest}>
-      <div class="cursor_corner" />
-      <div class="cursor_corner" />
-      <div class="cursor_corner" />
-      <div class="cursor_corner" />
-      <div class="cursor_dot" />
-      <div class="cursor_tag text-style-h6" />
-    </div>
-  )
-}
+{render && (
+  <div class:list={["cursor_wrap", className]} aria-hidden="true" {...rest}>
+    <div class="cursor_corner" />
+    <div class="cursor_corner" />
+    <div class="cursor_corner" />
+    <div class="cursor_corner" />
+    <div class="cursor_dot" />
+    <div class="cursor_tag text-style-h6" />
+  </div>
+)}
 
 <script>
   const cursor = document.querySelector<HTMLElement>(".cursor_wrap");

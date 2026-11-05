@@ -125,17 +125,15 @@ const columns =
     .join("; ") || undefined;
 ---
 
-{
-  render && content && (
-    <div
-      class:list={["grid", variant !== "columns" && variant, className]}
-      style={columns}
-      {...rest}
-    >
-      <Fragment set:html={content} />
-    </div>
-  )
-}
+{render && content && (
+  <div
+    class:list={["grid", variant !== "columns" && variant, className]}
+    style={columns}
+    {...rest}
+  >
+    <Fragment set:html={content} />
+  </div>
+)}
 
 <style is:global>
   @layer components {
@@ -163,8 +161,9 @@ const columns =
       &:is(.autofit, .autofill) {
         --_max-cols: 12;
         --_min-col-width: 12;
-        --_fit: (100% - (var(--_max-cols) - 1) * var(--_gap-size)) /
-          var(--_max-cols);
+        --_fit: calc(
+          (100% - (var(--_max-cols) - 1) * var(--_gap-size)) / var(--_max-cols)
+        );
         --_track: min(
           max(calc(var(--_min-col-width) * 1rem), var(--_fit)),
           100%

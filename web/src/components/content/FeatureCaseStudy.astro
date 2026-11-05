@@ -49,119 +49,113 @@ const items = (caseStudies ?? [])
 const total = String(items.length).padStart(2, "0");
 ---
 
-{
-  render && items.length > 0 && (
-    <div
-      class:list={["feature-case-study_wrap", "width-full", className]}
-      role="list"
-      {...rest}
-    >
-      {items.map((caseStudy, i) => {
-        const href = `/case-studies/${caseStudy.slug}`;
-        const number = String(i + 1).padStart(2, "0");
-        const titleId = uid("feature-case-study-title");
-        const Tag = caseStudy.ready ? "a" : "div";
-        const linkAttrs = caseStudy.ready
-          ? {
-              href,
-              "aria-labelledby": caseStudy.title ? titleId : undefined,
-            }
-          : {};
-        return (
-          <div class="feature-case-study_item" role="listitem">
-            <Tag
-              class="feature-case-study_layout"
-              data-cursor={`${number}_${total}`}
-              data-cursor-state={caseStudy.ready ? undefined : "disabled"}
-              {...linkAttrs}
-            >
-              <div class="feature-case-study_info">
-                <div class="feature-case-study_counter text-style-h6">
-                  <span>{number}</span>
-                </div>
-                <ContentWrapper>
-                  {caseStudy.title && (
-                    <Heading
-                      tag="h2"
-                      variant="h3"
-                      maxWidth={18}
-                      id={titleId}
-                      data-cursor={caseStudy.ready ? "" : undefined}
-                    >
-                      <span class="feature-case-study_title">
-                        {caseStudy.title}
-                      </span>
-                    </Heading>
-                  )}
-                  {(caseStudy.services.length || caseStudy.description) && (
-                    <div class="feature-case-study_content">
-                      {!!caseStudy.services.length && (
-                        <>
-                          <Heading
-                            tag="h3"
-                            variant="h5"
-                            class="margin-bottom-3"
-                          >
-                            Services Provided
-                          </Heading>
-                          <ul>
-                            {caseStudy.services.map((service) => (
-                              <li class="text-style-main">{service}</li>
-                            ))}
-                          </ul>
-                        </>
-                      )}
-                      {caseStudy.description && (
-                        <Paragraph
-                          variant="h4"
-                          maxWidth={40}
-                          class="margin-top-7"
-                        >
-                          {caseStudy.description}
-                        </Paragraph>
-                      )}
-                    </div>
-                  )}
-                </ContentWrapper>
+{render && items.length > 0 && (
+  <div
+    class:list={["feature-case-study_wrap", "width-full", className]}
+    role="list"
+    {...rest}
+  >
+    {items.map((caseStudy, i) => {
+      const href = `/case-studies/${caseStudy.slug}`;
+      const number = String(i + 1).padStart(2, "0");
+      const titleId = uid("feature-case-study-title");
+      const Tag = caseStudy.ready ? "a" : "div";
+      const linkAttrs = caseStudy.ready
+        ? {
+            href,
+            "aria-labelledby": caseStudy.title ? titleId : undefined,
+          }
+        : {};
+      return (
+        <div class="feature-case-study_item" role="listitem">
+          <Tag
+            class="feature-case-study_layout"
+            data-cursor={`${number}_${total}`}
+            data-cursor-state={caseStudy.ready ? undefined : "disabled"}
+            {...linkAttrs}
+          >
+            <div class="feature-case-study_info">
+              <div class="feature-case-study_counter text-style-h6">
+                <span>{number}</span>
               </div>
-              {!!caseStudy.featureGallery.length && (
-                <div class="feature-case-study_gallery">
-                  <Grid xsmall={1} medium={2} class="gap-1">
-                    {caseStudy.featureGallery.map((image) => {
-                      const full = image.layout === "fullWidth";
-                      const crop = galleryCrops[image.layout];
-                      return (
-                        <Img
-                          src={imageUrl(image, crop.width, crop.ratio)}
-                          variant="full-width"
-                          width={crop.width}
-                          height={Math.round(crop.width / crop.ratio)}
-                          alt={image.alt}
-                          class={full ? "grid-column-full" : undefined}
-                        />
-                      );
-                    })}
-                  </Grid>
-                </div>
-              )}
-            </Tag>
-            <div class="feature-case-study_action">
-              {caseStudy.ready ? (
-                <Button element="link" href={href} class="width-full">
-                  View Study<span class="sr-only">: {caseStudy.title}</span>
-                </Button>
-              ) : (
-                <Button disabled class="width-full">
-                  Coming Soon
-                </Button>
-              )}
+              <ContentWrapper>
+                {caseStudy.title && (
+                  <Heading
+                    tag="h2"
+                    variant="h3"
+                    maxWidth={18}
+                    id={titleId}
+                    data-cursor={caseStudy.ready ? "" : undefined}
+                  >
+                    <span class="feature-case-study_title">
+                      {caseStudy.title}
+                    </span>
+                  </Heading>
+                )}
+                {(caseStudy.services.length || caseStudy.description) && (
+                  <div class="feature-case-study_content">
+                    {!!caseStudy.services.length && (
+                      <>
+                        <Heading tag="h3" variant="h5" class="margin-bottom-3">
+                          Services Provided
+                        </Heading>
+                        <ul>
+                          {caseStudy.services.map((service) => (
+                            <li class="text-style-main">{service}</li>
+                          ))}
+                        </ul>
+                      </>
+                    )}
+                    {caseStudy.description && (
+                      <Paragraph
+                        variant="h4"
+                        maxWidth={40}
+                        class="margin-top-7"
+                      >
+                        {caseStudy.description}
+                      </Paragraph>
+                    )}
+                  </div>
+                )}
+              </ContentWrapper>
             </div>
+            {!!caseStudy.featureGallery.length && (
+              <div class="feature-case-study_gallery">
+                <Grid xsmall={1} medium={2} class="gap-1">
+                  {caseStudy.featureGallery.map((image) => {
+                    const full = image.layout === "fullWidth";
+                    const crop = galleryCrops[image.layout];
+                    return (
+                      <Img
+                        src={imageUrl(image, crop.width, crop.ratio)}
+                        variant="full-width"
+                        width={crop.width}
+                        height={Math.round(crop.width / crop.ratio)}
+                        alt={image.alt}
+                        class={full ? "grid-column-full" : undefined}
+                      />
+                    );
+                  })}
+                </Grid>
+              </div>
+            )}
+          </Tag>
+          <div class="feature-case-study_action">
+            {caseStudy.ready ? (
+              <Button element="link" href={href} class="width-full">
+                View Study<span class="sr-only">: {caseStudy.title}</span>
+              </Button>
+            ) : (
+              <Button disabled class="width-full">
+                Coming Soon
+              </Button>
+            )}
           </div>
-        );
-      })}
-    </div>
-  )
-}
+        </div>
+      );
+    })}
+  </div>
+)}
 
 <style is:global>
   @layer components {
