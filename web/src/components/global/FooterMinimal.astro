@@ -5,10 +5,12 @@ interface Props {
   /** Set to `false` to omit the component. */
   render?: boolean;
   /** Text in the right corner. Omit to leave the corner empty. */
-  message?: string;
+  hint?: string;
+  /** Shorter `hint` for small screens. Defaults to `hint`. */
+  compactHint?: string;
 }
 
-const { render = true, message } = Astro.props;
+const { render = true, hint, compactHint = hint } = Astro.props;
 
 const currentYear = new Date().getFullYear();
 ---
@@ -17,9 +19,10 @@ const currentYear = new Date().getFullYear();
   <footer class="footer-minimal_wrap">
     <div class="footer-minimal_inner">
       <span class="text-style-h6">{`© ${currentYear} ${SITE_NAME}`}</span>
-      {message && (
+      {hint && (
         <span class="text-style-h6" aria-hidden="true">
-          {message}
+          <span class="footer-minimal_compact">{compactHint}</span>
+          <span class="footer-minimal_full">{hint}</span>
         </span>
       )}
     </div>
@@ -48,6 +51,18 @@ const currentYear = new Date().getFullYear();
       align-items: center;
       justify-content: space-between;
       gap: var(--space-2) var(--space-6);
+      @media (width >= 48rem) {
+        .footer-minimal_compact {
+          display: none;
+        }
+        .footer-minimal_full {
+          display: inline;
+        }
+      }
+    }
+
+    .footer-minimal_full {
+      display: none;
     }
   }
 </style>
