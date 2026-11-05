@@ -19,6 +19,6 @@ export interface GalleryImage {
   fullSrc: string;
   width: number;
   height: number;
-  /** Services provided, joined with commas. Empty when the image has none. */
-  service: string;
+  /** Services provided. Empty when the image has none. */
+  services: string[];
 }

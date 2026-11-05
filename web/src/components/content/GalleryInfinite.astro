@@ -28,7 +28,7 @@ const images: GalleryImage[] = items.map((item) => {
     fullSrc: imageUrl(item, fullWidth, ratio),
     width,
     height: Math.round(width / ratio),
-    service: (item.services ?? []).join(", "),
+    services: item.services ?? [],
   };
 });
 ---
@@ -42,13 +42,17 @@ const images: GalleryImage[] = items.map((item) => {
     >
       <ul class="sr-only">
         {items.map(({ alt }, index) => (
-          <li>{[alt, images[index].service].filter(Boolean).join(" — ")}</li>
+          <li>
+            {[alt, images[index].services.join(", ")]
+              .filter(Boolean)
+              .join(" — ")}
+          </li>
         ))}
       </ul>
       <div class="gallery-infinite_caption">
         <div class="gallery-infinite_details" aria-live="polite">
-          <p class="gallery-infinite_index text-style-small text-transform-uppercase" />
           <p class="gallery-infinite_service text-style-small text-transform-uppercase" />
+          <p class="gallery-infinite_index text-style-small text-transform-uppercase" />
         </div>
       </div>
     </div>
@@ -465,13 +469,13 @@ const images: GalleryImage[] = items.map((item) => {
       const { anchor, index, slot } = place;
       focused = image;
       relabel();
-      const { service, fullSrc } = items[index];
+      const { services, fullSrc } = items[index];
       for (const animation of caption.box?.getAnimations() ?? []) {
         animation.finish();
       }
       if (caption.index)
-        caption.index.textContent = String(index + 1).padStart(3, "0");
-      if (caption.service) caption.service.textContent = service;
+        caption.index.textContent = String(index + 1).padStart(2, "0");
+      if (caption.service) caption.service.textContent = services.join("\n");
       syncFocus();
       stacked += 1;
       stacking.set(slot, stacked);
@@ -769,9 +773,14 @@ const images: GalleryImage[] = items.map((item) => {
       top: 100%;
       inset-inline: 0;
       display: flex;
+      justify-content: space-between;
       align-items: start;
       gap: var(--space-4);
-      margin-top: var(--space-2);
+      margin-top: var(--space-3);
+    }
+
+    .gallery-infinite_service {
+      white-space: pre-line;
     }
 
     .gallery-infinite_index {
