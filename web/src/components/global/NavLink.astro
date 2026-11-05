@@ -20,19 +20,17 @@ const current =
 const content = await slotContent(Astro.slots);
 ---
 
-{
-  render && content && (
-    <li>
-      <a
-        class:list={["nav_link", className]}
-        href={href}
-        aria-current={current}
-        {...rest}
-      >
-        <span class="nav_link_text text-style-h3">
-          <Fragment set:html={content} />
-        </span>
-      </a>
-    </li>
-  )
-}
+{render && content && (
+  <li>
+    <a
+      class:list={["nav_link", className]}
+      href={href}
+      aria-current={current}
+      {...rest}
+    >
+      <span class="nav_link_text text-style-h3">
+        <Fragment set:html={content} />
+      </span>
+    </a>
+  </li>
+)}

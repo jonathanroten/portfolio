@@ -33,46 +33,44 @@ const images: GalleryImage[] = items.map((item) => {
 });
 ---
 
-{
-  render && images.length > 0 && (
-    <>
-      <div
-        class:list={["gallery-infinite_wrap", className]}
-        data-items={JSON.stringify(images)}
-        {...rest}
-      >
-        <ul class="sr-only">
-          {items.map(({ alt }, index) => (
-            <li>{[alt, images[index].service].filter(Boolean).join(" — ")}</li>
-          ))}
-        </ul>
-        <div class="gallery-infinite_caption">
-          <div class="gallery-infinite_details" aria-live="polite">
-            <p class="gallery-infinite_index text-style-small text-transform-uppercase" />
-            <p class="gallery-infinite_service text-style-small text-transform-uppercase" />
-          </div>
+{render && images.length > 0 && (
+  <>
+    <div
+      class:list={["gallery-infinite_wrap", className]}
+      data-items={JSON.stringify(images)}
+      {...rest}
+    >
+      <ul class="sr-only">
+        {items.map(({ alt }, index) => (
+          <li>{[alt, images[index].service].filter(Boolean).join(" — ")}</li>
+        ))}
+      </ul>
+      <div class="gallery-infinite_caption">
+        <div class="gallery-infinite_details" aria-live="polite">
+          <p class="gallery-infinite_index text-style-small text-transform-uppercase" />
+          <p class="gallery-infinite_service text-style-small text-transform-uppercase" />
         </div>
       </div>
-      <noscript class="gallery-infinite_fallback">
-        <ul class="gallery-infinite_fallback_list" role="list">
-          {images.map(({ src, width, height }) => (
-            <li>
-              <img
-                class="image"
-                src={src}
-                width={width}
-                height={height}
-                alt=""
-                loading="lazy"
-                decoding="async"
-              />
-            </li>
-          ))}
-        </ul>
-      </noscript>
-    </>
-  )
-}
+    </div>
+    <noscript class="gallery-infinite_fallback">
+      <ul class="gallery-infinite_fallback_list" role="list">
+        {images.map(({ src, width, height }) => (
+          <li>
+            <img
+              class="image"
+              src={src}
+              width={width}
+              height={height}
+              alt=""
+              loading="lazy"
+              decoding="async"
+            />
+          </li>
+        ))}
+      </ul>
+    </noscript>
+  </>
+)}
 
 <script>
   import type { GalleryImage } from "@/types.ts";

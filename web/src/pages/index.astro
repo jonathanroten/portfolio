@@ -26,15 +26,20 @@ const description = await getDescription();
     class="flex-grow full-height"
   >
     <ContentWrapper class="flex-grow justify-content-end zindex-2">
-      <Heading tag="h1" class="sr-only">Jonathan Roten's Portfolio</Heading>
+      <Heading tag="h1" class="sr-only">
+        Jonathan Roten's Portfolio
+      </Heading>
       <IntroHome description={description} />
       <div class="width-full display-inline-flex justify-content-between">
-        <span class="text-style-h6"
-          ><FormattedDate
+        <span class="text-style-h6">
+          <FormattedDate
             date={today}
             format={{ month: "long", day: "2-digit", year: "numeric" }}
-          /></span
-        ><span class="text-style-h6"><LiveClock /></span>
+          />
+        </span>
+        <span class="text-style-h6">
+          <LiveClock />
+        </span>
       </div>
     </ContentWrapper>
     <ImageTrail

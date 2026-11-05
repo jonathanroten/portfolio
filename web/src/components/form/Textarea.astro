@@ -46,34 +46,32 @@ const {
 const hint = labelHidden && required ? `${label} *` : label;
 ---
 
-{
-  render && label && (
-    <label
-      class:list={["field", "form-textarea", className]}
-      style={`--_min-lines: ${minLines}; --_max-lines: ${maxLines};`}
+{render && label && (
+  <label
+    class:list={["field", "form-textarea", className]}
+    style={`--_min-lines: ${minLines}; --_max-lines: ${maxLines};`}
+  >
+    <span
+      class:list={["field-label text-style-small", labelHidden && "sr-only"]}
     >
-      <span
-        class:list={["field-label text-style-small", labelHidden && "sr-only"]}
-      >
-        <span>{label}</span>
-        {required && (
-          <span class="field-star" aria-hidden="true">
-            *
-          </span>
-        )}
-      </span>
-      <textarea
-        class="field-control form-textarea_field text-style-small"
-        name={name ?? slug(label)}
-        placeholder={placeholder ?? hint}
-        required={required || undefined}
-        rows={minLines}
-        {...rest}
-        set:text={value}
-      />
-    </label>
-  )
-}
+      <span>{label}</span>
+      {required && (
+        <span class="field-star" aria-hidden="true">
+          *
+        </span>
+      )}
+    </span>
+    <textarea
+      class="field-control form-textarea_field text-style-small"
+      name={name ?? slug(label)}
+      placeholder={placeholder ?? hint}
+      required={required || undefined}
+      rows={minLines}
+      {...rest}
+      set:text={value}
+    />
+  </label>
+)}
 
 <style is:global>
   @layer components {

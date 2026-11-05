@@ -12,25 +12,23 @@ interface Props extends HTMLAttributes<"div"> {
 const { render = true, images, class: className, ...rest } = Astro.props;
 ---
 
-{
-  render && !!images?.length && (
-    <div
-      class:list={["image-trail_wrap", className]}
-      aria-hidden="true"
-      {...rest}
-    >
-      {images.map((src, i) => (
-        <div class="image-trail_item">
-          <Img
-            src={src}
-            loading="eager"
-            fetchPriority={i === 0 ? "high" : undefined}
-          />
-        </div>
-      ))}
-    </div>
-  )
-}
+{render && !!images?.length && (
+  <div
+    class:list={["image-trail_wrap", className]}
+    aria-hidden="true"
+    {...rest}
+  >
+    {images.map((src, i) => (
+      <div class="image-trail_item">
+        <Img
+          src={src}
+          loading="eager"
+          fetchPriority={i === 0 ? "high" : undefined}
+        />
+      </div>
+    ))}
+  </div>
+)}
 
 <script>
   for (const trail of document.querySelectorAll<HTMLElement>(

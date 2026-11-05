@@ -51,85 +51,79 @@ const hero = galleryCrops.fullWidth;
       services={caseStudy.services}
       engagement={caseStudy.engagement}
     />
-    {
-      caseStudy.heroImage && (
-        <Img
-          src={imageUrl(caseStudy.heroImage, hero.width, hero.ratio)}
-          alt={caseStudy.heroImage.alt}
-          variant="full-width"
-          width={hero.width}
-          height={Math.round(hero.width / hero.ratio)}
-          loading="eager"
-          fetchPriority="high"
-        />
-      )
-    }
+    {caseStudy.heroImage && (
+      <Img
+        src={imageUrl(caseStudy.heroImage, hero.width, hero.ratio)}
+        alt={caseStudy.heroImage.alt}
+        variant="full-width"
+        width={hero.width}
+        height={Math.round(hero.width / hero.ratio)}
+        loading="eager"
+        fetchPriority="high"
+      />
+    )}
   </Section>
   <!-- Brief, then approach -->
-  {
-    [
-      {
-        heading: "Brief",
-        paragraphs: caseStudy.brief,
-        gallery: caseStudy.briefGallery,
-      },
-      {
-        heading: "Approach",
-        paragraphs: caseStudy.approach,
-        gallery: caseStudy.approachGallery,
-      },
-    ]
-      .filter((part) => part.paragraphs.length > 0 || part.gallery.length > 0)
-      .map((part) => (
-        <Section paddingTop="small" paddingBottom="none">
-          <Grid medium={2} class="gap-1">
-            <ContentWrapper class="grid-column-full padding-bottom-5">
-              <Heading tag="h2" class="sr-only">
-                {part.heading}
-              </Heading>
-              {part.paragraphs.map((text) => (
-                <Paragraph variant="main" maxWidth={95}>
-                  {text}
-                </Paragraph>
-              ))}
-            </ContentWrapper>
-            {part.gallery.map((image) => {
-              const full = image.layout === "fullWidth";
-              const crop = galleryCrops[image.layout];
-              return (
-                <Img
-                  src={imageUrl(image, crop.width, crop.ratio)}
-                  alt={image.alt}
-                  variant="full-width"
-                  width={crop.width}
-                  height={Math.round(crop.width / crop.ratio)}
-                  class={full ? "grid-column-full" : undefined}
-                />
-              );
-            })}
-          </Grid>
-        </Section>
-      ))
-  }
-  <!-- Next -->
-  {
-    next && (
-      <Section paddingBottom="none">
-        <NextCaseStudy
-          number={next.number}
-          heading={next.title}
-          href={`/case-studies/${next.slug}`}
-        >
-          {next.heroImage && (
-            <Img
-              src={imageUrl(next.heroImage, hero.width, hero.ratio)}
-              variant="full-width"
-              width={hero.width}
-              height={Math.round(hero.width / hero.ratio)}
-            />
-          )}
-        </NextCaseStudy>
+  {[
+    {
+      heading: "Brief",
+      paragraphs: caseStudy.brief,
+      gallery: caseStudy.briefGallery,
+    },
+    {
+      heading: "Approach",
+      paragraphs: caseStudy.approach,
+      gallery: caseStudy.approachGallery,
+    },
+  ]
+    .filter((part) => part.paragraphs.length > 0 || part.gallery.length > 0)
+    .map((part) => (
+      <Section paddingTop="small" paddingBottom="none">
+        <Grid medium={2} class="gap-1">
+          <ContentWrapper class="grid-column-full padding-bottom-5">
+            <Heading tag="h2" class="sr-only">
+              {part.heading}
+            </Heading>
+            {part.paragraphs.map((text) => (
+              <Paragraph variant="main" maxWidth={95}>
+                {text}
+              </Paragraph>
+            ))}
+          </ContentWrapper>
+          {part.gallery.map((image) => {
+            const full = image.layout === "fullWidth";
+            const crop = galleryCrops[image.layout];
+            return (
+              <Img
+                src={imageUrl(image, crop.width, crop.ratio)}
+                alt={image.alt}
+                variant="full-width"
+                width={crop.width}
+                height={Math.round(crop.width / crop.ratio)}
+                class={full ? "grid-column-full" : undefined}
+              />
+            );
+          })}
+        </Grid>
       </Section>
-    )
-  }
+    ))}
+  <!-- Next -->
+  {next && (
+    <Section paddingBottom="none">
+      <NextCaseStudy
+        number={next.number}
+        heading={next.title}
+        href={`/case-studies/${next.slug}`}
+      >
+        {next.heroImage && (
+          <Img
+            src={imageUrl(next.heroImage, hero.width, hero.ratio)}
+            variant="full-width"
+            width={hero.width}
+            height={Math.round(hero.width / hero.ratio)}
+          />
+        )}
+      </NextCaseStudy>
+    </Section>
+  )}
 </Layout>

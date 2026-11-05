@@ -73,27 +73,25 @@ const {
 const textStyle = size === "large" ? "text-style-main" : "text-style-small";
 ---
 
-{
-  render && label && (
-    <label
-      class:list={["form-choice", variant !== "default" && variant, className]}
-    >
-      <input
-        class="form-choice_input"
-        type={type}
-        name={name ?? slug(label)}
-        value={value}
-        checked={checked || undefined}
-        required={required || undefined}
-        {...rest}
-      />
-      <span class="form-choice_mark" aria-hidden="true">
-        <span class="form-choice_dot" />
-      </span>
-      <span class:list={["form-choice_text", textStyle]}>{label}</span>
-    </label>
-  )
-}
+{render && label && (
+  <label
+    class:list={["form-choice", variant !== "default" && variant, className]}
+  >
+    <input
+      class="form-choice_input"
+      type={type}
+      name={name ?? slug(label)}
+      value={value}
+      checked={checked || undefined}
+      required={required || undefined}
+      {...rest}
+    />
+    <span class="form-choice_mark" aria-hidden="true">
+      <span class="form-choice_dot" />
+    </span>
+    <span class:list={["form-choice_text", textStyle]}>{label}</span>
+  </label>
+)}
 
 <style is:global>
   @layer components {

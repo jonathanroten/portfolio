@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "license": "MIT",
   "engines": {
-    "node": ">=22.22.0"
+    "node": ">=22.23.4"
   },
   "scripts": {
     "dev": "astro dev",
@@ -17,25 +17,25 @@
     "format": "prettier --write ."
   },
   "dependencies": {
-    "@astrojs/check": "^0.9.11",
+    "@astrojs/check": "^0.9.12",
     "@astrojs/sitemap": "^3.7.4",
     "@sanity/astro": "^3.5.1",
     "@sanity/client": "^8.9.0",
     "@sanity/image-url": "^2.1.1",
-    "astro": "^7.4.1",
+    "astro": "^7.4.5",
     "fontkitten": "^1.0.3",
     "groq": "^6.17.0",
     "lenis": "^1.3.27",
     "typescript": "^6.0.3"
   },
   "devDependencies": {
-    "prettier": "^3.9.6",
-    "prettier-plugin-astro": "^0.14.1",
+    "prettier": "^3.9.10",
+    "prettier-plugin-astro": "^1.1.2",
     "wrangler": "^4.123.0"
   },
   "lumos": {
-    "version": "1.0.0",
-    "commit": "8c656b5054ee3d9023f19b35c4577a804dad1399",
+    "version": "1.0.2",
+    "commit": "5e81e860175ed6cf4086c203e4178c2c6744ad93",
     "scaffolded": "2026-09-04"
   }
 }

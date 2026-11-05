@@ -13,20 +13,18 @@ const { render = true, message } = Astro.props;
 const currentYear = new Date().getFullYear();
 ---
 
-{
-  render && (
-    <footer class="footer-minimal_wrap">
-      <div class="footer-minimal_inner">
-        <span class="text-style-h6">{`© ${currentYear} ${SITE_NAME}`}</span>
-        {message && (
-          <span class="text-style-h6" aria-hidden="true">
-            {message}
-          </span>
-        )}
-      </div>
-    </footer>
-  )
-}
+{render && (
+  <footer class="footer-minimal_wrap">
+    <div class="footer-minimal_inner">
+      <span class="text-style-h6">{`© ${currentYear} ${SITE_NAME}`}</span>
+      {message && (
+        <span class="text-style-h6" aria-hidden="true">
+          {message}
+        </span>
+      )}
+    </div>
+  </footer>
+)}
 
 <style is:global>
   @layer components {

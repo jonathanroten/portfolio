@@ -33,37 +33,35 @@ const {
 } = Astro.props;
 ---
 
-{
-  render && heading && (
-    <div class:list={["intro-case-study_wrap", className]} {...rest}>
-      {number !== undefined && (
-        <span class="intro-case-study_number text-style-h5">
-          {String(number).padStart(2, "0")}
-        </span>
-      )}
-      <h1 class="intro-case-study_title text-style-h5">{heading}</h1>
-      {description && (
-        <p class="intro-case-study_text text-style-h4">{description}</p>
-      )}
-      {(!!services?.length || !!engagement) && (
-        <dl class="intro-case-study_meta">
-          {!!services?.length && (
-            <div>
-              <dt class="sr-only">Services Provided</dt>
-              <dd class="text-style-main">{services.join(", ")}</dd>
-            </div>
-          )}
-          {engagement && (
-            <div>
-              <dt class="sr-only">Engagement</dt>
-              <dd class="text-style-main">{engagement}</dd>
-            </div>
-          )}
-        </dl>
-      )}
-    </div>
-  )
-}
+{render && heading && (
+  <div class:list={["intro-case-study_wrap", className]} {...rest}>
+    {number !== undefined && (
+      <span class="intro-case-study_number text-style-h5">
+        {String(number).padStart(2, "0")}
+      </span>
+    )}
+    <h1 class="intro-case-study_title text-style-h5">{heading}</h1>
+    {description && (
+      <p class="intro-case-study_text text-style-h4">{description}</p>
+    )}
+    {(!!services?.length || !!engagement) && (
+      <dl class="intro-case-study_meta">
+        {!!services?.length && (
+          <div>
+            <dt class="sr-only">Services Provided</dt>
+            <dd class="text-style-main">{services.join(", ")}</dd>
+          </div>
+        )}
+        {engagement && (
+          <div>
+            <dt class="sr-only">Engagement</dt>
+            <dd class="text-style-main">{engagement}</dd>
+          </div>
+        )}
+      </dl>
+    )}
+  </div>
+)}
 
 <style is:global>
   @layer components {

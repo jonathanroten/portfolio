@@ -27,29 +27,27 @@ const {
 } = Astro.props;
 ---
 
-{
-  render && heading && href && (
-    <a
-      class:list={["next-case-study_wrap", className]}
-      href={href}
-      rel="next"
-      data-cursor-free
-      {...rest}
-    >
-      <span class="next-case-study_label" data-cursor="">
-        <span class="sr-only">Next</span>
-        {number !== undefined && (
-          <span class="text-style-h5">{String(number).padStart(2, "0")}</span>
-        )}
-        <span class="text-style-h5">{heading}</span>
-      </span>
-      <div class="next-case-study_image background-skeleton">
-        <slot />
-        <div class="next-case-study_overlay" />
-      </div>
-    </a>
-  )
-}
+{render && heading && href && (
+  <a
+    class:list={["next-case-study_wrap", className]}
+    href={href}
+    rel="next"
+    data-cursor-free
+    {...rest}
+  >
+    <span class="next-case-study_label" data-cursor="">
+      <span class="sr-only">Next</span>
+      {number !== undefined && (
+        <span class="text-style-h5">{String(number).padStart(2, "0")}</span>
+      )}
+      <span class="text-style-h5">{heading}</span>
+    </span>
+    <div class="next-case-study_image background-skeleton">
+      <slot />
+      <div class="next-case-study_overlay" />
+    </div>
+  </a>
+)}
 
 <style is:global>
   @layer components {

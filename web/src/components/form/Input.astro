@@ -96,30 +96,28 @@ const text = label ?? kind.label;
 const hint = labelHidden && required ? `${text} *` : text;
 ---
 
-{
-  render && (
-    <label class:list={["field", "form-input", className]}>
-      <span
-        class:list={["field-label text-style-small", labelHidden && "sr-only"]}
-      >
-        <span>{text}</span>
-        {required && (
-          <span class="field-star" aria-hidden="true">
-            *
-          </span>
-        )}
-      </span>
-      <input
-        class="field-control text-style-small"
-        type={kind.type}
-        name={name ?? slug(text)}
-        placeholder={placeholder ?? hint}
-        inputmode={kind.mode}
-        autocomplete={kind.fill}
-        required={required || undefined}
-        value={value}
-        {...rest}
-      />
-    </label>
-  )
-}
+{render && (
+  <label class:list={["field", "form-input", className]}>
+    <span
+      class:list={["field-label text-style-small", labelHidden && "sr-only"]}
+    >
+      <span>{text}</span>
+      {required && (
+        <span class="field-star" aria-hidden="true">
+          *
+        </span>
+      )}
+    </span>
+    <input
+      class="field-control text-style-small"
+      type={kind.type}
+      name={name ?? slug(text)}
+      placeholder={placeholder ?? hint}
+      inputmode={kind.mode}
+      autocomplete={kind.fill}
+      required={required || undefined}
+      value={value}
+      {...rest}
+    />
+  </label>
+)}

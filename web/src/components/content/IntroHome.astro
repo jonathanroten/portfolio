@@ -21,28 +21,26 @@ const runs = description?.runs ?? [];
 const fit = Math.max(widestAccentWord(greeting), widestAccentWord(runs));
 ---
 
-{
-  render && (
-    <div
-      class:list={["intro-home_wrap", className]}
-      style={`--_fit: ${fit.toFixed(3)}`}
-      {...rest}
-    >
-      <p class="intro-home_greeting text-style-h2 text-accent">
-        {greeting.map((run) =>
+{render && (
+  <div
+    class:list={["intro-home_wrap", className]}
+    style={`--_fit: ${fit.toFixed(3)}`}
+    {...rest}
+  >
+    <p class="intro-home_greeting text-style-h2 text-accent">
+      {greeting.map((run) =>
+        run.highlight ? <span>{run.text}</span> : run.text,
+      )}
+    </p>
+    {runs.length > 0 && (
+      <p class="intro-home_description text-style-h2 text-accent">
+        {runs.map((run) =>
           run.highlight ? <span>{run.text}</span> : run.text,
         )}
       </p>
-      {runs.length > 0 && (
-        <p class="intro-home_description text-style-h2 text-accent">
-          {runs.map((run) =>
-            run.highlight ? <span>{run.text}</span> : run.text,
-          )}
-        </p>
-      )}
-    </div>
-  )
-}
+    )}
+  </div>
+)}
 
 <style is:global>
   @layer components {
