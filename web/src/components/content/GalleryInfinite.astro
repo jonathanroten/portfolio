@@ -126,6 +126,22 @@ const images: GalleryImage[] = items.map((item) => {
       element.getAnimations().map((animation) => animation.finished),
     );
 
+  let corsBlocked = false;
+
+  const loadImage = async (image: HTMLImageElement, src: string) => {
+    if (!corsBlocked) image.crossOrigin = "anonymous";
+    image.src = src;
+    try {
+      await image.decode();
+    } catch (error) {
+      if (!image.crossOrigin) throw error;
+      corsBlocked = true;
+      image.crossOrigin = null;
+      image.src = src;
+      await image.decode();
+    }
+  };
+
   const keyDirections: Partial<Record<string, [number, number]>> = {
     ArrowLeft: [-1, 0],
     ArrowRight: [1, 0],
@@ -295,8 +311,7 @@ const images: GalleryImage[] = items.map((item) => {
           slot,
         });
         image.style.zIndex = String(stacking.get(slot) ?? "");
-        image.src = items[index].src;
-        image.decode().then(
+        loadImage(image, items[index].src).then(
           () => {
             const delay = calm.matches ? 0 : Math.random() * config.popDelay;
             setTimeout(() => {
@@ -483,10 +498,10 @@ const images: GalleryImage[] = items.map((item) => {
       image.classList.add("is-focus");
       if (image.src !== fullSrc) {
         const full = new Image();
-        full.src = fullSrc;
-        full.decode().then(
+        loadImage(full, fullSrc).then(
           () => {
             if (focused !== image || image.src === fullSrc) return;
+            image.crossOrigin = full.crossOrigin;
             image.src = fullSrc;
             image.classList.add("is-loaded");
           },
