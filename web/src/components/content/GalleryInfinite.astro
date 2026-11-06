@@ -49,6 +49,7 @@ const images: GalleryImage[] = items.map((item) => {
           </li>
         ))}
       </ul>
+      <canvas class="gallery-infinite_canvas" aria-hidden="true" />
       <div class="gallery-infinite_caption">
         <div class="gallery-infinite_details" aria-live="polite">
           <p class="gallery-infinite_service text-style-small text-transform-uppercase" />
@@ -78,6 +79,11 @@ const images: GalleryImage[] = items.map((item) => {
 
 <script>
   import type { GalleryImage } from "@/types.ts";
+  import type { MotionShader } from "@/utils/motion-shader.ts";
+  import {
+    onPlainImagesChange,
+    prefersPlainImages,
+  } from "@/utils/plain-images.ts";
 
   const config = {
     tileWidth: 1440,
@@ -108,6 +114,9 @@ const images: GalleryImage[] = items.map((item) => {
     click: { distance: 8, time: 400 },
     seatDistance: 32,
     popDelay: 400,
+    handoffSpeed: 0.5,
+    handoffHold: 150,
+    uploadGap: 32,
   };
 
   type Shape = keyof typeof config.shapes;
@@ -249,6 +258,29 @@ const images: GalleryImage[] = items.map((item) => {
     let popDelay = config.popDelay;
     const viewSize = { width: 0, height: 0 };
     const tileSize = { width: 0, height: 0 };
+    const canvas = gallery.querySelector<HTMLCanvasElement>(
+      ".gallery-infinite_canvas",
+    );
+    const sources = new Map<number, HTMLImageElement>();
+    const lastCenter = { x: 0.5, y: 0.5 };
+    let shader: MotionShader | null = null;
+    let shaderRequested = false;
+    let uploading = false;
+    let drawing = false;
+    let movedAt = -Infinity;
+
+    const uploadTextures = () => {
+      if (uploading || !shader) return;
+      const active = shader;
+      const next = [...sources].find(([index]) => !active.has(index));
+      if (!next) return;
+      uploading = true;
+      active.upload(...next);
+      setTimeout(() => {
+        uploading = false;
+        uploadTextures();
+      }, config.uploadGap);
+    };
 
     const label = (image: HTMLElement) => {
       if (focused || !image.classList.contains("is-loaded")) {
@@ -319,6 +351,10 @@ const images: GalleryImage[] = items.map((item) => {
               image.classList.add("is-loaded");
               label(image);
             }, delay);
+            if (image.crossOrigin && !sources.has(index)) {
+              sources.set(index, image);
+              uploadTextures();
+            }
           },
           () => {},
         );
@@ -424,9 +460,97 @@ const images: GalleryImage[] = items.map((item) => {
       tileSize.height = (tileSize.width * config.tileHeight) / config.tileWidth;
       gallery.style.setProperty("--_tile-width", `${tileSize.width}px`);
       gallery.style.setProperty("--_tile-height", `${tileSize.height}px`);
+      shader?.resize(viewSize.width, viewSize.height);
       syncFocus();
       syncTiles();
     };
+
+    const startShader = () => {
+      if (shaderRequested || corsBlocked || !canvas || prefersPlainImages()) {
+        return;
+      }
+      const context = canvas.getContext("webgl2", {
+        alpha: true,
+        depth: false,
+        stencil: false,
+        antialias: false,
+        failIfMajorPerformanceCaveat: true,
+      });
+      if (!context) return;
+      shaderRequested = true;
+      import("@/utils/motion-shader.ts")
+        .then(({ createMotionShader }) => {
+          shader = createMotionShader(canvas, context);
+          shader.resize(viewSize.width, viewSize.height);
+          uploadTextures();
+        })
+        .catch(console.warn);
+    };
+
+    const wallItems = (active: MotionShader) => {
+      const left = center.x - viewSize.width / tileSize.width / 2;
+      const top = center.y - viewSize.height / tileSize.height / 2;
+      const items = [];
+      for (const tile of tiles.values()) {
+        for (const image of tile.children) {
+          const place = placed.get(image);
+          if (!place || !image.classList.contains("is-loaded")) continue;
+          const width = place.extent.x * 2 * tileSize.width;
+          const height = place.extent.y * 2 * tileSize.height;
+          const x = (place.anchor.x - left) * tileSize.width - width / 2;
+          const y = (place.anchor.y - top) * tileSize.height - height / 2;
+          if (
+            x + width <= 0 ||
+            x >= viewSize.width ||
+            y + height <= 0 ||
+            y >= viewSize.height
+          ) {
+            continue;
+          }
+          if (!active.has(place.index)) {
+            if (drawing && sources.has(place.index)) continue;
+            return null;
+          }
+          items.push({
+            key: place.index,
+            left: x,
+            top: y,
+            width,
+            height,
+            order: stacking.get(place.slot) ?? 0,
+          });
+        }
+      }
+      return items.sort((a, b) => a.order - b.order);
+    };
+
+    const syncDrawing = (now: number, elapsed: number) => {
+      const moved = Math.hypot(
+        (center.x - lastCenter.x) * tileSize.width,
+        (center.y - lastCenter.y) * tileSize.height,
+      );
+      lastCenter.x = center.x;
+      lastCenter.y = center.y;
+      if ((moved * (1000 / 60)) / Math.max(elapsed, 1) > config.handoffSpeed) {
+        movedAt = now;
+      }
+      const active = shader;
+      const items =
+        active &&
+        !active.isLost() &&
+        !focused &&
+        !prefersPlainImages() &&
+        now - movedAt < config.handoffHold &&
+        (drawing || !gallery.getAnimations({ subtree: true }).length)
+          ? wallItems(active)
+          : null;
+      if (items) active?.draw(items);
+      if (!!items !== drawing) {
+        drawing = !!items;
+        gallery.classList.toggle("is-drawing", drawing);
+      }
+    };
+
     let frame = 0;
     let lastTime = 0;
 
@@ -444,13 +568,14 @@ const images: GalleryImage[] = items.map((item) => {
       center.x += (target.x - center.x) * blend;
       center.y += (target.y - center.y) * blend;
       syncTiles();
+      syncDrawing(now, elapsed);
       gallery.dispatchEvent(new Event("scroll"));
       const pending = Math.hypot(
         (target.x - center.x) * tileSize.width,
         (target.y - center.y) * tileSize.height,
       );
       if (focused && !seated && pending < config.seatDistance) seat(focused);
-      if (pending < 0.1 && !dragging && !held.size) {
+      if (pending < 0.1 && !dragging && !held.size && !drawing) {
         center.x = target.x;
         center.y = target.y;
         frame = 0;
@@ -674,6 +799,10 @@ const images: GalleryImage[] = items.map((item) => {
     resize();
     popDelay = 0;
     gallery.classList.add("is-ready");
+
+    onPlainImagesChange(startShader);
+    if (document.readyState === "complete") startShader();
+    else window.addEventListener("load", startShader, { once: true });
   };
 
   for (const gallery of document.querySelectorAll<HTMLElement>(
@@ -744,6 +873,22 @@ const images: GalleryImage[] = items.map((item) => {
       }
       &:has(.is-focus) {
         z-index: 2;
+      }
+      .gallery-infinite_wrap.is-drawing & {
+        opacity: 0;
+      }
+    }
+
+    .gallery-infinite_canvas {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      width: 100%;
+      height: 100%;
+      visibility: hidden;
+      pointer-events: none;
+      .gallery-infinite_wrap.is-drawing & {
+        visibility: visible;
       }
     }
 
