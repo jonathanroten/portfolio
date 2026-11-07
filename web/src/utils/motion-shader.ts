@@ -42,7 +42,7 @@ const FRAGMENT = /* glsl */ `
   uniform vec2 uSize;
   uniform vec2 uBlur;
   uniform float uShift;
-  uniform float uTrail;
+  uniform vec2 uLag;
   uniform float uPixelRatio;
   uniform int uSamples;
   varying vec2 vUv;
@@ -59,7 +59,7 @@ const FRAGMENT = /* glsl */ `
     float pixel = 1.0 / uPixelRatio;
     float blurLength = length(uBlur);
     vec2 heading = blurLength > 0.0 ? vec2(uBlur.x, -uBlur.y) / blurLength : vec2(0.0, 1.0);
-    float span = blurLength + uShift * 2.0;
+    float span = blurLength + abs(uShift) * 2.0;
     float strideLength = span / float(uSamples);
     vec2 stride = heading * strideLength;
     float offset = uSamples > 1
@@ -78,7 +78,7 @@ const FRAGMENT = /* glsl */ `
 
     for (int i = 0; i < uSamples; i++) {
       float position = ((float(i) + offset) / float(uSamples) - 0.5) * span;
-      vec2 point = vUv + heading * (position + blurLength * uTrail) / uSize;
+      vec2 point = vUv + (heading * position + vec2(uLag.x, -uLag.y)) / uSize;
       vec4 color = textureGrad(
         uTexture,
         (point - 0.5) * uCover + 0.5,
@@ -115,10 +115,12 @@ export type MotionShaderMotion = {
   blurX: number;
   /** Motion blur along y. */
   blurY: number;
-  /** How far red and blue separate from green along the motion. */
+  /** How far red and blue separate from green along the motion. Negative swaps them. */
   shift: number;
-  /** How far the blur trails behind the motion, as a fraction of its length. */
-  trail: number;
+  /** How far each image sits behind its true position along x. */
+  lagX: number;
+  /** How far each image sits behind its true position along y. */
+  lagY: number;
   /** How far the middle of each image bows back along x. */
   bendX: number;
   /** How far the middle of each image bows back along y. */
@@ -145,7 +147,7 @@ export function createMotionShader(
   const shared = {
     uBlur: { value: new Vector2() },
     uShift: { value: 0 },
-    uTrail: { value: 0 },
+    uLag: { value: new Vector2() },
     uBend: { value: new Vector2() },
     uPixelRatio: { value: 1 },
     uSamples: { value: 1 },
@@ -216,20 +218,21 @@ export function createMotionShader(
     /** Draws `items` in order, so later items sit on top. */
     draw(
       items: MotionShaderItem[],
-      { blurX, blurY, shift, trail, bendX, bendY }: MotionShaderMotion,
+      { blurX, blurY, shift, lagX, lagY, bendX, bendY }: MotionShaderMotion,
     ) {
       const ratio = Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO);
       if (ratio !== renderer.getPixelRatio()) renderer.setPixelRatio(ratio);
       const length = Math.hypot(blurX, blurY);
+      const spread = Math.abs(shift);
       const samples = Math.ceil(
-        ((length + shift * 2) * ratio) / PIXELS_PER_SAMPLE,
+        ((length + spread * 2) * ratio) / PIXELS_PER_SAMPLE,
       );
-      const reach = 0.5 + trail + shift / Math.max(length, 1);
-      const paddingX = Math.abs(blurX) * reach + 1;
-      const paddingY = Math.abs(blurY) * reach + 1;
+      const reach = 0.5 + spread / Math.max(length, 1);
+      const paddingX = Math.abs(blurX) * reach + Math.abs(lagX) + 1;
+      const paddingY = Math.abs(blurY) * reach + Math.abs(lagY) + 1;
       shared.uBlur.value.set(blurX, blurY);
       shared.uShift.value = shift;
-      shared.uTrail.value = trail;
+      shared.uLag.value.set(lagX, lagY);
       shared.uBend.value.set(bendX, bendY);
       shared.uPixelRatio.value = ratio;
       shared.uSamples.value = Math.min(Math.max(samples, 1), MAX_SAMPLES);

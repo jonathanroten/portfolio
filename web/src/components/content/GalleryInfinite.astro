@@ -127,7 +127,7 @@ const images: GalleryImage[] = items.map((item) => {
       shift: 12,
       trail: 0.5,
       bend: 16,
-      bendEase: 120,
+      leanEase: 120,
     },
   };
 
@@ -586,20 +586,23 @@ const images: GalleryImage[] = items.map((item) => {
             )
           : null;
       if (items) {
-        const leanBlend = 1 - Math.exp(-time / motion.bendEase);
+        const leanBlend = 1 - Math.exp(-time / motion.leanEase);
         lean.x += (heading.x * strength - lean.x) * leanBlend;
         lean.y += (heading.y * strength - lean.y) * leanBlend;
         const leanFade = Math.min(
           1,
           (strength - motion.settled) / (motion.settled * 3),
         );
+        const leanX = lean.x * leanFade;
+        const leanY = lean.y * leanFade;
         active?.draw(items, {
           blurX: heading.x * motion.blur * strength,
           blurY: heading.y * motion.blur * strength,
-          shift: motion.shift * strength,
-          trail: motion.trail,
-          bendX: lean.x * motion.bend * leanFade,
-          bendY: lean.y * motion.bend * leanFade,
+          shift: motion.shift * (leanX * heading.x + leanY * heading.y),
+          lagX: leanX * motion.blur * motion.trail,
+          lagY: leanY * motion.blur * motion.trail,
+          bendX: leanX * motion.bend,
+          bendY: leanY * motion.bend,
         });
       } else {
         lean.x = 0;
