@@ -124,6 +124,7 @@ const images: GalleryImage[] = items.map((item) => {
       release: 0.05,
       settled: 0.01,
       blur: 48,
+      shift: 6,
       trail: 0.2,
     },
   };
@@ -573,12 +574,16 @@ const images: GalleryImage[] = items.map((item) => {
 
       const items =
         allowed && strength > motion.settled
-          ? wallItems(active, motion.blur * (0.5 + motion.trail) + 2)
+          ? wallItems(
+              active,
+              motion.blur * (0.5 + motion.trail) + motion.shift + 2,
+            )
           : null;
       if (items) {
         active?.draw(items, {
           blurX: heading.x * motion.blur * strength,
           blurY: heading.y * motion.blur * strength,
+          shift: motion.shift * strength,
           trail: motion.trail,
         });
       } else if (strength > motion.settled) {

@@ -29,6 +29,7 @@ const FRAGMENT = /* glsl */ `
   uniform vec2 uCover;
   uniform vec2 uSize;
   uniform vec2 uBlur;
+  uniform float uShift;
   uniform float uTrail;
   uniform float uPixelRatio;
   uniform int uSamples;
@@ -43,22 +44,29 @@ const FRAGMENT = /* glsl */ `
   }
 
   void main() {
-    vec2 blur = vec2(uBlur.x, -uBlur.y);
-    vec2 stride = blur / float(uSamples);
     float pixel = 1.0 / uPixelRatio;
+    float blurLength = length(uBlur);
+    vec2 heading = blurLength > 0.0 ? vec2(uBlur.x, -uBlur.y) / blurLength : vec2(0.0, 1.0);
+    float span = blurLength + uShift * 2.0;
+    float strideLength = span / float(uSamples);
+    vec2 stride = heading * strideLength;
     float offset = uSamples > 1
       ? 0.5 + (interleavedNoise(gl_FragCoord.xy) - 0.5) * DITHER
       : 0.5;
-    vec2 along = length(stride) > pixel ? stride * OVERLAP : vec2(pixel, 0.0);
+    vec2 along = strideLength > pixel ? stride * OVERLAP : vec2(pixel, 0.0);
     vec2 across = normalize(vec2(-along.y, along.x)) * pixel;
     vec2 footprint = uCover * MIP_SCALE / uSize;
     vec2 ramp = max(abs(stride), vec2(pixel));
+    float channelReach = max(blurLength, strideLength) * 0.5;
+    float channelEdge = max(strideLength, pixel);
+    vec3 channels = vec3(uShift, 0.0, -uShift);
     vec3 light = vec3(0.0);
-    float coverage = 0.0;
+    vec3 coverage = vec3(0.0);
+    vec3 total = vec3(0.0);
 
     for (int i = 0; i < uSamples; i++) {
-      float position = (float(i) + offset) / float(uSamples) - 0.5 + uTrail;
-      vec2 point = vUv + blur / uSize * position;
+      float position = ((float(i) + offset) / float(uSamples) - 0.5) * span;
+      vec2 point = vUv + heading * (position + blurLength * uTrail) / uSize;
       vec4 color = textureGrad(
         uTexture,
         (point - 0.5) * uCover + 0.5,
@@ -66,13 +74,17 @@ const FRAGMENT = /* glsl */ `
         across * footprint
       );
       vec2 edge = clamp((0.5 - abs(point - 0.5)) * uSize / ramp + 0.5, 0.0, 1.0);
-      float weight = color.a * edge.x * edge.y;
-      light += color.rgb * color.rgb * weight;
-      coverage += weight;
+      vec3 weight = clamp((channelReach - abs(position + channels)) / channelEdge + 0.5, 0.0, 1.0);
+      light += color.rgb * color.rgb * weight * color.a * edge.x * edge.y;
+      coverage += weight * color.a * edge.x * edge.y;
+      total += weight;
     }
 
-    float alpha = coverage / float(uSamples);
-    gl_FragColor = vec4(sqrt(light / max(coverage, 0.0001)) * alpha, alpha);
+    vec3 amount = coverage / max(total, vec3(0.0001));
+    gl_FragColor = vec4(
+      sqrt(light / max(coverage, vec3(0.0001))) * amount,
+      (amount.r + amount.g + amount.b) / 3.0
+    );
   }
 `;
 
@@ -91,6 +103,8 @@ export type MotionShaderMotion = {
   blurX: number;
   /** Motion blur along y. */
   blurY: number;
+  /** How far red and blue separate from green along the motion. */
+  shift: number;
   /** How far the blur trails behind the motion, as a fraction of its length. */
   trail: number;
 };
@@ -114,6 +128,7 @@ export function createMotionShader(
   const view = { width: 0, height: 0 };
   const shared = {
     uBlur: { value: new Vector2() },
+    uShift: { value: 0 },
     uTrail: { value: 0 },
     uPixelRatio: { value: 1 },
     uSamples: { value: 1 },
@@ -184,16 +199,19 @@ export function createMotionShader(
     /** Draws `items` in order, so later items sit on top. */
     draw(
       items: MotionShaderItem[],
-      { blurX, blurY, trail }: MotionShaderMotion,
+      { blurX, blurY, shift, trail }: MotionShaderMotion,
     ) {
       const ratio = Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO);
       if (ratio !== renderer.getPixelRatio()) renderer.setPixelRatio(ratio);
+      const length = Math.hypot(blurX, blurY);
       const samples = Math.ceil(
-        (Math.hypot(blurX, blurY) * ratio) / PIXELS_PER_SAMPLE,
+        ((length + shift * 2) * ratio) / PIXELS_PER_SAMPLE,
       );
-      const paddingX = Math.abs(blurX) * (0.5 + trail) + 1;
-      const paddingY = Math.abs(blurY) * (0.5 + trail) + 1;
+      const reach = 0.5 + trail + shift / Math.max(length, 1);
+      const paddingX = Math.abs(blurX) * reach + 1;
+      const paddingY = Math.abs(blurY) * reach + 1;
       shared.uBlur.value.set(blurX, blurY);
+      shared.uShift.value = shift;
       shared.uTrail.value = trail;
       shared.uPixelRatio.value = ratio;
       shared.uSamples.value = Math.min(Math.max(samples, 1), MAX_SAMPLES);
