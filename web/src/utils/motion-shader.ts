@@ -10,12 +10,16 @@ import {
 } from "three";
 
 const MAX_PIXEL_RATIO = 2;
+const MAX_SAMPLES = 12;
+const PIXELS_PER_SAMPLE = 2;
+const MAX_ANISOTROPY = 16;
 
 const VERTEX = /* glsl */ `
+  uniform vec2 uReach;
   varying vec2 vUv;
 
   void main() {
-    vUv = uv;
+    vUv = (uv - 0.5) * uReach + 0.5;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
   }
 `;
@@ -23,13 +27,52 @@ const VERTEX = /* glsl */ `
 const FRAGMENT = /* glsl */ `
   uniform sampler2D uTexture;
   uniform vec2 uCover;
+  uniform vec2 uSize;
+  uniform vec2 uBlur;
+  uniform float uTrail;
+  uniform float uPixelRatio;
+  uniform int uSamples;
   varying vec2 vUv;
 
-  const float MIP_BIAS = -0.25;
+  const float MIP_SCALE = pow(2.0, -0.25);
+  const float OVERLAP = 2.0;
+  const float DITHER = 0.5;
+
+  float interleavedNoise(vec2 position) {
+    return fract(52.9829189 * fract(dot(position, vec2(0.06711056, 0.00583715))));
+  }
 
   void main() {
-    vec4 color = texture2D(uTexture, (vUv - 0.5) * uCover + 0.5, MIP_BIAS);
-    gl_FragColor = vec4(color.rgb * color.a, color.a);
+    vec2 blur = vec2(uBlur.x, -uBlur.y);
+    vec2 stride = blur / float(uSamples);
+    float pixel = 1.0 / uPixelRatio;
+    float offset = uSamples > 1
+      ? 0.5 + (interleavedNoise(gl_FragCoord.xy) - 0.5) * DITHER
+      : 0.5;
+    vec2 along = length(stride) > pixel ? stride * OVERLAP : vec2(pixel, 0.0);
+    vec2 across = normalize(vec2(-along.y, along.x)) * pixel;
+    vec2 footprint = uCover * MIP_SCALE / uSize;
+    vec2 ramp = max(abs(stride), vec2(pixel));
+    vec3 light = vec3(0.0);
+    float coverage = 0.0;
+
+    for (int i = 0; i < uSamples; i++) {
+      float position = (float(i) + offset) / float(uSamples) - 0.5 + uTrail;
+      vec2 point = vUv + blur / uSize * position;
+      vec4 color = textureGrad(
+        uTexture,
+        (point - 0.5) * uCover + 0.5,
+        along * footprint,
+        across * footprint
+      );
+      vec2 edge = clamp((0.5 - abs(point - 0.5)) * uSize / ramp + 0.5, 0.0, 1.0);
+      float weight = color.a * edge.x * edge.y;
+      light += color.rgb * color.rgb * weight;
+      coverage += weight;
+    }
+
+    float alpha = coverage / float(uSamples);
+    gl_FragColor = vec4(sqrt(light / max(coverage, 0.0001)) * alpha, alpha);
   }
 `;
 
@@ -40,6 +83,16 @@ export type MotionShaderItem = {
   top: number;
   width: number;
   height: number;
+};
+
+/** How the wall is moving this frame, in CSS pixels. */
+export type MotionShaderMotion = {
+  /** Motion blur along x. */
+  blurX: number;
+  /** Motion blur along y. */
+  blurY: number;
+  /** How far the blur trails behind the motion, as a fraction of its length. */
+  trail: number;
 };
 
 /**
@@ -59,6 +112,12 @@ export function createMotionShader(
   const textures = new Map<number, { texture: Texture; aspect: number }>();
   const meshes: Mesh<PlaneGeometry, ShaderMaterial>[] = [];
   const view = { width: 0, height: 0 };
+  const shared = {
+    uBlur: { value: new Vector2() },
+    uTrail: { value: 0 },
+    uPixelRatio: { value: 1 },
+    uSamples: { value: 1 },
+  };
 
   const meshAt = (index: number) => {
     let mesh = meshes[index];
@@ -69,8 +128,11 @@ export function createMotionShader(
           vertexShader: VERTEX,
           fragmentShader: FRAGMENT,
           uniforms: {
+            ...shared,
             uTexture: { value: null },
             uCover: { value: new Vector2(1, 1) },
+            uSize: { value: new Vector2(1, 1) },
+            uReach: { value: new Vector2(1, 1) },
           },
           transparent: true,
           premultipliedAlpha: true,
@@ -96,6 +158,10 @@ export function createMotionShader(
     upload(key: number, image: HTMLImageElement) {
       if (textures.has(key)) return;
       const texture = new Texture(image);
+      texture.anisotropy = Math.min(
+        renderer.capabilities.getMaxAnisotropy(),
+        MAX_ANISOTROPY,
+      );
       texture.needsUpdate = true;
       renderer.initTexture(texture);
       textures.set(key, {
@@ -116,9 +182,21 @@ export function createMotionShader(
     },
 
     /** Draws `items` in order, so later items sit on top. */
-    draw(items: MotionShaderItem[]) {
+    draw(
+      items: MotionShaderItem[],
+      { blurX, blurY, trail }: MotionShaderMotion,
+    ) {
       const ratio = Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO);
       if (ratio !== renderer.getPixelRatio()) renderer.setPixelRatio(ratio);
+      const samples = Math.ceil(
+        (Math.hypot(blurX, blurY) * ratio) / PIXELS_PER_SAMPLE,
+      );
+      const paddingX = Math.abs(blurX) * (0.5 + trail) + 1;
+      const paddingY = Math.abs(blurY) * (0.5 + trail) + 1;
+      shared.uBlur.value.set(blurX, blurY);
+      shared.uTrail.value = trail;
+      shared.uPixelRatio.value = ratio;
+      shared.uSamples.value = Math.min(Math.max(samples, 1), MAX_SAMPLES);
       items.forEach(({ key, left, top, width, height }, index) => {
         const source = textures.get(key);
         if (!source) return;
@@ -126,7 +204,7 @@ export function createMotionShader(
         const { uniforms } = mesh.material;
         const aspect = width / height;
         mesh.visible = true;
-        mesh.scale.set(width, height, 1);
+        mesh.scale.set(width + paddingX * 2, height + paddingY * 2, 1);
         mesh.position.set(
           left + width / 2 - view.width / 2,
           view.height / 2 - top - height / 2,
@@ -136,6 +214,11 @@ export function createMotionShader(
         uniforms.uCover.value.set(
           Math.min(1, aspect / source.aspect),
           Math.min(1, source.aspect / aspect),
+        );
+        uniforms.uSize.value.set(width, height);
+        uniforms.uReach.value.set(
+          (width + paddingX * 2) / width,
+          (height + paddingY * 2) / height,
         );
       });
       for (let index = items.length; index < meshes.length; index++) {
