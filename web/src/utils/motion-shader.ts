@@ -13,14 +13,26 @@ const MAX_PIXEL_RATIO = 2;
 const MAX_SAMPLES = 12;
 const PIXELS_PER_SAMPLE = 2;
 const MAX_ANISOTROPY = 16;
+const BEND_SEGMENTS = 24;
 
 const VERTEX = /* glsl */ `
   uniform vec2 uReach;
+  uniform vec2 uSize;
+  uniform vec2 uBend;
   varying vec2 vUv;
 
   void main() {
     vUv = (uv - 0.5) * uReach + 0.5;
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    vec4 world = modelMatrix * vec4(position, 1.0);
+    vec2 bend = vec2(uBend.x, -uBend.y);
+    float amount = length(bend);
+    if (amount > 0.0) {
+      vec2 across = vec2(-bend.y, bend.x) / amount;
+      float extent = dot(abs(across), uSize) * 0.5;
+      float side = clamp(dot((vUv - 0.5) * uSize, across) / extent, -1.0, 1.0);
+      world.xy -= bend * (1.0 - side * side);
+    }
+    gl_Position = projectionMatrix * viewMatrix * world;
   }
 `;
 
@@ -107,6 +119,10 @@ export type MotionShaderMotion = {
   shift: number;
   /** How far the blur trails behind the motion, as a fraction of its length. */
   trail: number;
+  /** How far the middle of each image bows back along x. */
+  bendX: number;
+  /** How far the middle of each image bows back along y. */
+  bendY: number;
 };
 
 /**
@@ -122,7 +138,7 @@ export function createMotionShader(
 
   const scene = new Scene();
   const camera = new OrthographicCamera(-1, 1, 1, -1, -1, 1);
-  const geometry = new PlaneGeometry();
+  const geometry = new PlaneGeometry(1, 1, BEND_SEGMENTS, BEND_SEGMENTS);
   const textures = new Map<number, { texture: Texture; aspect: number }>();
   const meshes: Mesh<PlaneGeometry, ShaderMaterial>[] = [];
   const view = { width: 0, height: 0 };
@@ -130,6 +146,7 @@ export function createMotionShader(
     uBlur: { value: new Vector2() },
     uShift: { value: 0 },
     uTrail: { value: 0 },
+    uBend: { value: new Vector2() },
     uPixelRatio: { value: 1 },
     uSamples: { value: 1 },
   };
@@ -199,7 +216,7 @@ export function createMotionShader(
     /** Draws `items` in order, so later items sit on top. */
     draw(
       items: MotionShaderItem[],
-      { blurX, blurY, shift, trail }: MotionShaderMotion,
+      { blurX, blurY, shift, trail, bendX, bendY }: MotionShaderMotion,
     ) {
       const ratio = Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO);
       if (ratio !== renderer.getPixelRatio()) renderer.setPixelRatio(ratio);
@@ -213,6 +230,7 @@ export function createMotionShader(
       shared.uBlur.value.set(blurX, blurY);
       shared.uShift.value = shift;
       shared.uTrail.value = trail;
+      shared.uBend.value.set(bendX, bendY);
       shared.uPixelRatio.value = ratio;
       shared.uSamples.value = Math.min(Math.max(samples, 1), MAX_SAMPLES);
       items.forEach(({ key, left, top, width, height }, index) => {

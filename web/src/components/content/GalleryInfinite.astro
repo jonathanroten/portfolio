@@ -120,12 +120,14 @@ const images: GalleryImage[] = items.map((item) => {
       minSpeed: 0.5,
       maxSpeed: 96,
       curve: 0.8,
-      attack: 0.14,
-      release: 0.05,
+      attack: 0.15,
+      release: 0.3,
       settled: 0.01,
-      blur: 48,
-      shift: 6,
-      trail: 0.2,
+      blur: 72,
+      shift: 12,
+      trail: 0.5,
+      bend: 16,
+      bendEase: 120,
     },
   };
 
@@ -273,6 +275,7 @@ const images: GalleryImage[] = items.map((item) => {
     );
     const sources = new Map<number, HTMLImageElement>();
     const lastCenter = { x: 0.5, y: 0.5 };
+    const lean = { x: 0, y: 0 };
     const velocity = { x: 0, y: 0 };
     const heading = { x: 0, y: 1 };
     let shader: MotionShader | null = null;
@@ -576,18 +579,32 @@ const images: GalleryImage[] = items.map((item) => {
         allowed && strength > motion.settled
           ? wallItems(
               active,
-              motion.blur * (0.5 + motion.trail) + motion.shift + 2,
+              motion.blur * (0.5 + motion.trail) +
+                motion.shift +
+                motion.bend +
+                2,
             )
           : null;
       if (items) {
+        const leanBlend = 1 - Math.exp(-time / motion.bendEase);
+        lean.x += (heading.x * strength - lean.x) * leanBlend;
+        lean.y += (heading.y * strength - lean.y) * leanBlend;
+        const leanFade = Math.min(
+          1,
+          (strength - motion.settled) / (motion.settled * 3),
+        );
         active?.draw(items, {
           blurX: heading.x * motion.blur * strength,
           blurY: heading.y * motion.blur * strength,
           shift: motion.shift * strength,
           trail: motion.trail,
+          bendX: lean.x * motion.bend * leanFade,
+          bendY: lean.y * motion.bend * leanFade,
         });
-      } else if (strength > motion.settled) {
-        strength = 0;
+      } else {
+        lean.x = 0;
+        lean.y = 0;
+        if (strength > motion.settled) strength = 0;
       }
       if (!!items !== drawing) {
         drawing = !!items;
