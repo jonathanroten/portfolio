@@ -117,14 +117,13 @@ const images: GalleryImage[] = items.map((item) => {
     uploadGap: 32,
     motion: {
       smoothing: 50,
-      minSpeed: 0.5,
-      maxSpeed: 96,
-      curve: 0.8,
-      attack: 0.15,
-      release: 0.3,
-      settled: 0.01,
-      blur: 72,
-      shift: 12,
+      minSpeed: 8,
+      maxSpeed: 48,
+      attack: 0.3,
+      release: 0.1,
+      settled: 0.005,
+      blur: 120,
+      shift: 10,
       trail: 0.5,
       bend: 16,
       leanEase: 120,
@@ -132,6 +131,11 @@ const images: GalleryImage[] = items.map((item) => {
   };
 
   type Shape = keyof typeof config.shapes;
+
+  const drawReach = () => {
+    const { blur, trail, shift, bend } = config.motion;
+    return blur * (0.5 + trail) + shift + bend + 2;
+  };
 
   const clamp = (value: number, min: number, max: number) =>
     Math.max(min, Math.min(value, max));
@@ -386,15 +390,17 @@ const images: GalleryImage[] = items.map((item) => {
       const right = left + viewSize.width / tileSize.width;
       const bottom = top + viewSize.height / tileSize.height;
       const wanted = new Set<string>();
-      const margin = config.overscan;
+      const reach = shader ? drawReach() : 0;
+      const marginX = config.overscan + reach / tileSize.width;
+      const marginY = config.overscan + reach / tileSize.height;
       for (
-        let ty = Math.floor(top - margin);
-        ty < Math.ceil(bottom + margin);
+        let ty = Math.floor(top - marginY);
+        ty < Math.ceil(bottom + marginY);
         ty++
       ) {
         for (
-          let tx = Math.floor(left - margin);
-          tx < Math.ceil(right + margin);
+          let tx = Math.floor(left - marginX);
+          tx < Math.ceil(right + marginX);
           tx++
         ) {
           const key = `${tx},${ty}`;
@@ -566,25 +572,20 @@ const images: GalleryImage[] = items.map((item) => {
         !prefersPlainImages() &&
         (drawing || !gallery.getAnimations({ subtree: true }).length);
       if (allowed) {
-        const goal =
-          Math.min(1, Math.max(0, speed - motion.minSpeed) / motion.maxSpeed) **
-          motion.curve;
+        const range = clamp(
+          (speed - motion.minSpeed) / (motion.maxSpeed - motion.minSpeed),
+          0,
+          1,
+        );
+        const goal = range * range * (3 - 2 * range);
         const rate = goal > strength ? motion.attack : motion.release;
         strength += (goal - strength) * (1 - (1 - rate) ** frames);
       } else {
         strength = 0;
       }
 
-      const items =
-        allowed && strength > motion.settled
-          ? wallItems(
-              active,
-              motion.blur * (0.5 + motion.trail) +
-                motion.shift +
-                motion.bend +
-                2,
-            )
-          : null;
+      const ready = allowed && strength > motion.settled * (drawing ? 1 : 4);
+      const items = ready ? wallItems(active, drawReach()) : null;
       if (items) {
         const leanBlend = 1 - Math.exp(-time / motion.leanEase);
         lean.x += (heading.x * strength - lean.x) * leanBlend;
@@ -607,7 +608,7 @@ const images: GalleryImage[] = items.map((item) => {
       } else {
         lean.x = 0;
         lean.y = 0;
-        if (strength > motion.settled) strength = 0;
+        if (ready) strength = 0;
       }
       if (!!items !== drawing) {
         drawing = !!items;

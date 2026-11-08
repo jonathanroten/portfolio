@@ -12,7 +12,7 @@ import {
 const MAX_PIXEL_RATIO = 2;
 const MAX_SAMPLES = 12;
 const PIXELS_PER_SAMPLE = 2;
-const MAX_ANISOTROPY = 16;
+const MAX_ANISOTROPY = 8;
 const BEND_SEGMENTS = 24;
 
 const VERTEX = /* glsl */ `
