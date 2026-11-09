@@ -49,6 +49,7 @@ const images: GalleryImage[] = items.map((item) => {
           </li>
         ))}
       </ul>
+      <canvas class="gallery-infinite_canvas" aria-hidden="true" />
       <div class="gallery-infinite_caption">
         <div class="gallery-infinite_details" aria-live="polite">
           <p class="gallery-infinite_service text-style-small text-transform-uppercase" />
@@ -78,6 +79,7 @@ const images: GalleryImage[] = items.map((item) => {
 
 <script>
   import type { GalleryImage } from "@/types.ts";
+  import type { MotionShader } from "@/utils/motion-shader.ts";
 
   const config = {
     tileWidth: 1440,
@@ -108,9 +110,29 @@ const images: GalleryImage[] = items.map((item) => {
     click: { distance: 8, time: 400 },
     seatDistance: 32,
     popDelay: 400,
+    uploadGap: 32,
+    motion: {
+      smoothing: 50,
+      minSpeed: 8,
+      maxSpeed: 48,
+      attack: 0.3,
+      release: 0.1,
+      settled: 0.005,
+      blur: 120,
+      shift: 10,
+      lag: 0.5,
+      bend: 16,
+      leanEase: 120,
+    },
   };
 
   type Shape = keyof typeof config.shapes;
+
+  const drawReach =
+    config.motion.blur * (0.5 + config.motion.lag) +
+    config.motion.shift +
+    config.motion.bend +
+    2;
 
   const clamp = (value: number, min: number, max: number) =>
     Math.max(min, Math.min(value, max));
@@ -125,6 +147,22 @@ const images: GalleryImage[] = items.map((item) => {
     Promise.allSettled(
       element.getAnimations().map((animation) => animation.finished),
     );
+
+  let corsBlocked = false;
+
+  const loadImage = async (image: HTMLImageElement, src: string) => {
+    if (!corsBlocked) image.crossOrigin = "anonymous";
+    image.src = src;
+    try {
+      await image.decode();
+    } catch (error) {
+      if (!image.crossOrigin) throw error;
+      corsBlocked = true;
+      image.crossOrigin = null;
+      image.src = src;
+      await image.decode();
+    }
+  };
 
   const keyDirections: Partial<Record<string, [number, number]>> = {
     ArrowLeft: [-1, 0],
@@ -230,8 +268,42 @@ const images: GalleryImage[] = items.map((item) => {
     let seated = false;
     const held = new Set<string>();
     const calm = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const plainQueries = [
+      calm,
+      window.matchMedia("(prefers-contrast: more)"),
+      window.matchMedia("(forced-colors: active)"),
+    ];
+    const prefersPlainImages = () =>
+      plainQueries.some((query) => query.matches);
+    let popDelay = config.popDelay;
     const viewSize = { width: 0, height: 0 };
     const tileSize = { width: 0, height: 0 };
+    const canvas = gallery.querySelector<HTMLCanvasElement>(
+      ".gallery-infinite_canvas",
+    );
+    const sources = new Map<number, HTMLImageElement>();
+    const lastCenter = { x: 0.5, y: 0.5 };
+    const lean = { x: 0, y: 0 };
+    const velocity = { x: 0, y: 0 };
+    const heading = { x: 0, y: 1 };
+    let shader: MotionShader | null = null;
+    let shaderRequested = false;
+    let uploading = false;
+    let drawing = false;
+    let strength = 0;
+
+    const uploadTextures = () => {
+      if (uploading || !shader) return;
+      const active = shader;
+      const next = [...sources].find(([index]) => !active.has(index));
+      if (!next) return;
+      uploading = true;
+      active.upload(...next);
+      setTimeout(() => {
+        uploading = false;
+        uploadTextures();
+      }, config.uploadGap);
+    };
 
     const label = (image: HTMLElement) => {
       if (focused || !image.classList.contains("is-loaded")) {
@@ -295,14 +367,17 @@ const images: GalleryImage[] = items.map((item) => {
           slot,
         });
         image.style.zIndex = String(stacking.get(slot) ?? "");
-        image.src = items[index].src;
-        image.decode().then(
+        const delay = calm.matches ? 0 : Math.random() * popDelay;
+        loadImage(image, items[index].src).then(
           () => {
-            const delay = calm.matches ? 0 : Math.random() * config.popDelay;
             setTimeout(() => {
               image.classList.add("is-loaded");
               label(image);
             }, delay);
+            if (image.crossOrigin && !sources.has(index)) {
+              sources.set(index, image);
+              uploadTextures();
+            }
           },
           () => {},
         );
@@ -319,15 +394,17 @@ const images: GalleryImage[] = items.map((item) => {
       const right = left + viewSize.width / tileSize.width;
       const bottom = top + viewSize.height / tileSize.height;
       const wanted = new Set<string>();
-      const margin = config.overscan;
+      const reach = shader ? drawReach : 0;
+      const marginX = config.overscan + reach / tileSize.width;
+      const marginY = config.overscan + reach / tileSize.height;
       for (
-        let ty = Math.floor(top - margin);
-        ty < Math.ceil(bottom + margin);
+        let ty = Math.floor(top - marginY);
+        ty < Math.ceil(bottom + marginY);
         ty++
       ) {
         for (
-          let tx = Math.floor(left - margin);
-          tx < Math.ceil(right + margin);
+          let tx = Math.floor(left - marginX);
+          tx < Math.ceil(right + marginX);
           tx++
         ) {
           const key = `${tx},${ty}`;
@@ -408,9 +485,139 @@ const images: GalleryImage[] = items.map((item) => {
       tileSize.height = (tileSize.width * config.tileHeight) / config.tileWidth;
       gallery.style.setProperty("--_tile-width", `${tileSize.width}px`);
       gallery.style.setProperty("--_tile-height", `${tileSize.height}px`);
+      shader?.resize(viewSize.width, viewSize.height);
       syncFocus();
       syncTiles();
     };
+
+    const startShader = () => {
+      if (shaderRequested || corsBlocked || !canvas || prefersPlainImages()) {
+        return;
+      }
+      const context = canvas.getContext("webgl2", {
+        depth: false,
+        antialias: false,
+        failIfMajorPerformanceCaveat: true,
+      });
+      if (!context) return;
+      shaderRequested = true;
+      import("@/utils/motion-shader.ts")
+        .then(({ createMotionShader }) => {
+          shader = createMotionShader(canvas, context);
+          shader.resize(viewSize.width, viewSize.height);
+          uploadTextures();
+        })
+        .catch(console.warn);
+    };
+
+    const wallItems = (active: MotionShader) => {
+      const left = center.x - viewSize.width / tileSize.width / 2;
+      const top = center.y - viewSize.height / tileSize.height / 2;
+      const visible = [];
+      for (const tile of tiles.values()) {
+        for (const image of tile.children) {
+          const place = placed.get(image);
+          if (!place || !image.classList.contains("is-loaded")) continue;
+          const width = place.extent.x * 2 * tileSize.width;
+          const height = place.extent.y * 2 * tileSize.height;
+          const x = (place.anchor.x - left) * tileSize.width - width / 2;
+          const y = (place.anchor.y - top) * tileSize.height - height / 2;
+          if (
+            x + width <= -drawReach ||
+            x >= viewSize.width + drawReach ||
+            y + height <= -drawReach ||
+            y >= viewSize.height + drawReach
+          ) {
+            continue;
+          }
+          if (!active.has(place.index)) {
+            if (drawing && sources.has(place.index)) continue;
+            return null;
+          }
+          visible.push({
+            key: place.index,
+            left: x,
+            top: y,
+            width,
+            height,
+            order: stacking.get(place.slot) ?? 0,
+          });
+        }
+      }
+      return visible.sort((a, b) => a.order - b.order);
+    };
+
+    const syncDrawing = (elapsed: number) => {
+      const { motion } = config;
+      const time = Math.max(elapsed, 1);
+      const frames = time / (1000 / 60);
+      const blend = 1 - Math.exp(-time / motion.smoothing);
+      velocity.x +=
+        (((lastCenter.x - center.x) * tileSize.width) / frames - velocity.x) *
+        blend;
+      velocity.y +=
+        (((lastCenter.y - center.y) * tileSize.height) / frames - velocity.y) *
+        blend;
+      lastCenter.x = center.x;
+      lastCenter.y = center.y;
+      const speed = Math.hypot(velocity.x, velocity.y);
+      if (speed > 1) {
+        heading.x = velocity.x / speed;
+        heading.y = velocity.y / speed;
+      }
+
+      const active = shader;
+      const allowed =
+        active &&
+        !active.isLost() &&
+        !focused &&
+        !prefersPlainImages() &&
+        (drawing || !gallery.getAnimations({ subtree: true }).length);
+      if (allowed) {
+        const range = clamp(
+          (speed - motion.minSpeed) / (motion.maxSpeed - motion.minSpeed),
+          0,
+          1,
+        );
+        const goal = range * range * (3 - 2 * range);
+        const rate = goal > strength ? motion.attack : motion.release;
+        strength += (goal - strength) * (1 - (1 - rate) ** frames);
+      } else {
+        strength = 0;
+      }
+
+      const ready = allowed && strength > motion.settled * (drawing ? 1 : 4);
+      const visible = ready ? wallItems(active) : null;
+      if (visible && active) {
+        const leanBlend = 1 - Math.exp(-time / motion.leanEase);
+        lean.x += (heading.x * strength - lean.x) * leanBlend;
+        lean.y += (heading.y * strength - lean.y) * leanBlend;
+        const leanFade = Math.min(
+          1,
+          (strength - motion.settled) / (motion.settled * 3),
+        );
+        const leanX = lean.x * leanFade;
+        const leanY = lean.y * leanFade;
+        active.draw(visible, {
+          blurX: heading.x * motion.blur * strength,
+          blurY: heading.y * motion.blur * strength,
+          shift: motion.shift * (leanX * heading.x + leanY * heading.y),
+          lagX: leanX * motion.blur * motion.lag,
+          lagY: leanY * motion.blur * motion.lag,
+          bendX: leanX * motion.bend,
+          bendY: leanY * motion.bend,
+        });
+      } else {
+        lean.x = 0;
+        lean.y = 0;
+        if (ready) strength = 0;
+      }
+      if (!!visible !== drawing) {
+        drawing = !!visible;
+        gallery.classList.toggle("is-drawing", drawing);
+      }
+    };
+
     let frame = 0;
     let lastTime = 0;
 
@@ -428,13 +635,14 @@ const images: GalleryImage[] = items.map((item) => {
       center.x += (target.x - center.x) * blend;
       center.y += (target.y - center.y) * blend;
       syncTiles();
+      syncDrawing(elapsed);
       gallery.dispatchEvent(new Event("scroll"));
       const pending = Math.hypot(
         (target.x - center.x) * tileSize.width,
         (target.y - center.y) * tileSize.height,
       );
       if (focused && !seated && pending < config.seatDistance) seat(focused);
-      if (pending < 0.1 && !dragging && !held.size) {
+      if (pending < 0.1 && !dragging && !held.size && !drawing) {
         center.x = target.x;
         center.y = target.y;
         frame = 0;
@@ -483,10 +691,10 @@ const images: GalleryImage[] = items.map((item) => {
       image.classList.add("is-focus");
       if (image.src !== fullSrc) {
         const full = new Image();
-        full.src = fullSrc;
-        full.decode().then(
+        loadImage(full, fullSrc).then(
           () => {
             if (focused !== image || image.src === fullSrc) return;
+            image.crossOrigin = full.crossOrigin;
             image.src = fullSrc;
             image.classList.add("is-loaded");
           },
@@ -656,7 +864,14 @@ const images: GalleryImage[] = items.map((item) => {
 
     new ResizeObserver(resize).observe(gallery);
     resize();
+    popDelay = 0;
     gallery.classList.add("is-ready");
+
+    for (const query of plainQueries) {
+      query.addEventListener("change", startShader);
+    }
+    if (document.readyState === "complete") startShader();
+    else window.addEventListener("load", startShader, { once: true });
   };
 
   for (const gallery of document.querySelectorAll<HTMLElement>(
@@ -727,6 +942,22 @@ const images: GalleryImage[] = items.map((item) => {
       }
       &:has(.is-focus) {
         z-index: 2;
+      }
+      .gallery-infinite_wrap.is-drawing & {
+        opacity: 0;
+      }
+    }
+
+    .gallery-infinite_canvas {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      width: 100%;
+      height: 100%;
+      visibility: hidden;
+      pointer-events: none;
+      .gallery-infinite_wrap.is-drawing & {
+        visibility: visible;
       }
     }
 
