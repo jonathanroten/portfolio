@@ -18,6 +18,7 @@ const { render = true, images, class: className, ...rest } = Astro.props;
     aria-hidden="true"
     {...rest}
   >
+    <canvas class="image-trail_canvas" />
     {images.map((src, i) => (
       <div class="image-trail_item">
         <Img
@@ -31,6 +32,8 @@ const { render = true, images, class: className, ...rest } = Astro.props;
 )}
 
 <script>
+  import type { MotionShader } from "@/utils/motion-shader.ts";
+
   for (const trail of document.querySelectorAll<HTMLElement>(
     ".image-trail_wrap",
   )) {
@@ -44,13 +47,43 @@ const { render = true, images, class: className, ...rest } = Astro.props;
       ? document.querySelector<HTMLElement>(".nav_wrap:not(.overlap)")
       : null;
 
-    const config = { threshold: 32, life: 750, flipMs: 1500 };
+    const config = {
+      threshold: 24,
+      life: 750,
+      flipMs: 1500,
+      uploadGap: 32,
+      motion: {
+        smoothing: 50,
+        pause: 100,
+        minSpeed: 16,
+        maxSpeed: 48,
+        attack: 0.3,
+        release: 0.1,
+        hold: 0.04,
+        settle: 0.25,
+        settled: 0.005,
+        blur: 32,
+        shift: 4,
+        lag: 0.5,
+        bend: 28,
+        drift: 0.3,
+        friction: 0.1,
+      },
+    };
     const total = items.length;
 
     const desktopQuery = window.matchMedia("(width >= 64rem)");
     const reducedMotionQuery = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     );
+    const fineQuery = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const plainQueries = [
+      reducedMotionQuery,
+      window.matchMedia("(prefers-contrast: more)"),
+      window.matchMedia("(forced-colors: active)"),
+    ];
+    const prefersPlainImages = () =>
+      plainQueries.some((query) => query.matches);
 
     const pointer = { x: 0, y: 0 };
     const last = { x: 0, y: 0 };
@@ -62,6 +95,184 @@ const { render = true, images, class: className, ...rest } = Astro.props;
     let frame: number | null = null;
     let mouseHandler: ((event: MouseEvent) => void) | null = null;
 
+    const canvas = trail.querySelector<HTMLCanvasElement>(
+      ":scope > .image-trail_canvas",
+    );
+    const images = items.map((item) => item.querySelector("img"));
+    const places = items.map(() => ({ x: 0, y: 0, order: 0 }));
+    const launches = items.map(() => ({ x: 0, y: 1, strength: 0 }));
+    const drifts = items.map(() => ({ x: 0, y: 0 }));
+    const room = { left: 0, right: 0, top: 0, bottom: 0 };
+    const view = { left: 0, top: 0, width: 0, height: 0 };
+    const origin = { x: 0, y: 0 };
+    const itemSize = { width: 0, height: 0 };
+    const travel = { x: 0, y: 0 };
+    const velocity = { x: 0, y: 0 };
+    const heading = { x: 0, y: 1 };
+    let moveTime = -Infinity;
+    let lastTime = 0;
+    let shader: MotionShader | null = null;
+    let shaderRequested = false;
+    let drawing = false;
+    let strength = 0;
+
+    const measure = () => {
+      const area = scope.getBoundingClientRect();
+      const box = trail.getBoundingClientRect();
+      const lift = nav?.offsetHeight ?? 0;
+      view.left = area.left - box.left;
+      view.top = area.top - lift - box.top;
+      view.width = area.width;
+      view.height = area.height + lift;
+      origin.x = box.width / 2 - view.left;
+      origin.y = box.height / 2 - view.top;
+      const size = items[0].getBoundingClientRect();
+      itemSize.width = size.width;
+      itemSize.height = size.height;
+      if (canvas) {
+        Object.assign(canvas.style, {
+          left: `${view.left}px`,
+          top: `${view.top}px`,
+          width: `${view.width}px`,
+          height: `${view.height}px`,
+        });
+      }
+      shader?.resize(view.width, view.height);
+    };
+
+    const uploadTextures = async (active: MotionShader) => {
+      for (const [key, image] of images.entries()) {
+        if (!image) continue;
+        try {
+          await image.decode();
+        } catch {
+          continue;
+        }
+        active.upload(key, image);
+        await new Promise((done) => setTimeout(done, config.uploadGap));
+      }
+    };
+
+    const startShader = () => {
+      if (
+        shaderRequested ||
+        !canvas ||
+        document.readyState !== "complete" ||
+        !desktopQuery.matches ||
+        !fineQuery.matches ||
+        prefersPlainImages()
+      ) {
+        return;
+      }
+      const context = canvas.getContext("webgl2", {
+        depth: false,
+        antialias: false,
+        failIfMajorPerformanceCaveat: true,
+      });
+      if (!context) return;
+      shaderRequested = true;
+      import("@/utils/motion-shader.ts")
+        .then(({ createMotionShader }) => {
+          const active = createMotionShader(canvas, context);
+          active.resize(view.width, view.height);
+          shader = active;
+          return uploadTextures(active);
+        })
+        .catch(console.warn);
+    };
+
+    const launchMotion = (key: number) => {
+      const { motion } = config;
+      const { x, y, strength: amount } = launches[key];
+      const fade = Math.max(
+        0,
+        Math.min(1, (amount - motion.settled) / (motion.settled * 3)),
+      );
+      const settledAmount = amount * fade;
+      return {
+        blurX: x * motion.blur * amount,
+        blurY: y * motion.blur * amount,
+        shift: motion.shift * settledAmount,
+        lagX: x * settledAmount * motion.blur * motion.lag,
+        lagY: y * settledAmount * motion.blur * motion.lag,
+        bendX: x * settledAmount * motion.bend,
+        bendY: y * settledAmount * motion.bend,
+      };
+    };
+
+    const trailItems = (active: MotionShader) => {
+      const visible = [];
+      for (const [key, item] of items.entries()) {
+        if (!item.classList.contains("is-active")) continue;
+        if (!active.has(key)) return null;
+        const { x, y, order } = places[key];
+        visible.push({
+          key,
+          left: origin.x + x - itemSize.width / 2,
+          top: origin.y + y - itemSize.height / 2,
+          width: itemSize.width,
+          height: itemSize.height,
+          order,
+          motion: launchMotion(key),
+        });
+      }
+      return visible.sort((a, b) => a.order - b.order);
+    };
+
+    const setDrawing = (value: boolean) => {
+      if (value === drawing) return;
+      drawing = value;
+      trail.classList.toggle("is-drawing", drawing);
+    };
+
+    const syncDrawing = (elapsed: number) => {
+      const { motion } = config;
+      const time = Math.max(elapsed, 1);
+      const frames = time / (1000 / 60);
+      const blend = 1 - Math.exp(-time / motion.smoothing);
+      velocity.x += (travel.x / frames - velocity.x) * blend;
+      velocity.y += (travel.y / frames - velocity.y) * blend;
+      travel.x = 0;
+      travel.y = 0;
+      const speed = Math.hypot(velocity.x, velocity.y);
+      if (speed > 1) {
+        heading.x = velocity.x / speed;
+        heading.y = velocity.y / speed;
+      }
+
+      const active = shader;
+      const allowed = active && !active.isLost() && !prefersPlainImages();
+      if (allowed) {
+        const range = Math.max(
+          0,
+          Math.min(
+            (speed - motion.minSpeed) / (motion.maxSpeed - motion.minSpeed),
+            1,
+          ),
+        );
+        const goal = range * range * (3 - 2 * range);
+        const rate = goal > strength ? motion.attack : motion.release;
+        strength += (goal - strength) * (1 - (1 - rate) ** frames);
+      } else {
+        strength = 0;
+      }
+
+      const fadeRate = speed > motion.minSpeed ? motion.hold : motion.settle;
+      const fade = allowed ? (1 - fadeRate) ** frames : 0;
+      let level = 0;
+      for (const [key, launch] of launches.entries()) {
+        launch.strength *= fade;
+        if (items[key].classList.contains("is-active")) {
+          level = Math.max(level, launch.strength);
+        }
+      }
+
+      const ready = allowed && level > motion.settled * (drawing ? 1 : 4);
+      const visible = ready ? trailItems(active) : null;
+      if (visible) active?.draw(visible);
+      setDrawing(!!visible);
+    };
+
     const advance = () => {
       items.forEach((item, i) =>
         item.classList.toggle("is-active", i === index),
@@ -69,56 +280,110 @@ const { render = true, images, class: className, ...rest } = Astro.props;
       index = (index + 1) % total;
     };
 
-    const showImage = () => {
-      const item = items[index];
+    const showImages = (points: { x: number; y: number }[]) => {
       const inset =
         parseFloat(
           getComputedStyle(trail).getPropertyValue("--_bounds-inset"),
         ) || 0;
       const bounds = scope.getBoundingClientRect();
       const top = bounds.top - (nav?.offsetHeight ?? 0);
-      const halfW = item.offsetWidth / 2;
-      const halfH = item.offsetHeight / 2;
+      const halfW = items[0].offsetWidth / 2;
+      const halfH = items[0].offsetHeight / 2;
+      const rect = trail.getBoundingClientRect();
       const clamp = (value: number, min: number, max: number) =>
         Math.max(min, Math.min(value, max));
-      const x = clamp(
-        pointer.x,
-        bounds.left + inset + halfW,
-        bounds.right - inset - halfW,
-      );
-      const y = clamp(
-        pointer.y,
-        top + inset + halfH,
-        bounds.bottom - inset - halfH,
-      );
-      const rect = trail.getBoundingClientRect();
-      const offsetX = x - (rect.left + rect.width / 2);
-      const offsetY = y - (rect.top + rect.height / 2);
-      item.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
-      item.style.zIndex = String(stackTop);
-      stackTop += 1;
-      item.classList.add("is-active");
-      const existing = timers.get(item);
-      if (existing) window.clearTimeout(existing);
-      timers.set(
-        item,
-        window.setTimeout(
-          () => item.classList.remove("is-active"),
-          config.life,
-        ),
-      );
-      index = (index + 1) % total;
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      room.left = bounds.left + inset + halfW - centerX;
+      room.right = bounds.right - inset - halfW - centerX;
+      room.top = top + inset + halfH - centerY;
+      room.bottom = bounds.bottom - inset - halfH - centerY;
+      const drift = reducedMotionQuery.matches ? 0 : config.motion.drift;
+      for (const point of points) {
+        const item = items[index];
+        const x = clamp(
+          point.x,
+          bounds.left + inset + halfW,
+          bounds.right - inset - halfW,
+        );
+        const y = clamp(
+          point.y,
+          top + inset + halfH,
+          bounds.bottom - inset - halfH,
+        );
+        const offsetX = x - (rect.left + rect.width / 2);
+        const offsetY = y - (rect.top + rect.height / 2);
+        item.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+        item.style.zIndex = String(stackTop);
+        places[index] = { x: offsetX, y: offsetY, order: stackTop };
+        launches[index] = { x: heading.x, y: heading.y, strength };
+        drifts[index] = { x: velocity.x * drift, y: velocity.y * drift };
+        stackTop += 1;
+        item.classList.add("is-active");
+        const existing = timers.get(item);
+        if (existing) window.clearTimeout(existing);
+        timers.set(
+          item,
+          window.setTimeout(
+            () => item.classList.remove("is-active"),
+            config.life,
+          ),
+        );
+        index = (index + 1) % total;
+      }
     };
 
-    const render = () => {
+    const coast = (elapsed: number) => {
+      const frames = elapsed / (1000 / 60);
+      const keep = (1 - config.motion.friction) ** frames;
+      for (const [key, item] of items.entries()) {
+        const drift = drifts[key];
+        if (Math.abs(drift.x) + Math.abs(drift.y) < 0.01) continue;
+        if (!item.classList.contains("is-active")) {
+          drift.x = 0;
+          drift.y = 0;
+          continue;
+        }
+        const place = places[key];
+        place.x = Math.max(
+          room.left,
+          Math.min(place.x + drift.x * frames, room.right),
+        );
+        place.y = Math.max(
+          room.top,
+          Math.min(place.y + drift.y * frames, room.bottom),
+        );
+        drift.x *= keep;
+        drift.y *= keep;
+        item.style.transform = `translate(${place.x}px, ${place.y}px)`;
+      }
+    };
+
+    const render = (now: number) => {
+      const elapsed = Math.min(now - lastTime, 50);
+      lastTime = now;
+      coast(elapsed);
       if (hasMoved) {
         const distance = Math.hypot(pointer.x - last.x, pointer.y - last.y);
         if (distance > config.threshold) {
-          showImage();
+          const steps = Math.floor(distance / config.threshold);
+          const points = [];
+          for (
+            let step = Math.max(1, steps - total + 1);
+            step <= steps;
+            step++
+          ) {
+            points.push({
+              x: last.x + ((pointer.x - last.x) * step) / steps,
+              y: last.y + ((pointer.y - last.y) * step) / steps,
+            });
+          }
+          showImages(points);
           last.x = pointer.x;
           last.y = pointer.y;
         }
       }
+      syncDrawing(elapsed);
       frame = window.requestAnimationFrame(render);
     };
 
@@ -145,6 +410,16 @@ const { render = true, images, class: className, ...rest } = Astro.props;
       index = 0;
       stackTop = 1;
       hasMoved = false;
+      moveTime = -Infinity;
+      velocity.x = 0;
+      velocity.y = 0;
+      strength = 0;
+      for (const launch of launches) launch.strength = 0;
+      for (const drift of drifts) {
+        drift.x = 0;
+        drift.y = 0;
+      }
+      setDrawing(false);
     };
 
     const run = (flipbook: boolean) => {
@@ -157,6 +432,11 @@ const { render = true, images, class: className, ...rest } = Astro.props;
         return;
       }
       mouseHandler = (event) => {
+        if (event.timeStamp - moveTime < config.motion.pause) {
+          travel.x += event.clientX - pointer.x;
+          travel.y += event.clientY - pointer.y;
+        }
+        moveTime = event.timeStamp;
         pointer.x = event.clientX;
         pointer.y = event.clientY;
         if (!hasMoved) {
@@ -166,6 +446,7 @@ const { render = true, images, class: className, ...rest } = Astro.props;
         }
       };
       scope.addEventListener("mousemove", mouseHandler);
+      lastTime = performance.now();
       frame = window.requestAnimationFrame(render);
     };
 
@@ -189,6 +470,15 @@ const { render = true, images, class: className, ...rest } = Astro.props;
       if (currentFlip !== null) run(currentFlip);
     });
     scheduleApply();
+
+    const observer = new ResizeObserver(measure);
+    observer.observe(scope);
+    observer.observe(trail);
+    for (const query of [desktopQuery, fineQuery, ...plainQueries]) {
+      query.addEventListener("change", startShader);
+    }
+    if (document.readyState === "complete") startShader();
+    else window.addEventListener("load", startShader, { once: true });
   }
 </script>
 
@@ -224,11 +514,28 @@ const { render = true, images, class: className, ...rest } = Astro.props;
         }
       }
 
+      &.is-drawing .image-trail_item {
+        opacity: 0;
+      }
+
       @media (width < 64rem) {
         --_img-width: 68vw;
         position: relative;
         aspect-ratio: var(--_img-ratio);
         width: 100%;
+      }
+    }
+
+    .image-trail_canvas {
+      position: absolute;
+      max-width: none;
+      visibility: hidden;
+      pointer-events: none;
+      .image-trail_wrap.is-drawing & {
+        visibility: visible;
+      }
+      @media (width < 64rem) {
+        display: none;
       }
     }
   }
