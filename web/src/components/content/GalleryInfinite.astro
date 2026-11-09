@@ -80,10 +80,6 @@ const images: GalleryImage[] = items.map((item) => {
 <script>
   import type { GalleryImage } from "@/types.ts";
   import type { MotionShader } from "@/utils/motion-shader.ts";
-  import {
-    onPlainImagesChange,
-    prefersPlainImages,
-  } from "@/utils/plain-images.ts";
 
   const config = {
     tileWidth: 1440,
@@ -124,7 +120,7 @@ const images: GalleryImage[] = items.map((item) => {
       settled: 0.005,
       blur: 120,
       shift: 10,
-      trail: 0.5,
+      lag: 0.5,
       bend: 16,
       leanEase: 120,
     },
@@ -132,10 +128,11 @@ const images: GalleryImage[] = items.map((item) => {
 
   type Shape = keyof typeof config.shapes;
 
-  const drawReach = () => {
-    const { blur, trail, shift, bend } = config.motion;
-    return blur * (0.5 + trail) + shift + bend + 2;
-  };
+  const drawReach =
+    config.motion.blur * (0.5 + config.motion.lag) +
+    config.motion.shift +
+    config.motion.bend +
+    2;
 
   const clamp = (value: number, min: number, max: number) =>
     Math.max(min, Math.min(value, max));
@@ -271,6 +268,13 @@ const images: GalleryImage[] = items.map((item) => {
     let seated = false;
     const held = new Set<string>();
     const calm = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const plainQueries = [
+      calm,
+      window.matchMedia("(prefers-contrast: more)"),
+      window.matchMedia("(forced-colors: active)"),
+    ];
+    const prefersPlainImages = () =>
+      plainQueries.some((query) => query.matches);
     let popDelay = config.popDelay;
     const viewSize = { width: 0, height: 0 };
     const tileSize = { width: 0, height: 0 };
@@ -390,7 +394,7 @@ const images: GalleryImage[] = items.map((item) => {
       const right = left + viewSize.width / tileSize.width;
       const bottom = top + viewSize.height / tileSize.height;
       const wanted = new Set<string>();
-      const reach = shader ? drawReach() : 0;
+      const reach = shader ? drawReach : 0;
       const marginX = config.overscan + reach / tileSize.width;
       const marginY = config.overscan + reach / tileSize.height;
       for (
@@ -491,9 +495,7 @@ const images: GalleryImage[] = items.map((item) => {
         return;
       }
       const context = canvas.getContext("webgl2", {
-        alpha: true,
         depth: false,
-        stencil: false,
         antialias: false,
         failIfMajorPerformanceCaveat: true,
       });
@@ -508,10 +510,10 @@ const images: GalleryImage[] = items.map((item) => {
         .catch(console.warn);
     };
 
-    const wallItems = (active: MotionShader, margin: number) => {
+    const wallItems = (active: MotionShader) => {
       const left = center.x - viewSize.width / tileSize.width / 2;
       const top = center.y - viewSize.height / tileSize.height / 2;
-      const items = [];
+      const visible = [];
       for (const tile of tiles.values()) {
         for (const image of tile.children) {
           const place = placed.get(image);
@@ -521,10 +523,10 @@ const images: GalleryImage[] = items.map((item) => {
           const x = (place.anchor.x - left) * tileSize.width - width / 2;
           const y = (place.anchor.y - top) * tileSize.height - height / 2;
           if (
-            x + width <= -margin ||
-            x >= viewSize.width + margin ||
-            y + height <= -margin ||
-            y >= viewSize.height + margin
+            x + width <= -drawReach ||
+            x >= viewSize.width + drawReach ||
+            y + height <= -drawReach ||
+            y >= viewSize.height + drawReach
           ) {
             continue;
           }
@@ -532,7 +534,7 @@ const images: GalleryImage[] = items.map((item) => {
             if (drawing && sources.has(place.index)) continue;
             return null;
           }
-          items.push({
+          visible.push({
             key: place.index,
             left: x,
             top: y,
@@ -542,7 +544,7 @@ const images: GalleryImage[] = items.map((item) => {
           });
         }
       }
-      return items.sort((a, b) => a.order - b.order);
+      return visible.sort((a, b) => a.order - b.order);
     };
 
     const syncDrawing = (elapsed: number) => {
@@ -585,8 +587,8 @@ const images: GalleryImage[] = items.map((item) => {
       }
 
       const ready = allowed && strength > motion.settled * (drawing ? 1 : 4);
-      const items = ready ? wallItems(active, drawReach()) : null;
-      if (items) {
+      const visible = ready ? wallItems(active) : null;
+      if (visible && active) {
         const leanBlend = 1 - Math.exp(-time / motion.leanEase);
         lean.x += (heading.x * strength - lean.x) * leanBlend;
         lean.y += (heading.y * strength - lean.y) * leanBlend;
@@ -596,12 +598,12 @@ const images: GalleryImage[] = items.map((item) => {
         );
         const leanX = lean.x * leanFade;
         const leanY = lean.y * leanFade;
-        active?.draw(items, {
+        active.draw(visible, {
           blurX: heading.x * motion.blur * strength,
           blurY: heading.y * motion.blur * strength,
           shift: motion.shift * (leanX * heading.x + leanY * heading.y),
-          lagX: leanX * motion.blur * motion.trail,
-          lagY: leanY * motion.blur * motion.trail,
+          lagX: leanX * motion.blur * motion.lag,
+          lagY: leanY * motion.blur * motion.lag,
           bendX: leanX * motion.bend,
           bendY: leanY * motion.bend,
         });
@@ -610,8 +612,8 @@ const images: GalleryImage[] = items.map((item) => {
         lean.y = 0;
         if (ready) strength = 0;
       }
-      if (!!items !== drawing) {
-        drawing = !!items;
+      if (!!visible !== drawing) {
+        drawing = !!visible;
         gallery.classList.toggle("is-drawing", drawing);
       }
     };
@@ -865,7 +867,9 @@ const images: GalleryImage[] = items.map((item) => {
     popDelay = 0;
     gallery.classList.add("is-ready");
 
-    onPlainImagesChange(startShader);
+    for (const query of plainQueries) {
+      query.addEventListener("change", startShader);
+    }
     if (document.readyState === "complete") startShader();
     else window.addEventListener("load", startShader, { once: true });
   };

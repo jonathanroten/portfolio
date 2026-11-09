@@ -237,12 +237,12 @@ export function createMotionShader(
       shared.uPixelRatio.value = ratio;
       shared.uSamples.value = Math.min(Math.max(samples, 1), MAX_SAMPLES);
       items.forEach(({ key, left, top, width, height }, index) => {
-        const source = textures.get(key);
-        if (!source) return;
         const mesh = meshAt(index);
+        const source = textures.get(key);
+        mesh.visible = !!source;
+        if (!source) return;
         const { uniforms } = mesh.material;
         const aspect = width / height;
-        mesh.visible = true;
         mesh.scale.set(width + paddingX * 2, height + paddingY * 2, 1);
         mesh.position.set(
           left + width / 2 - view.width / 2,
