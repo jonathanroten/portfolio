@@ -122,6 +122,7 @@ const images: GalleryImage[] = items.map((item) => {
       shift: 10,
       lag: 0.5,
       bend: 16,
+      scaleWithImages: 0.5,
       leanEase: 120,
     },
   };
@@ -278,6 +279,7 @@ const images: GalleryImage[] = items.map((item) => {
     let popDelay = config.popDelay;
     const viewSize = { width: 0, height: 0 };
     const tileSize = { width: 0, height: 0 };
+    let effectScale = 1;
     const canvas = gallery.querySelector<HTMLCanvasElement>(
       ".gallery-infinite_canvas",
     );
@@ -483,6 +485,9 @@ const images: GalleryImage[] = items.map((item) => {
         config.tileMaxRem * rem,
       );
       tileSize.height = (tileSize.width * config.tileHeight) / config.tileWidth;
+      effectScale =
+        Math.min(1, tileSize.width / config.tileWidth) **
+        config.motion.scaleWithImages;
       gallery.style.setProperty("--_tile-width", `${tileSize.width}px`);
       gallery.style.setProperty("--_tile-height", `${tileSize.height}px`);
       shader?.resize(viewSize.width, viewSize.height);
@@ -598,14 +603,18 @@ const images: GalleryImage[] = items.map((item) => {
         );
         const leanX = lean.x * leanFade;
         const leanY = lean.y * leanFade;
+        const blur = motion.blur * effectScale;
         active.draw(visible, {
-          blurX: heading.x * motion.blur * strength,
-          blurY: heading.y * motion.blur * strength,
-          shift: motion.shift * (leanX * heading.x + leanY * heading.y),
-          lagX: leanX * motion.blur * motion.lag,
-          lagY: leanY * motion.blur * motion.lag,
-          bendX: leanX * motion.bend,
-          bendY: leanY * motion.bend,
+          blurX: heading.x * blur * strength,
+          blurY: heading.y * blur * strength,
+          shift:
+            motion.shift *
+            effectScale *
+            (leanX * heading.x + leanY * heading.y),
+          lagX: leanX * blur * motion.lag,
+          lagY: leanY * blur * motion.lag,
+          bendX: leanX * motion.bend * effectScale,
+          bendY: leanY * motion.bend * effectScale,
         });
       } else {
         lean.x = 0;
