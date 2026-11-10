@@ -34,6 +34,9 @@ const { render = true, images, class: className, ...rest } = Astro.props;
 <script>
   import type { MotionShader } from "@/utils/motion-shader.ts";
 
+  const clamp = (value: number, min: number, max: number) =>
+    Math.max(min, Math.min(value, max));
+
   for (const trail of document.querySelectorAll<HTMLElement>(
     ".image-trail_wrap",
   )) {
@@ -120,6 +123,10 @@ const { render = true, images, class: className, ...rest } = Astro.props;
       const area = scope.getBoundingClientRect();
       const box = trail.getBoundingClientRect();
       const lift = nav?.offsetHeight ?? 0;
+      const inset =
+        parseFloat(
+          getComputedStyle(trail).getPropertyValue("--_bounds-inset"),
+        ) || 0;
       view.left = area.left - box.left;
       view.top = area.top - lift - box.top;
       view.width = area.width;
@@ -129,6 +136,12 @@ const { render = true, images, class: className, ...rest } = Astro.props;
       const size = items[0].getBoundingClientRect();
       itemSize.width = size.width;
       itemSize.height = size.height;
+      const centerX = box.left + box.width / 2;
+      const centerY = box.top + box.height / 2;
+      room.left = area.left + inset + size.width / 2 - centerX;
+      room.right = area.right - inset - size.width / 2 - centerX;
+      room.top = area.top - lift + inset + size.height / 2 - centerY;
+      room.bottom = area.bottom - inset - size.height / 2 - centerY;
       if (canvas) {
         Object.assign(canvas.style, {
           left: `${view.left}px`,
@@ -184,9 +197,10 @@ const { render = true, images, class: className, ...rest } = Astro.props;
     const launchMotion = (key: number) => {
       const { motion } = config;
       const { x, y, strength: amount } = launches[key];
-      const fade = Math.max(
+      const fade = clamp(
+        (amount - motion.settled) / (motion.settled * 3),
         0,
-        Math.min(1, (amount - motion.settled) / (motion.settled * 3)),
+        1,
       );
       const settledAmount = amount * fade;
       return {
@@ -243,12 +257,10 @@ const { render = true, images, class: className, ...rest } = Astro.props;
       const active = shader;
       const allowed = active && !active.isLost() && !prefersPlainImages();
       if (allowed) {
-        const range = Math.max(
+        const range = clamp(
+          (speed - motion.minSpeed) / (motion.maxSpeed - motion.minSpeed),
           0,
-          Math.min(
-            (speed - motion.minSpeed) / (motion.maxSpeed - motion.minSpeed),
-            1,
-          ),
+          1,
         );
         const goal = range * range * (3 - 2 * range);
         const rate = goal > strength ? motion.attack : motion.release;
@@ -281,38 +293,14 @@ const { render = true, images, class: className, ...rest } = Astro.props;
     };
 
     const showImages = (points: { x: number; y: number }[]) => {
-      const inset =
-        parseFloat(
-          getComputedStyle(trail).getPropertyValue("--_bounds-inset"),
-        ) || 0;
-      const bounds = scope.getBoundingClientRect();
-      const top = bounds.top - (nav?.offsetHeight ?? 0);
-      const halfW = items[0].offsetWidth / 2;
-      const halfH = items[0].offsetHeight / 2;
       const rect = trail.getBoundingClientRect();
-      const clamp = (value: number, min: number, max: number) =>
-        Math.max(min, Math.min(value, max));
       const centerX = rect.left + rect.width / 2;
       const centerY = rect.top + rect.height / 2;
-      room.left = bounds.left + inset + halfW - centerX;
-      room.right = bounds.right - inset - halfW - centerX;
-      room.top = top + inset + halfH - centerY;
-      room.bottom = bounds.bottom - inset - halfH - centerY;
       const drift = reducedMotionQuery.matches ? 0 : config.motion.drift;
       for (const point of points) {
         const item = items[index];
-        const x = clamp(
-          point.x,
-          bounds.left + inset + halfW,
-          bounds.right - inset - halfW,
-        );
-        const y = clamp(
-          point.y,
-          top + inset + halfH,
-          bounds.bottom - inset - halfH,
-        );
-        const offsetX = x - (rect.left + rect.width / 2);
-        const offsetY = y - (rect.top + rect.height / 2);
+        const offsetX = clamp(point.x - centerX, room.left, room.right);
+        const offsetY = clamp(point.y - centerY, room.top, room.bottom);
         item.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
         item.style.zIndex = String(stackTop);
         places[index] = { x: offsetX, y: offsetY, order: stackTop };
@@ -345,14 +333,8 @@ const { render = true, images, class: className, ...rest } = Astro.props;
           continue;
         }
         const place = places[key];
-        place.x = Math.max(
-          room.left,
-          Math.min(place.x + drift.x * frames, room.right),
-        );
-        place.y = Math.max(
-          room.top,
-          Math.min(place.y + drift.y * frames, room.bottom),
-        );
+        place.x = clamp(place.x + drift.x * frames, room.left, room.right);
+        place.y = clamp(place.y + drift.y * frames, room.top, room.bottom);
         drift.x *= keep;
         drift.y *= keep;
         item.style.transform = `translate(${place.x}px, ${place.y}px)`;
@@ -411,6 +393,8 @@ const { render = true, images, class: className, ...rest } = Astro.props;
       stackTop = 1;
       hasMoved = false;
       moveTime = -Infinity;
+      travel.x = 0;
+      travel.y = 0;
       velocity.x = 0;
       velocity.y = 0;
       strength = 0;
@@ -474,6 +458,7 @@ const { render = true, images, class: className, ...rest } = Astro.props;
     const observer = new ResizeObserver(measure);
     observer.observe(scope);
     observer.observe(trail);
+    if (nav) observer.observe(nav);
     for (const query of [desktopQuery, fineQuery, ...plainQueries]) {
       query.addEventListener("change", startShader);
     }
