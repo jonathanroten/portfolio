@@ -1,6 +1,7 @@
 ---
 import type { ComponentProps, HTMLAttributes } from "astro/types";
 import Img from "@/components/media/Img.astro";
+import Button from "@/components/Button.astro";
 
 interface Props extends HTMLAttributes<"div"> {
   /** Set to `false` to omit the component. */
@@ -13,14 +14,10 @@ const { render = true, images, class: className, ...rest } = Astro.props;
 ---
 
 {render && !!images?.length && (
-  <div
-    class:list={["image-trail_wrap", className]}
-    aria-hidden="true"
-    {...rest}
-  >
-    <canvas class="image-trail_canvas" />
+  <div class:list={["image-trail_wrap", className]} {...rest}>
+    <canvas class="image-trail_canvas" aria-hidden="true" />
     {images.map((src, i) => (
-      <div class="image-trail_item">
+      <div class="image-trail_item" aria-hidden="true">
         <Img
           src={src}
           loading="eager"
@@ -28,6 +25,16 @@ const { render = true, images, class: className, ...rest } = Astro.props;
         />
       </div>
     ))}
+    <div class="image-trail_controls">
+      <Button
+        variant="play"
+        emphasis="tertiary"
+        label="Play slideshow"
+        pressed={true}
+        class="pointer-on"
+        data-trail-toggle
+      />
+    </div>
   </div>
 )}
 
@@ -103,6 +110,10 @@ const { render = true, images, class: className, ...rest } = Astro.props;
     const canvas = trail.querySelector<HTMLCanvasElement>(
       ":scope > .image-trail_canvas",
     );
+    const toggle = trail.querySelector<HTMLButtonElement>(
+      "[data-trail-toggle]",
+    );
+    let playing = !reducedMotionQuery.matches;
     const images = items.map((item) => item.querySelector("img"));
     const places = items.map(() => ({ x: 0, y: 0, order: 0 }));
     const launches = items.map(() => ({ x: 0, y: 1, strength: 0 }));
@@ -299,6 +310,16 @@ const { render = true, images, class: className, ...rest } = Astro.props;
       index = (index + 1) % total;
     };
 
+    const setPlaying = (value: boolean) => {
+      playing = value;
+      toggle?.setAttribute("aria-pressed", String(playing));
+      if (flipTimer) {
+        window.clearInterval(flipTimer);
+        flipTimer = null;
+      }
+      if (playing) flipTimer = window.setInterval(advance, config.flipMs);
+    };
+
     const showImages = (points: { x: number; y: number; age: number }[]) => {
       const rect = trail.getBoundingClientRect();
       const centerX = rect.left + rect.width / 2;
@@ -439,9 +460,7 @@ const { render = true, images, class: className, ...rest } = Astro.props;
       teardown();
       if (flipbook) {
         advance();
-        if (!reducedMotionQuery.matches) {
-          flipTimer = window.setInterval(advance, config.flipMs);
-        }
+        setPlaying(playing);
         return;
       }
       mouseHandler = (event) => {
@@ -482,8 +501,10 @@ const { render = true, images, class: className, ...rest } = Astro.props;
     desktopQuery.addEventListener("change", scheduleApply);
     window.addEventListener("resize", scheduleApply);
     reducedMotionQuery.addEventListener("change", () => {
+      playing = !reducedMotionQuery.matches;
       if (currentFlip !== null) run(currentFlip);
     });
+    toggle?.addEventListener("click", () => setPlaying(!playing));
     scheduleApply();
 
     const observer = new ResizeObserver(measure);
@@ -545,6 +566,15 @@ const { render = true, images, class: className, ...rest } = Astro.props;
         }
       }
 
+      .image-trail_controls {
+        display: none;
+        justify-content: flex-end;
+        align-items: flex-end;
+        position: absolute;
+        width: var(--_img-width);
+        aspect-ratio: var(--_img-ratio);
+      }
+
       @media (width < 64rem) {
         --_img-width: 68vw;
         position: relative;
@@ -553,6 +583,10 @@ const { render = true, images, class: className, ...rest } = Astro.props;
 
         .image-trail_canvas {
           display: none;
+        }
+
+        .image-trail_controls {
+          display: flex;
         }
       }
     }
