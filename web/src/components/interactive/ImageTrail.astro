@@ -11,21 +11,36 @@ interface Props extends HTMLAttributes<"div"> {
 }
 
 const { render = true, images, class: className, ...rest } = Astro.props;
+
+const trailQuery = "(width >= 64rem) and (hover: hover) and (pointer: fine)";
+
+const sizes = [
+  `${trailQuery} 18.75rem`,
+  "(width < 48rem) 68vw",
+  "(height < 30rem) and (hover: none) 68vh",
+  "47vh",
+].join(", ");
 ---
 
 {render && !!images?.length && (
-  <div class:list={["image-trail_wrap", className]} {...rest}>
+  <div
+    class:list={["image-trail_wrap", className]}
+    data-trail-query={trailQuery}
+    {...rest}
+  >
     <canvas class="image-trail_canvas" aria-hidden="true" />
     {images.map((src, i) => (
       <div class="image-trail_item" aria-hidden="true">
         <Img
           src={src}
+          variant="constrained"
+          sizes={sizes}
           loading="eager"
           fetchPriority={i === 0 ? "high" : undefined}
         />
       </div>
     ))}
-    <div class="image-trail_controls">
+    <div class="image-trail_controls text-style-h6">
       <Button
         variant="play"
         emphasis="tertiary"
@@ -83,11 +98,10 @@ const { render = true, images, class: className, ...rest } = Astro.props;
     };
     const total = items.length;
 
-    const desktopQuery = window.matchMedia("(width >= 64rem)");
+    const trailQuery = window.matchMedia(trail.dataset.trailQuery ?? "not all");
     const reducedMotionQuery = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     );
-    const fineQuery = window.matchMedia("(hover: hover) and (pointer: fine)");
     const plainQueries = [
       reducedMotionQuery,
       window.matchMedia("(prefers-contrast: more)"),
@@ -156,6 +170,10 @@ const { render = true, images, class: className, ...rest } = Astro.props;
       room.right = area.right - inset - size.width / 2 - centerX;
       room.top = area.top - lift + inset + size.height / 2 - centerY;
       room.bottom = area.bottom - inset - size.height / 2 - centerY;
+      trail.style.setProperty(
+        "--_center-offset",
+        `${(area.top - lift + area.bottom) / 2 - centerY}px`,
+      );
       if (canvas) {
         Object.assign(canvas.style, {
           left: `${view.left}px`,
@@ -170,12 +188,15 @@ const { render = true, images, class: className, ...rest } = Astro.props;
     const uploadTextures = async (active: MotionShader) => {
       for (const [key, image] of images.entries()) {
         if (!image) continue;
+        const source = new Image();
         try {
           await image.decode();
+          source.src = image.currentSrc;
+          await source.decode();
         } catch {
           continue;
         }
-        active.upload(key, image);
+        active.upload(key, source);
         await new Promise((done) => setTimeout(done, config.uploadGap));
       }
     };
@@ -185,8 +206,7 @@ const { render = true, images, class: className, ...rest } = Astro.props;
         shaderRequested ||
         !canvas ||
         document.readyState !== "complete" ||
-        !desktopQuery.matches ||
-        !fineQuery.matches ||
+        !trailQuery.matches ||
         prefersPlainImages()
       ) {
         return;
@@ -458,6 +478,7 @@ const { render = true, images, class: className, ...rest } = Astro.props;
 
     const run = (flipbook: boolean) => {
       teardown();
+      trail.classList.toggle("is-flipbook", flipbook);
       if (flipbook) {
         advance();
         setPlaying(playing);
@@ -486,7 +507,7 @@ const { render = true, images, class: className, ...rest } = Astro.props;
 
     let currentFlip: boolean | null = null;
     const applyMode = () => {
-      const flipbook = !desktopQuery.matches;
+      const flipbook = !trailQuery.matches;
       if (flipbook === currentFlip) return;
       currentFlip = flipbook;
       run(flipbook);
@@ -498,20 +519,19 @@ const { render = true, images, class: className, ...rest } = Astro.props;
       settleTimer = window.setTimeout(applyMode, 120);
     };
 
-    desktopQuery.addEventListener("change", scheduleApply);
-    window.addEventListener("resize", scheduleApply);
+    trailQuery.addEventListener("change", scheduleApply);
     reducedMotionQuery.addEventListener("change", () => {
       playing = !reducedMotionQuery.matches;
       if (currentFlip !== null) run(currentFlip);
     });
     toggle?.addEventListener("click", () => setPlaying(!playing));
-    scheduleApply();
+    applyMode();
 
     const observer = new ResizeObserver(measure);
     observer.observe(scope);
     observer.observe(trail);
     if (nav) observer.observe(nav);
-    for (const query of [desktopQuery, fineQuery, ...plainQueries]) {
+    for (const query of [trailQuery, ...plainQueries]) {
       query.addEventListener("change", startShader);
     }
     if (document.readyState === "complete") startShader();
@@ -539,6 +559,7 @@ const { render = true, images, class: className, ...rest } = Astro.props;
       z-index: 1;
       pointer-events: none;
 
+      /* Trail */
       .image-trail_item {
         opacity: 0;
         width: var(--_img-width);
@@ -566,20 +587,24 @@ const { render = true, images, class: className, ...rest } = Astro.props;
         }
       }
 
+      /* Centred flipbook */
       .image-trail_controls {
         display: none;
-        justify-content: flex-end;
-        align-items: flex-end;
+        justify-content: center;
+        align-items: center;
         position: absolute;
-        width: var(--_img-width);
-        aspect-ratio: var(--_img-ratio);
+        inset: auto 0 0;
+        z-index: 3;
+        height: 1cap;
       }
 
-      @media (width < 64rem) {
-        --_img-width: 68vw;
-        position: relative;
-        aspect-ratio: var(--_img-ratio);
-        width: 100%;
+      &.is-flipbook {
+        --_img-width: min(58svh * var(--_img-ratio), 70vw);
+        z-index: auto;
+
+        .image-trail_item {
+          translate: 0 var(--_center-offset, 0);
+        }
 
         .image-trail_canvas {
           display: none;
@@ -587,6 +612,31 @@ const { render = true, images, class: className, ...rest } = Astro.props;
 
         .image-trail_controls {
           display: flex;
+        }
+      }
+
+      /* Stacked */
+      @media (width < 48rem) or ((height < 30rem) and (hover: none)) {
+        position: relative;
+        aspect-ratio: var(--_img-ratio);
+        width: 100%;
+        max-height: 100svh;
+
+        &.is-flipbook {
+          --_img-width: min(85svh * var(--_img-ratio), 68vw);
+
+          .image-trail_item {
+            translate: none;
+          }
+        }
+
+        .image-trail_controls {
+          justify-content: flex-end;
+          align-items: flex-end;
+          inset: auto;
+          width: var(--_img-width);
+          height: auto;
+          aspect-ratio: var(--_img-ratio);
         }
       }
     }
