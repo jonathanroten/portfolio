@@ -235,13 +235,12 @@ export function createMotionShader(
       const ratio = Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO);
       if (ratio !== renderer.getPixelRatio()) renderer.setPixelRatio(ratio);
       shared.uPixelRatio.value = ratio;
-      items.forEach(({ key, left, top, width, height, ...item }, index) => {
+      items.forEach(({ key, left, top, width, height, motion: own }, index) => {
         const mesh = meshAt(index);
         const source = textures.get(key);
         mesh.visible = !!source;
         if (!source) return;
-        const { blurX, blurY, shift, lagX, lagY, bendX, bendY } =
-          item.motion ?? motion;
+        const { blurX, blurY, shift, lagX, lagY, bendX, bendY } = own ?? motion;
         const length = Math.hypot(blurX, blurY);
         const spread = Math.abs(shift);
         const samples = Math.ceil(

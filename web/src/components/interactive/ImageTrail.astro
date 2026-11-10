@@ -62,15 +62,15 @@ const { render = true, images, class: className, ...rest } = Astro.props;
         maxSpeed: 48,
         attack: 0.3,
         release: 0.1,
-        hold: 0.04,
-        settle: 0.25,
+        fadeMoving: 0.04,
+        fadeResting: 0.25,
         settled: 0.005,
         blur: 32,
         shift: 4,
         lag: 0.5,
         bend: 28,
         drift: 0.3,
-        steady: 150,
+        driftSmoothing: 150,
         friction: 0.1,
       },
     };
@@ -91,7 +91,7 @@ const { render = true, images, class: className, ...rest } = Astro.props;
 
     const pointer = { x: 0, y: 0 };
     const last = { x: 0, y: 0 };
-    const previous = { x: 0, y: 0 };
+    const lastPointer = { x: 0, y: 0 };
     const timers = new WeakMap<HTMLElement, number>();
     let index = 0;
     let stackTop = 1;
@@ -113,7 +113,7 @@ const { render = true, images, class: className, ...rest } = Astro.props;
     const itemSize = { width: 0, height: 0 };
     const travel = { x: 0, y: 0 };
     const velocity = { x: 0, y: 0 };
-    const steadyVelocity = { x: 0, y: 0 };
+    const driftVelocity = { x: 0, y: 0 };
     const heading = { x: 0, y: 1 };
     let moveTime = -Infinity;
     let lastTime = 0;
@@ -249,9 +249,9 @@ const { render = true, images, class: className, ...rest } = Astro.props;
       const blend = 1 - Math.exp(-time / motion.smoothing);
       velocity.x += (travel.x / frames - velocity.x) * blend;
       velocity.y += (travel.y / frames - velocity.y) * blend;
-      const steadyBlend = 1 - Math.exp(-time / motion.steady);
-      steadyVelocity.x += (travel.x / frames - steadyVelocity.x) * steadyBlend;
-      steadyVelocity.y += (travel.y / frames - steadyVelocity.y) * steadyBlend;
+      const driftBlend = 1 - Math.exp(-time / motion.driftSmoothing);
+      driftVelocity.x += (travel.x / frames - driftVelocity.x) * driftBlend;
+      driftVelocity.y += (travel.y / frames - driftVelocity.y) * driftBlend;
       travel.x = 0;
       travel.y = 0;
       const speed = Math.hypot(velocity.x, velocity.y);
@@ -275,7 +275,8 @@ const { render = true, images, class: className, ...rest } = Astro.props;
         strength = 0;
       }
 
-      const fadeRate = speed > motion.minSpeed ? motion.hold : motion.settle;
+      const fadeRate =
+        speed > motion.minSpeed ? motion.fadeMoving : motion.fadeResting;
       const fade = allowed ? (1 - fadeRate) ** frames : 0;
       let level = 0;
       for (const [key, launch] of launches.entries()) {
@@ -307,11 +308,9 @@ const { render = true, images, class: className, ...rest } = Astro.props;
       for (const { x, y, age } of points) {
         const item = items[index];
         const push = {
-          x: steadyVelocity.x * drift,
-          y: steadyVelocity.y * drift,
+          x: driftVelocity.x * drift,
+          y: driftVelocity.y * drift,
         };
-        // A card the cursor passed earlier in this frame has already been
-        // coasting for that long, so neighbors keep the same gap.
         const offsetX = clamp(
           x - centerX + push.x * age,
           room.left,
@@ -344,8 +343,7 @@ const { render = true, images, class: className, ...rest } = Astro.props;
       }
     };
 
-    const coast = (elapsed: number) => {
-      const frames = elapsed / (1000 / 60);
+    const coast = (frames: number) => {
       const keep = (1 - config.motion.friction) ** frames;
       for (const [key, item] of items.entries()) {
         const drift = drifts[key];
@@ -364,16 +362,17 @@ const { render = true, images, class: className, ...rest } = Astro.props;
       }
     };
 
-    // Cards sit at exact `threshold` steps along the path; the leftover
-    // distance carries into the next frame so gaps don't stretch with speed.
     const spawn = (frames: number) => {
       const { threshold } = config;
       const dx = pointer.x - last.x;
       const dy = pointer.y - last.y;
       const distance = Math.hypot(dx, dy);
-      const moved = Math.hypot(pointer.x - previous.x, pointer.y - previous.y);
-      previous.x = pointer.x;
-      previous.y = pointer.y;
+      const moved = Math.hypot(
+        pointer.x - lastPointer.x,
+        pointer.y - lastPointer.y,
+      );
+      lastPointer.x = pointer.x;
+      lastPointer.y = pointer.y;
       if (distance < threshold) return;
       const steps = Math.floor(distance / threshold);
       const unitX = dx / distance;
@@ -394,9 +393,10 @@ const { render = true, images, class: className, ...rest } = Astro.props;
 
     const render = (now: number) => {
       const elapsed = Math.min(now - lastTime, 50);
+      const frames = elapsed / (1000 / 60);
       lastTime = now;
-      coast(elapsed);
-      if (hasMoved) spawn(elapsed / (1000 / 60));
+      coast(frames);
+      if (hasMoved) spawn(frames);
       syncDrawing(elapsed);
       frame = window.requestAnimationFrame(render);
     };
@@ -429,14 +429,9 @@ const { render = true, images, class: className, ...rest } = Astro.props;
       travel.y = 0;
       velocity.x = 0;
       velocity.y = 0;
-      steadyVelocity.x = 0;
-      steadyVelocity.y = 0;
+      driftVelocity.x = 0;
+      driftVelocity.y = 0;
       strength = 0;
-      for (const launch of launches) launch.strength = 0;
-      for (const drift of drifts) {
-        drift.x = 0;
-        drift.y = 0;
-      }
       setDrawing(false);
     };
 
@@ -460,8 +455,8 @@ const { render = true, images, class: className, ...rest } = Astro.props;
         if (!hasMoved) {
           last.x = pointer.x;
           last.y = pointer.y;
-          previous.x = pointer.x;
-          previous.y = pointer.y;
+          lastPointer.x = pointer.x;
+          lastPointer.y = pointer.y;
           hasMoved = true;
         }
       };
@@ -535,8 +530,19 @@ const { render = true, images, class: className, ...rest } = Astro.props;
         }
       }
 
-      &.is-drawing .image-trail_item {
-        opacity: 0;
+      .image-trail_canvas {
+        position: absolute;
+        max-width: none;
+        visibility: hidden;
+      }
+
+      &.is-drawing {
+        .image-trail_item {
+          opacity: 0;
+        }
+        .image-trail_canvas {
+          visibility: visible;
+        }
       }
 
       @media (width < 64rem) {
@@ -544,19 +550,10 @@ const { render = true, images, class: className, ...rest } = Astro.props;
         position: relative;
         aspect-ratio: var(--_img-ratio);
         width: 100%;
-      }
-    }
 
-    .image-trail_canvas {
-      position: absolute;
-      max-width: none;
-      visibility: hidden;
-      pointer-events: none;
-      .image-trail_wrap.is-drawing & {
-        visibility: visible;
-      }
-      @media (width < 64rem) {
-        display: none;
+        .image-trail_canvas {
+          display: none;
+        }
       }
     }
   }
