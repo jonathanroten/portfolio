@@ -12,17 +12,22 @@ interface Props extends HTMLAttributes<"div"> {
 
 const { render = true, images, class: className, ...rest } = Astro.props;
 
+const trailQuery = "(width >= 64rem) and (hover: hover) and (pointer: fine)";
+
 const sizes = [
-  "(width >= 64rem) and (hover: hover) and (pointer: fine) 18.75rem",
+  `${trailQuery} 18.75rem`,
   "(width < 48rem) 68vw",
   "(height < 30rem) and (hover: none) 68vh",
-  "(orientation: portrait) 48vh",
-  "44vh",
+  "47vh",
 ].join(", ");
 ---
 
 {render && !!images?.length && (
-  <div class:list={["image-trail_wrap", className]} {...rest}>
+  <div
+    class:list={["image-trail_wrap", className]}
+    data-trail-query={trailQuery}
+    {...rest}
+  >
     <canvas class="image-trail_canvas" aria-hidden="true" />
     {images.map((src, i) => (
       <div class="image-trail_item" aria-hidden="true">
@@ -35,7 +40,7 @@ const sizes = [
         />
       </div>
     ))}
-    <div class="image-trail_controls">
+    <div class="image-trail_controls text-style-h6">
       <Button
         variant="play"
         emphasis="tertiary"
@@ -93,9 +98,7 @@ const sizes = [
     };
     const total = items.length;
 
-    const trailQuery = window.matchMedia(
-      "(width >= 64rem) and (hover: hover) and (pointer: fine)",
-    );
+    const trailQuery = window.matchMedia(trail.dataset.trailQuery ?? "not all");
     const reducedMotionQuery = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     );
@@ -517,13 +520,12 @@ const sizes = [
     };
 
     trailQuery.addEventListener("change", scheduleApply);
-    window.addEventListener("resize", scheduleApply);
     reducedMotionQuery.addEventListener("change", () => {
       playing = !reducedMotionQuery.matches;
       if (currentFlip !== null) run(currentFlip);
     });
     toggle?.addEventListener("click", () => setPlaying(!playing));
-    scheduleApply();
+    applyMode();
 
     const observer = new ResizeObserver(measure);
     observer.observe(scope);
@@ -557,6 +559,7 @@ const sizes = [
       z-index: 1;
       pointer-events: none;
 
+      /* Trail */
       .image-trail_item {
         opacity: 0;
         width: var(--_img-width);
@@ -584,6 +587,7 @@ const sizes = [
         }
       }
 
+      /* Centred flipbook */
       .image-trail_controls {
         display: none;
         justify-content: center;
@@ -592,17 +596,11 @@ const sizes = [
         inset: auto 0 0;
         z-index: 3;
         height: 1cap;
-        font-family: var(--h6-font-family);
-        font-size: var(--h6);
       }
 
       &.is-flipbook {
-        --_img-width: min(55svh * var(--_img-ratio), 70vw);
+        --_img-width: min(58svh * var(--_img-ratio), 70vw);
         z-index: auto;
-
-        @media (orientation: portrait) {
-          --_img-width: min(60svh * var(--_img-ratio), 70vw);
-        }
 
         .image-trail_item {
           translate: 0 var(--_center-offset, 0);
@@ -617,6 +615,7 @@ const sizes = [
         }
       }
 
+      /* Stacked */
       @media (width < 48rem) or ((height < 30rem) and (hover: none)) {
         position: relative;
         aspect-ratio: var(--_img-ratio);
@@ -624,7 +623,7 @@ const sizes = [
         max-height: 100svh;
 
         &.is-flipbook {
-          --_img-width: min(68vw, 85svh * var(--_img-ratio));
+          --_img-width: min(85svh * var(--_img-ratio), 68vw);
 
           .image-trail_item {
             translate: none;
