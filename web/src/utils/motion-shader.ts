@@ -107,9 +107,11 @@ export type MotionShaderItem = {
   top: number;
   width: number;
   height: number;
+  /** This image's own motion. Without it, the image uses the shared motion. */
+  motion?: MotionShaderMotion;
 };
 
-/** How the wall is moving this frame, in CSS pixels. */
+/** How the images are moving this frame, in CSS pixels. */
 export type MotionShaderMotion = {
   /** Motion blur along x. */
   blurX: number;
@@ -125,6 +127,16 @@ export type MotionShaderMotion = {
   bendX: number;
   /** How far the middle of each image bows back along y. */
   bendY: number;
+};
+
+const STILL: MotionShaderMotion = {
+  blurX: 0,
+  blurY: 0,
+  shift: 0,
+  lagX: 0,
+  lagY: 0,
+  bendX: 0,
+  bendY: 0,
 };
 
 /**
@@ -145,12 +157,7 @@ export function createMotionShader(
   const meshes: Mesh<PlaneGeometry, ShaderMaterial>[] = [];
   const view = { width: 0, height: 0 };
   const shared = {
-    uBlur: { value: new Vector2() },
-    uShift: { value: 0 },
-    uLag: { value: new Vector2() },
-    uBend: { value: new Vector2() },
     uPixelRatio: { value: 1 },
-    uSamples: { value: 1 },
   };
 
   const meshAt = (index: number) => {
@@ -167,6 +174,11 @@ export function createMotionShader(
             uCover: { value: new Vector2(1, 1) },
             uSize: { value: new Vector2(1, 1) },
             uReach: { value: new Vector2(1, 1) },
+            uBlur: { value: new Vector2() },
+            uShift: { value: 0 },
+            uLag: { value: new Vector2() },
+            uBend: { value: new Vector2() },
+            uSamples: { value: 1 },
           },
           transparent: true,
           premultipliedAlpha: true,
@@ -215,33 +227,34 @@ export function createMotionShader(
       camera.updateProjectionMatrix();
     },
 
-    /** Draws `items` in order, so later items sit on top. */
-    draw(
-      items: MotionShaderItem[],
-      { blurX, blurY, shift, lagX, lagY, bendX, bendY }: MotionShaderMotion,
-    ) {
+    /**
+     * Draws `items` in order, so later items sit on top. Each item moves by its
+     * own `motion`, or by `motion` here when it has none.
+     */
+    draw(items: MotionShaderItem[], motion: MotionShaderMotion = STILL) {
       const ratio = Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO);
       if (ratio !== renderer.getPixelRatio()) renderer.setPixelRatio(ratio);
-      const length = Math.hypot(blurX, blurY);
-      const spread = Math.abs(shift);
-      const samples = Math.ceil(
-        ((length + spread * 2) * ratio) / PIXELS_PER_SAMPLE,
-      );
-      const reach = 0.5 + spread / Math.max(length, 1);
-      const paddingX = Math.abs(blurX) * reach + Math.abs(lagX) + 1;
-      const paddingY = Math.abs(blurY) * reach + Math.abs(lagY) + 1;
-      shared.uBlur.value.set(blurX, blurY);
-      shared.uShift.value = shift;
-      shared.uLag.value.set(lagX, lagY);
-      shared.uBend.value.set(bendX, bendY);
       shared.uPixelRatio.value = ratio;
-      shared.uSamples.value = Math.min(Math.max(samples, 1), MAX_SAMPLES);
-      items.forEach(({ key, left, top, width, height }, index) => {
+      items.forEach(({ key, left, top, width, height, motion: own }, index) => {
         const mesh = meshAt(index);
         const source = textures.get(key);
         mesh.visible = !!source;
         if (!source) return;
+        const { blurX, blurY, shift, lagX, lagY, bendX, bendY } = own ?? motion;
+        const length = Math.hypot(blurX, blurY);
+        const spread = Math.abs(shift);
+        const samples = Math.ceil(
+          ((length + spread * 2) * ratio) / PIXELS_PER_SAMPLE,
+        );
+        const reach = 0.5 + spread / Math.max(length, 1);
+        const paddingX = Math.abs(blurX) * reach + Math.abs(lagX) + 1;
+        const paddingY = Math.abs(blurY) * reach + Math.abs(lagY) + 1;
         const { uniforms } = mesh.material;
+        uniforms.uBlur.value.set(blurX, blurY);
+        uniforms.uShift.value = shift;
+        uniforms.uLag.value.set(lagX, lagY);
+        uniforms.uBend.value.set(bendX, bendY);
+        uniforms.uSamples.value = Math.min(Math.max(samples, 1), MAX_SAMPLES);
         const aspect = width / height;
         mesh.scale.set(width + paddingX * 2, height + paddingY * 2, 1);
         mesh.position.set(
