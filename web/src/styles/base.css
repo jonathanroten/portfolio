@@ -58,6 +58,8 @@
   --open-duration-gentle: var(--hover-duration-gentle);
   --open-duration-slow: 600ms;
   --open-ease: var(--hover-ease);
+  --open-ease-smooth: var(--smooth-scroll-ease);
+  --close-ease-smooth: cubic-bezier(0.65, 0, 0.35, 1);
 
   /* Theme motion */
   --theme-duration: 600ms;
@@ -539,7 +541,8 @@ select:has(option[value=""]:checked) {
 @media (prefers-reduced-motion: reduce) {
   *,
   ::before,
-  ::after {
+  ::after,
+  ::backdrop {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;

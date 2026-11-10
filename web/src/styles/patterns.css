@@ -194,7 +194,8 @@
 .fade-siblings {
   --_fade-color: var(--text-2);
   @media (hover: hover) {
-    &:has(a:hover:not([aria-current="page"])) a:not(:hover) {
+    &:has(a:hover:not([aria-current="page"])) a:not(:hover),
+    &:not(:has(a:not(:hover))) a:hover:not([aria-current="page"]) {
       color: var(--_fade-color);
     }
   }

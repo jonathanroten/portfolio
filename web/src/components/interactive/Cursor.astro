@@ -1,5 +1,8 @@
 ---
 import type { HTMLAttributes } from "astro/types";
+import arrow from "@/assets/icons/arrow.svg";
+
+import Icon from "@/components/media/Icon.astro";
 
 interface Props extends HTMLAttributes<"div"> {
   /** Set to `false` to omit the component. */
@@ -16,7 +19,12 @@ const { render = true, class: className, ...rest } = Astro.props;
     <div class="cursor_corner" />
     <div class="cursor_corner" />
     <div class="cursor_dot" />
-    <div class="cursor_tag text-style-h6" />
+    <div class="cursor_tag text-style-h6">
+      <span class="cursor_label" />
+      <span class="cursor_chevron">
+        <Icon src={arrow} variant="small" />
+      </span>
+    </div>
   </div>
 )}
 
@@ -24,9 +32,10 @@ const { render = true, class: className, ...rest } = Astro.props;
   const cursor = document.querySelector<HTMLElement>(".cursor_wrap");
   const dot = cursor?.querySelector<HTMLElement>(".cursor_dot");
   const tag = cursor?.querySelector<HTMLElement>(".cursor_tag");
+  const labelBox = tag?.querySelector<HTMLElement>(".cursor_label");
   const corners = cursor?.querySelectorAll<HTMLElement>(".cursor_corner");
 
-  if (cursor && dot && tag && corners) {
+  if (cursor && dot && tag && labelBox && corners) {
     const root = document.documentElement;
     const fine = matchMedia("(hover: hover) and (pointer: fine)");
     const reduce = matchMedia("(prefers-reduced-motion: reduce)");
@@ -161,7 +170,7 @@ const { render = true, class: className, ...rest } = Astro.props;
     };
 
     const build = (texts: string[]) => {
-      tag.replaceChildren(
+      labelBox.replaceChildren(
         ...texts.map((text) => {
           const slot = document.createElement("span");
           slot.className = "cursor_slot";
@@ -184,7 +193,7 @@ const { render = true, class: className, ...rest } = Astro.props;
       tagLabel = label;
       if (before.length !== after.length) return settle();
       const [exit, enter] = up ? ["-100%", "100%"] : ["100%", "-100%"];
-      [...tag.children].forEach((slot, i) => {
+      [...labelBox.children].forEach((slot, i) => {
         if (before[i] === after[i]) return;
         const old = slot.firstElementChild as HTMLElement;
         const line = makeLine(after[i]);
@@ -211,6 +220,7 @@ const { render = true, class: className, ...rest } = Astro.props;
         const shown = cursor.classList.contains("is-labelled");
         tag.classList.toggle("is-shown", shown);
         tag.classList.toggle("is-disabled", state === "disabled");
+        tag.classList.toggle("is-link", !lock && marked.matches("a[href]"));
         const canRoll = shown && !reduce.matches;
         if (canRoll && current && current !== marked) {
           const later =
@@ -384,6 +394,7 @@ const { render = true, class: className, ...rest } = Astro.props;
       bottom: 100%;
       left: 0;
       display: flex;
+      gap: 0.25em;
       color: var(--cursor-text);
       white-space: nowrap;
       transform-origin: left center;
@@ -402,6 +413,21 @@ const { render = true, class: className, ...rest } = Astro.props;
       }
       &.is-disabled {
         color: color-mix(in lab, var(--light-100) 20%, transparent);
+      }
+    }
+
+    .cursor_label {
+      display: flex;
+      text-box: inherit;
+    }
+
+    .cursor_chevron {
+      display: none;
+      align-self: center;
+      font-size: 0.625em;
+      width: 1em;
+      .cursor_tag.is-link & {
+        display: block;
       }
     }
 
