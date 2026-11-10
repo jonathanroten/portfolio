@@ -56,11 +56,9 @@ const { render = true, overlap = false } = Astro.props;
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      <Icon
-                        src={arrow}
-                        variant="small"
-                        class="nav_social_icon"
-                      />
+                      <span class="nav_social_icon">
+                        <Icon src={arrow} variant="small" />
+                      </span>
                       <span class="text-style-h6">{social.label}</span>
                       <span class="sr-only">{" (opens in new tab)"}</span>
                     </a>

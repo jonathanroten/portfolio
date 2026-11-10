@@ -121,7 +121,10 @@ if (import.meta.env.DEV && render && content && !id) {
     }
 
     .modal_wrap {
-      --_leaving: calc(var(--open-duration) * 0.7);
+      --_duration: var(--open-duration);
+      --_ease: var(--open-ease);
+      --_leaving: calc(var(--_duration) * 0.7);
+      --_leaving-ease: var(--_ease);
       --_from: 0 2rem;
       --_body: 0 0;
       --_backdrop: var(--backdrop);
@@ -147,8 +150,8 @@ if (import.meta.env.DEV && render && content && !id) {
       &[open] {
         display: flex;
         transition:
-          display var(--open-duration) allow-discrete,
-          overlay var(--open-duration) allow-discrete;
+          display var(--_duration) allow-discrete,
+          overlay var(--_duration) allow-discrete;
       }
 
       .stacki-designer &.preview,
@@ -163,12 +166,12 @@ if (import.meta.env.DEV && render && content && !id) {
       &::backdrop {
         background-color: var(--_backdrop);
         opacity: 0;
-        transition: opacity var(--_leaving) var(--open-ease);
+        transition: opacity var(--_leaving) var(--_leaving-ease);
       }
 
       &[open]::backdrop {
         opacity: 1;
-        transition: opacity var(--open-duration) var(--open-ease);
+        transition: opacity var(--_duration) var(--_ease);
       }
 
       @starting-style {
@@ -179,6 +182,10 @@ if (import.meta.env.DEV && render && content && !id) {
 
       &.side-panel {
         --_panel: 28rem;
+        --_duration: var(--open-duration-slow);
+        --_ease: var(--open-ease-smooth);
+        --_leaving: calc(var(--_duration) * 0.4);
+        --_leaving-ease: var(--close-ease-smooth);
         --_from: var(--_panel) 0;
         --_close-inset: var(--space-2);
         --_gutter: var(--space-4);
@@ -208,8 +215,8 @@ if (import.meta.env.DEV && render && content && !id) {
       opacity: 0;
       translate: var(--_from);
       transition:
-        opacity var(--_leaving) var(--open-ease),
-        translate var(--_leaving) var(--open-ease);
+        opacity var(--_leaving) var(--_leaving-ease),
+        translate var(--_leaving) var(--_leaving-ease);
 
       .modal_wrap.side-panel & {
         max-width: var(--_panel);
@@ -228,8 +235,8 @@ if (import.meta.env.DEV && render && content && !id) {
         opacity: 1;
         translate: 0 0;
         transition:
-          opacity var(--open-duration) var(--open-ease),
-          translate var(--open-duration) var(--open-ease);
+          opacity var(--_duration) var(--_ease),
+          translate var(--_duration) var(--_ease);
       }
 
       @starting-style {
@@ -261,7 +268,7 @@ if (import.meta.env.DEV && render && content && !id) {
     .modal_body {
       padding: var(--_close) var(--_gutter) var(--space-7);
       translate: var(--_body);
-      transition: translate var(--_leaving) var(--open-ease);
+      transition: translate var(--_leaving) var(--_leaving-ease);
 
       .modal_wrap.side-panel & {
         padding-bottom: var(--_gutter);
@@ -276,7 +283,7 @@ if (import.meta.env.DEV && render && content && !id) {
       .modal_wrap:is([open], .stacki-opened) &,
       .stacki-designer .modal_wrap.preview & {
         translate: 0 0;
-        transition: translate var(--open-duration) var(--open-ease);
+        transition: translate var(--_duration) var(--_ease);
       }
 
       @starting-style {
