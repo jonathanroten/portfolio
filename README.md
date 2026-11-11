@@ -1,4 +1,4 @@
-# Jonathan Roten — Portfolio
+# jonathanroten.com
 
 The source for my portfolio site: a static Astro site with content from Sanity, hosted on Cloudflare Workers. This is a personal project, shared for reference. It doesn't take outside contributions, so pull requests and issues are not accepted.
 
@@ -21,28 +21,3 @@ The source for my portfolio site: a static Astro site with content from Sanity, 
 | `web/src/utils/sanity.ts` | Every Sanity query, and the image URL helper                                                                                                                 |
 | `web/worker`              | The contact form Worker                                                                                                                                      |
 | `studio`                  | Sanity Studio: schemas in `schemaTypes`, sidebar in `structure`, media helpers in `helpers`                                                                  |
-
-## Running locally
-
-Needs Node 22.23.4 or later. Run these inside `web` and `studio` separately:
-
-```sh
-npm install
-npm run dev
-```
-
-| `web` script         | What it does                                            |
-| -------------------- | ------------------------------------------------------- |
-| `npm run dev`        | Starts the dev server                                   |
-| `npm run build`      | Builds the site to `dist`, fetching content from Sanity |
-| `npm run preview`    | Serves the built site                                   |
-| `npm run check`      | Type-checks the site and the Worker                     |
-| `npm run dev:worker` | Runs the contact form Worker locally                    |
-| `npm run format`     | Formats everything with Prettier                        |
-
-| `studio` script          | What it does                                                                                                         |
-| ------------------------ | -------------------------------------------------------------------------------------------------------------------- |
-| `npm run dev`            | Starts the Studio locally                                                                                            |
-| `npm run deploy`         | Deploys the hosted Studio                                                                                            |
-| `npm run typegen`        | Regenerates the content types after a schema change                                                                  |
-| `npm run organize-media` | Files a new case study's images into a Media folder and tags them "Case Study". Add `-- --dry-run` to preview first. |
