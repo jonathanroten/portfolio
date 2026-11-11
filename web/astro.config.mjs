@@ -20,8 +20,6 @@ export default defineConfig({
   image: {
     // Sanity-hosted images (case study heroes and galleries)
     domains: ["cdn.sanity.io"],
-    // Sharp, plus retries when measuring remote images (see the file)
-    service: { entrypoint: "./src/utils/image-service.ts" },
   },
   fonts: [
     {
