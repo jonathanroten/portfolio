@@ -1,6 +1,6 @@
 # jonathanroten.com
 
-The source for my portfolio site: a static Astro site with content from Sanity, hosted on Cloudflare Workers. This is a personal project, shared for reference. It doesn't take outside contributions, so pull requests and issues are not accepted.
+The source for my portfolio site: a static Astro site built on Lumos for Astro, integrated with Sanity CMS and hosted on Cloudflare Workers. This is a personal project, shared for reference. It doesn't take outside contributions, so pull requests and issues are not accepted.
 
 ## Stack
 
