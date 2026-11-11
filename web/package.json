@@ -12,6 +12,7 @@
     "types:worker": "wrangler types worker/worker-configuration.d.ts",
     "check": "astro check && tsc -p worker",
     "build": "astro build",
+    "deploy": "astro build && wrangler deploy",
     "preview": "astro preview",
     "astro": "astro",
     "format": "prettier --write ."
