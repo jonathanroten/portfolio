@@ -46,7 +46,11 @@ jobs:
       # `--` stops npm reading the tool's own flags (like --check) as its own.
       - run: npx --no -- prettier --check .
       - run: npm run check
-      - run: npm run build
+      # Sanity's image server occasionally answers a download with an error
+      # (like 502). Astro caches each image as soon as it's processed, so
+      # the second try only fetches what failed.
+      - name: Build (retries once)
+        run: npm run build || { echo "::warning::Build failed, retrying once"; npm run build; }
       # Hands the built site to the Deploy job. Only `main` deploys.
       - if: github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@v7
