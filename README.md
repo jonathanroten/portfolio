@@ -11,6 +11,7 @@ The source for my portfolio site: a static Astro site built on Lumos for Astro, 
 | Hosting      | [Cloudflare Workers](https://developers.cloudflare.com/workers/): the built pages are served as static files                                                                                                    |
 | Contact form | A small Worker at `/api/*`, with [Turnstile](https://developers.cloudflare.com/turnstile/) bot checks, per-visitor rate limiting, and [Email Routing](https://developers.cloudflare.com/email-routing/) to send |
 | Motion       | [Lenis](https://lenis.darkroom.engineering) smooth scrolling, and a [three.js](https://threejs.org) shader for the speed-reactive image effects                                                                 |
+| Deploys      | [GitHub Actions](https://docs.github.com/actions): every pull request is checked, and `main` deploys to Cloudflare once the checks pass |
 
 ## Repository layout
 
