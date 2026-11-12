@@ -4,7 +4,6 @@ import {visionTool} from '@sanity/vision'
 import {media, mediaAssetSource} from 'sanity-plugin-media'
 import {schemaTypes} from './schemaTypes'
 import {structure} from './structure'
-import {AssetDetails} from './helpers/assetDetails'
 
 export default defineConfig({
   name: 'default',
@@ -13,7 +12,7 @@ export default defineConfig({
   projectId: 'fk2vli4s',
   dataset: 'production',
 
-  plugins: [structureTool({structure}), visionTool(), media({components: {details: AssetDetails}})],
+  plugins: [structureTool({structure}), visionTool(), media()],
 
   schema: {
     types: schemaTypes,

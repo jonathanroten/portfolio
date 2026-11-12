@@ -7,7 +7,6 @@
     "build": "sanity build",
     "deploy": "sanity deploy",
     "dev": "sanity dev",
-    "organize-media": "sanity exec helpers/organizeMedia.ts --with-user-token --",
     "typegen": "sanity schemas extract --force --enforce-required-fields && sanity typegen generate",
     "typegen:watch": "sanity typegen generate --watch"
   },
