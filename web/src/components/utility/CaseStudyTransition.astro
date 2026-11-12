@@ -56,11 +56,12 @@
 
     :active-view-transition-type(case-study-next) {
       &::view-transition-group(*) {
-        animation-duration: 1000ms;
+        animation-duration: var(--page-duration-slow);
+        animation-timing-function: var(--page-ease);
       }
       &::view-transition-old(root) {
         animation-name: case-study-leave-move, case-study-leave-fade;
-        animation-timing-function: var(--open-ease-smooth), linear;
+        animation-timing-function: var(--page-ease), linear;
       }
       &::view-transition-new(root) {
         animation-name: case-study-enter-fade;
@@ -68,7 +69,7 @@
       }
       &::view-transition-group(case-study-number),
       &::view-transition-group(case-study-title) {
-        animation-duration: 800ms;
+        animation-duration: var(--page-duration);
       }
       &::view-transition-old(case-study-number),
       &::view-transition-new(case-study-number),
@@ -78,53 +79,28 @@
       }
     }
 
-    .case-study-arriving [data-reveal] {
-      animation: case-study-reveal 800ms var(--open-ease-smooth) 300ms both;
+    @keyframes case-study-leave-move {
+      to {
+        translate: 0 calc(var(--page-travel) * -1);
+      }
     }
-    .case-study-arriving [data-reveal="meta"] {
-      animation-delay: 400ms;
-    }
-    .case-study-arriving [data-reveal="image"] {
-      animation: case-study-reveal-image 1100ms var(--open-ease-smooth) 500ms
-        both;
-    }
-  }
 
-  @keyframes case-study-leave-move {
-    to {
-      translate: 0 -25vh;
+    @keyframes case-study-leave-fade {
+      12%,
+      to {
+        opacity: 0;
+      }
     }
-  }
 
-  @keyframes case-study-leave-fade {
-    12%,
-    to {
-      opacity: 0;
-    }
-  }
-
-  @keyframes case-study-enter-fade {
-    from,
-    5% {
-      opacity: 0;
-    }
-    25%,
-    to {
-      opacity: 1;
-    }
-  }
-
-  @keyframes case-study-reveal {
-    from {
-      opacity: 0;
-      translate: 0 2rem;
-    }
-  }
-
-  @keyframes case-study-reveal-image {
-    from {
-      opacity: 0;
-      translate: 0 30vh;
+    @keyframes case-study-enter-fade {
+      from,
+      5% {
+        opacity: 0;
+      }
+      25%,
+      to {
+        opacity: 1;
+      }
     }
   }
 </style>

@@ -41,31 +41,26 @@ const hero = galleryCrops.fullWidth;
 >
   <CaseStudyTransition slot="head" />
   <!-- Hero -->
-  <Section
-    id="case-study-hero"
-    class="padding-top-5"
-    paddingBottom="none"
-    containerClass="gap-gutter"
-  >
+  <Section id="case-study-hero" class="padding-top-5" paddingBottom="none">
     <IntroCaseStudy
       number={caseStudy.number}
       heading={caseStudy.title}
       description={caseStudy.description}
       services={caseStudy.services}
       engagement={caseStudy.engagement}
-    />
-    {caseStudy.heroImage && (
-      <Img
-        src={imageUrl(caseStudy.heroImage, hero.width, hero.ratio)}
-        alt={caseStudy.heroImage.alt}
-        variant="full-width"
-        width={hero.width}
-        height={Math.round(hero.width / hero.ratio)}
-        loading="eager"
-        fetchPriority="high"
-        data-reveal="image"
-      />
-    )}
+    >
+      {caseStudy.heroImage && (
+        <Img
+          src={imageUrl(caseStudy.heroImage, hero.width, hero.ratio)}
+          alt={caseStudy.heroImage.alt}
+          variant="full-width"
+          width={hero.width}
+          height={Math.round(hero.width / hero.ratio)}
+          loading="eager"
+          fetchPriority="high"
+        />
+      )}
+    </IntroCaseStudy>
   </Section>
   <!-- Brief, then approach -->
   {[
