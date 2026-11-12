@@ -1,28 +1,14 @@
-/**
- * Files case study images into one Media plugin folder per case study and tags them "Case Study".
- *
- * Run after adding or editing a case study:
- *   npm run organize-media
- * Preview without writing anything:
- *   npm run organize-media -- --dry-run
- *
- * Safe to re-run. Only published case studies are read. Each case study gets a folder named
- * after it when the folder is first created; after that the name is yours to change in the Media
- * tool. Images already in a folder are never moved, so moves made by hand in the Media tool stick.
- * Every case study image gets the "Case Study" tag, which makes its Alt Text read-only in the
- * Media tool (see assetDetails.tsx). Images no case study uses stay unfiled and untagged, and
- * folders and tags are never deleted.
- */
 import {getCliClient} from 'sanity/cli'
 import {CASE_STUDY_TAG_NAME} from './caseStudyTag'
 
-// The Studio doesn't ship @types/node; this script only needs these members
+/** The members this script uses. The Studio doesn't ship @types/node. */
 declare const process: {argv: string[]; exitCode?: number}
 
 const dryRun = process.argv.includes('--dry-run')
 
-// The Media plugin's document types
+/** The Media plugin's folder document type. */
 const FOLDER_TYPE = 'media.folder'
+/** The Media plugin's tag document type. */
 const TAG_TYPE = 'media.tag'
 
 type CaseStudy = {_id: string; title?: string; assetIds: string[]}
@@ -32,9 +18,14 @@ const client = getCliClient({apiVersion: '2025-02-19'}).withConfig({useCdn: fals
 
 const folderIdFor = (caseStudyId: string) => `${FOLDER_TYPE}.case-study-${caseStudyId}`
 
-// Weak, like the Media plugin's own references, so deleting a folder or tag never fails
+/** A weak reference, like the Media plugin's own, so deleting a folder or tag never fails. */
 const weakRef = (id: string) => ({_type: 'reference', _ref: id, _weak: true})
 
+/**
+ * Files each published case study's images into a Media folder named after it, and tags them
+ * "Case Study". Safe to re-run: images already in a folder never move, folder names can be
+ * changed in the Media tool, and nothing is ever deleted. Pass --dry-run to preview.
+ */
 async function main() {
   const {caseStudies, folderIds, tagId} = await client.fetch<{
     caseStudies: CaseStudy[]
@@ -60,7 +51,6 @@ async function main() {
   const tx = client.transaction()
   let changes = 0
 
-  // Reuse a "Case Study" tag made by hand in the Media tool if there is one
   const caseStudyTagId = tagId ?? `${TAG_TYPE}.case-study`
   if (!tagId) {
     console.log(`Create tag "${CASE_STUDY_TAG_NAME}"`)
@@ -72,7 +62,6 @@ async function main() {
     changes++
   }
 
-  // An image in several galleries goes to the first case study (in Studio order) that uses it
   const claimed = new Set<string>()
 
   for (const caseStudy of caseStudies) {
@@ -102,7 +91,6 @@ async function main() {
     if (toFile) console.log(`File ${toFile} image(s) into "${name}"`)
     if (toTag) console.log(`Tag ${toTag} image(s) in "${name}" as "${CASE_STUDY_TAG_NAME}"`)
 
-    // The same patches the Media plugin applies when you move an image or add a tag
     for (const asset of assets) {
       tx.patch(asset._id, (patch) => {
         let next = patch

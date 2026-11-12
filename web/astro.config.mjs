@@ -11,14 +11,13 @@ export default defineConfig({
     sanity({
       projectId: "fk2vli4s",
       dataset: "production",
-      useCdn: false, // static build: always fetch fresh content
+      useCdn: false,
     }),
     sitemap({
       filter: (page) => !isNoindexRoute(new URL(page).pathname),
     }),
   ],
   image: {
-    // Sanity-hosted images (case study heroes and galleries)
     domains: ["cdn.sanity.io"],
   },
   fonts: [
@@ -78,7 +77,6 @@ export default defineConfig({
 
   vite: {
     build: { cssTarget: "safari15.4" },
-    // `npm run dev:worker` serves /api on 8787 while `astro dev` serves pages
     server: { proxy: { "/api": "http://localhost:8787" } },
   },
 });

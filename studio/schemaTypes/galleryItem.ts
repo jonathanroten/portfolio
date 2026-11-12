@@ -1,6 +1,6 @@
 import {defineArrayMember, defineField, defineType} from 'sanity'
 
-// The gallery's frames come in these shapes. An item's ratio picks both its crop and the frames it fills
+/** The shapes of the gallery's frames. An item's ratio picks both its crop and the frames it fills. */
 export const aspectRatios = [
   {title: 'Square (1:1)', value: '1:1'},
   {title: 'Wide (16:9)', value: '16:9'},

@@ -4,30 +4,19 @@
   "main": "./worker/index.ts",
   "compatibility_date": "2026-08-13",
 
-  // The built site. Cloudflare serves these files directly; only requests
-  // under /api/ run the Worker in `main`.
   "assets": {
     "directory": "./dist",
     "not_found_handling": "404-page",
     "run_worker_first": ["/api/*"],
   },
 
-  // The contact form emails CONTACT_TO, which must be a verified Email Routing
-  // destination, from CONTACT_FROM on this domain. CONTACT_TO and
-  // TURNSTILE_SECRET_KEY are secrets, kept out of the repo: set each once with
-  // `npx wrangler secret put <NAME>`, and locally in `.dev.vars`.
   "vars": {
     "CONTACT_FROM": "form@jonathanroten.com",
   },
-  // Deploys fail while a required secret is missing. A new Worker can't take
-  // `secret put` until it exists, so its first deploy passes them with
-  // `npx wrangler deploy --secrets-file <file>`. See the README.
   "secrets": {
     "required": ["CONTACT_TO", "TURNSTILE_SECRET_KEY"],
   },
   "send_email": [{ "name": "EMAIL" }],
-  // Allows 3 sends a minute from one visitor IP. Each Cloudflare location
-  // keeps its own approximate count, so this stops bursts, not a slow trickle.
   "ratelimits": [
     {
       "name": "CONTACT_LIMIT",
@@ -36,11 +25,6 @@
     },
   ],
 
-  // Add a `routes` entry to serve this on your own domain, then set
-  // `workers_dev` to false and remove the workers.dev address from the
-  // Turnstile widget's hostnames. Until then it is reachable at
-  // https://portfolio.<your-subdomain>.workers.dev. Preview URLs stay off so
-  // each upload doesn't get its own public copy of the site.
   "preview_urls": false,
 
   "observability": {

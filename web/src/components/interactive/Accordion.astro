@@ -98,9 +98,11 @@ const items = (
   const toMs = (time: string) =>
     parseFloat(time) * (time.trim().endsWith("ms") ? 1 : 1000) || 0;
 
-  // Scroll to `top` over --scroll-duration with --scroll-ease. An empty
-  // animation supplies the eased progress, so any CSS easing works. Stops if
-  // the user takes over.
+  /**
+   * Scrolls to `top` over --scroll-duration with --scroll-ease. An empty
+   * animation supplies the eased progress, so any CSS easing works. Stops if
+   * the user takes over.
+   */
   const glide = (top: number) => {
     gliding?.abort();
     const goal = Math.min(Math.max(0, top), root.scrollHeight - innerHeight);
@@ -147,8 +149,10 @@ const items = (
     requestAnimationFrame(step);
   };
 
-  // Center the body below the sticky nav, or pin the toggle under it when
-  // the body is too tall to fit.
+  /**
+   * Centers the body below the sticky nav, or pins the toggle under it when
+   * the body is too tall to fit.
+   */
   const refocus = (item: HTMLDetailsElement) => {
     const toggle = item.querySelector<HTMLElement>(".accordion_toggle");
     const body = item.querySelector<HTMLElement>(".accordion_body");
@@ -174,7 +178,7 @@ const items = (
     return Math.max(0, ...times);
   };
 
-  // Wait for the open animation, since closing siblings shift the layout.
+  /** Waits for the open animation, since closing siblings shift the layout. */
   const settle = (item: HTMLDetailsElement) => {
     const wait = duration(item);
     if (!wait) {

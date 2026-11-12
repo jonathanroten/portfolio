@@ -1,3 +1,5 @@
-// Media tool tag for images used in a case study, whose alt text lives on the case study image.
-// Applied by organizeMedia.ts and read by assetDetails.tsx to lock the asset's Alt Text field.
+/**
+ * Media tool tag for case study images, whose alt text lives on the case study. Applied by
+ * organizeMedia.ts; assetDetails.tsx locks Alt Text on tagged images.
+ */
 export const CASE_STUDY_TAG_NAME = 'Case Study'
