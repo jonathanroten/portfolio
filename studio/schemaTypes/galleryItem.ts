@@ -17,7 +17,8 @@ export const galleryItem = defineType({
       name: 'alt',
       title: 'Alternative Text',
       type: 'string',
-      description: 'Describe the image for people who cannot see it.',
+      description:
+        'Describe the image for people who cannot see it. The site uses this, not the Alt Text in Media.',
       validation: (rule) => rule.required(),
     }),
     defineField({
