@@ -6,8 +6,6 @@ import {schemaTypes} from './schemaTypes'
 import {structure} from './structure'
 import {AssetDetails} from './helpers/assetDetails'
 
-const SINGLETON_TYPES = ['homePage', 'gallery', 'siteSettings']
-
 export default defineConfig({
   name: 'default',
   title: 'Portfolio',
@@ -21,8 +19,6 @@ export default defineConfig({
     types: schemaTypes,
   },
 
-  // "Select" on image fields opens the Media browser only (folders, tags, search) instead of the
-  // built-in flat list. It opens on the all-assets grid; folders are behind the folder view button.
   form: {
     image: {
       assetSources: (sources) => sources.filter((source) => source === mediaAssetSource),
@@ -30,17 +26,6 @@ export default defineConfig({
   },
 
   document: {
-    // Removes it from the "+" create menu
-    newDocumentOptions: (prev, {creationContext}) =>
-      creationContext.type === 'global'
-        ? prev.filter((option) => !SINGLETON_TYPES.includes(option.templateId))
-        : prev,
-    // Keeps only publish/discard/restore. Drops duplicate and delete
-    actions: (prev, {schemaType}) =>
-      SINGLETON_TYPES.includes(schemaType)
-        ? prev.filter(
-            ({action}) => action && ['publish', 'discardChanges', 'restore'].includes(action),
-          )
-        : prev,
+    singletons: ['homePage', 'gallery', 'siteSettings'],
   },
 })
