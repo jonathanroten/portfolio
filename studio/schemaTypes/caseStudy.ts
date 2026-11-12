@@ -6,8 +6,6 @@ export const caseStudy = defineType({
   name: 'caseStudy',
   title: 'Case Study',
   type: 'document',
-  // One tab per part of the page. All Fields is hidden because it would list the Brief and
-  // Approach fields as Text, Gallery, Text, Gallery with nothing to tell them apart.
   groups: [
     {name: 'overview', title: 'Overview', default: true},
     {name: 'brief', title: 'Brief'},
@@ -15,7 +13,6 @@ export const caseStudy = defineType({
     {...ALL_FIELDS_GROUP, hidden: true},
   ],
   fields: [
-    // Drag-and-drop order, managed by the Studio structure (see structure/index.ts)
     orderRankField({type: 'caseStudy'}),
     defineField({
       name: 'title',

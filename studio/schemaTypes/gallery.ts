@@ -2,8 +2,10 @@ import {defineArrayMember, defineField, defineType} from 'sanity'
 import {ImagesIcon} from '@sanity/icons/Images'
 import {aspectRatios} from './galleryItem'
 
-// Every tile of the gallery shows three images of each ratio. With 12 of a ratio, no image
-// repeats within any 2x2 block of tiles, which is everything on a typical screen
+/**
+ * Images per ratio so none repeats within a 2x2 block of tiles, which fills a typical screen.
+ * Each tile shows three of each ratio.
+ */
 const MIN_PER_RATIO = 12
 
 export const gallery = defineType({
