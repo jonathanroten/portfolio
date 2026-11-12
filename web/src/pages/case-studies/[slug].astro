@@ -63,7 +63,7 @@ const hero = galleryCrops.fullWidth;
         height={Math.round(hero.width / hero.ratio)}
         loading="eager"
         fetchPriority="high"
-        data-view-transition="image"
+        data-reveal="image"
       />
     )}
   </Section>
@@ -117,9 +117,6 @@ const hero = galleryCrops.fullWidth;
       <NextCaseStudy
         number={next.number}
         heading={next.title}
-        description={next.description}
-        services={next.services}
-        engagement={next.engagement}
         href={`/case-studies/${next.slug}/`}
       >
         {next.heroImage && (

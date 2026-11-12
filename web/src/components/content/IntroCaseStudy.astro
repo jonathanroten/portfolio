@@ -19,8 +19,6 @@ interface Props extends HTMLAttributes<"div"> {
   services?: string[];
   /** How the work was taken on, such as `Freelance`. */
   engagement?: string;
-  /** Heading level. */
-  tag?: "h1" | "h2";
 }
 
 const {
@@ -30,7 +28,6 @@ const {
   description,
   services,
   engagement,
-  tag: Tag = "h1",
   class: className,
   ...rest
 } = Astro.props;
@@ -39,16 +36,26 @@ const {
 {render && heading && (
   <div class:list={["intro-case-study_wrap", className]} {...rest}>
     {number !== undefined && (
-      <span class="intro-case-study_number text-style-h5">
+      <span
+        class="intro-case-study_number text-style-h5"
+        data-view-transition="number"
+      >
         {String(number).padStart(2, "0")}
       </span>
     )}
-    <Tag class="intro-case-study_title text-style-h5">{heading}</Tag>
+    <h1
+      class="intro-case-study_title text-style-h5"
+      data-view-transition="title"
+    >
+      {heading}
+    </h1>
     {description && (
-      <p class="intro-case-study_text text-style-h4">{description}</p>
+      <p class="intro-case-study_text text-style-h4" data-reveal="text">
+        {description}
+      </p>
     )}
     {(!!services?.length || !!engagement) && (
-      <dl class="intro-case-study_meta">
+      <dl class="intro-case-study_meta" data-reveal="meta">
         {!!services?.length && (
           <div>
             <dt class="sr-only">Services Provided</dt>

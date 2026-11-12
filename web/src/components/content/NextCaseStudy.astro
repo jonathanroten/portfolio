@@ -1,6 +1,5 @@
 ---
 import type { HTMLAttributes } from "astro/types";
-import IntroCaseStudy from "@/components/content/IntroCaseStudy.astro";
 
 interface Props extends HTMLAttributes<"a"> {
   /** Set to `false` to omit the component. */
@@ -14,12 +13,6 @@ interface Props extends HTMLAttributes<"a"> {
   number?: number;
   /** Title of the case study it leads to. */
   heading?: string;
-  /** The case study description, as Home shows it. */
-  description?: string;
-  /** Services provided. */
-  services?: string[];
-  /** How the work was taken on, such as `Freelance`. */
-  engagement?: string;
   /** Link destination. */
   href?: string;
 }
@@ -28,9 +21,6 @@ const {
   render = true,
   number,
   heading,
-  description,
-  services,
-  engagement,
   href,
   class: className,
   ...rest
@@ -42,24 +32,22 @@ const {
     class:list={["next-case-study_wrap", className]}
     href={href}
     rel="next"
-    aria-label={`Next: ${heading}`}
     data-cursor="Next"
     data-cursor-arrow="down"
     {...rest}
   >
-    <span class="next-case-study_divider" data-view-transition="divider" />
-    <IntroCaseStudy
-      tag="h2"
-      number={number}
-      heading={heading}
-      description={description}
-      services={services}
-      engagement={engagement}
-    />
-    <div
-      class="next-case-study_image background-skeleton"
-      data-view-transition="image"
-    >
+    <span class="next-case-study_label">
+      <span class="sr-only">Next</span>
+      {number !== undefined && (
+        <span class="text-style-h5" data-view-transition="number">
+          {String(number).padStart(2, "0")}
+        </span>
+      )}
+      <span class="text-style-h5" data-view-transition="title">
+        {heading}
+      </span>
+    </span>
+    <div class="next-case-study_image background-skeleton">
       <slot />
       <div class="next-case-study_overlay" />
     </div>
@@ -85,13 +73,11 @@ const {
       flex-direction: column;
       gap: var(--site-gutter);
       padding-top: var(--space-5);
-      position: relative;
-      max-height: 60svh;
-      overflow: clip;
-      .next-case-study_divider {
-        position: absolute;
-        inset: 0 0 auto;
-        border-top: var(--border-width) solid var(--border);
+      border-top: var(--border-width) solid var(--border);
+      .next-case-study_label {
+        display: flex;
+        gap: var(--space-4);
+        width: fit-content;
       }
       .next-case-study_image {
         aspect-ratio: 32 / 9;
