@@ -1,0 +1,125 @@
+<link rel="expect" href="#case-study-hero" blocking="render" />
+
+<script is:inline>
+  (function () {
+    const root = document.documentElement;
+    const shiftKey = "case-study-shift";
+
+    const isCaseStudy = (url) =>
+      new URL(url).pathname.startsWith("/case-studies/");
+
+    const nameAll = (scope) => {
+      const elements = [
+        ...document.querySelectorAll(`${scope} [data-view-transition]`),
+      ];
+      for (const el of elements) {
+        el.style.viewTransitionName = `case-study-${el.dataset.viewTransition}`;
+      }
+      return () => {
+        for (const el of elements) el.style.viewTransitionName = "";
+      };
+    };
+
+    const imageTop = (scope) =>
+      document
+        .querySelector(`${scope} [data-view-transition="image"]`)
+        ?.getBoundingClientRect().top;
+
+    const clearAfter = (transition, clear) => {
+      transition.finished.catch(() => {}).finally(clear);
+    };
+
+    addEventListener("pageswap", (event) => {
+      const activation = event.activation;
+      if (!event.viewTransition || activation?.navigationType !== "push")
+        return;
+      if (!isCaseStudy(activation.entry.url)) return;
+      const top = imageTop('a[rel="next"]');
+      if (top !== undefined) sessionStorage.setItem(shiftKey, String(top));
+      clearAfter(event.viewTransition, nameAll('a[rel="next"]'));
+    });
+
+    addEventListener("pagereveal", (event) => {
+      const from = sessionStorage.getItem(shiftKey);
+      sessionStorage.removeItem(shiftKey);
+      const activation = window.navigation?.activation;
+      if (!event.viewTransition || activation?.navigationType !== "push")
+        return;
+      if (!activation.from || !isCaseStudy(activation.from.url)) return;
+      const clear = nameAll("#case-study-hero");
+      const to = imageTop("#case-study-hero");
+      if (from !== null && to !== undefined) {
+        root.style.setProperty("--case-study-shift", `${Number(from) - to}px`);
+        event.viewTransition.types.add("case-study-next");
+      }
+      clearAfter(event.viewTransition, () => {
+        clear();
+        root.style.removeProperty("--case-study-shift");
+      });
+    });
+  })();
+</script>
+
+<style is:global>
+  @media (prefers-reduced-motion: no-preference) {
+    @view-transition {
+      navigation: auto;
+    }
+  }
+
+  @layer components {
+    ::view-transition-group(*) {
+      animation-duration: var(--open-duration-slow);
+      animation-timing-function: var(--open-ease-smooth);
+    }
+    :active-view-transition-type(case-study-next) {
+      &::view-transition-group(*) {
+        animation-duration: 1000ms;
+        animation-timing-function: var(--close-ease-smooth);
+      }
+      &::view-transition-old(root) {
+        animation-name: case-study-slide-out;
+      }
+      &::view-transition-new(root) {
+        animation-name: case-study-slide-in;
+      }
+      &::view-transition-group(case-study-image) {
+        overflow: clip;
+      }
+      &::view-transition-old(case-study-image) {
+        z-index: 1;
+        animation-name: case-study-fade-out;
+        animation-timing-function: linear;
+      }
+      &::view-transition-new(case-study-image) {
+        animation: none;
+      }
+      &::view-transition-group(case-study-divider) {
+        animation-name: case-study-slide-out;
+      }
+      &::view-transition-old(case-study-divider) {
+        animation-name: case-study-fade-out;
+        animation-duration: 150ms;
+        animation-timing-function: linear;
+      }
+    }
+  }
+
+  @keyframes case-study-slide-out {
+    to {
+      translate: 0 calc(var(--case-study-shift) * -1);
+    }
+  }
+
+  @keyframes case-study-slide-in {
+    from {
+      translate: 0 var(--case-study-shift);
+    }
+  }
+
+  @keyframes case-study-fade-out {
+    to {
+      opacity: 0;
+    }
+  }
+</style>
