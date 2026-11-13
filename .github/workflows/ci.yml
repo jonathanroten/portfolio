@@ -6,10 +6,10 @@ on:
   pull_request:
   push:
     branches: [main]
-    # README and other Markdown edits don't change the site, so they don't
-    # deploy. Pull requests always run, because a required check that never
-    # starts would block the merge.
-    paths-ignore: ["**.md"]
+    # Markdown, the Sanity Studio (sanity/) and Stacki Studio (studio/)
+    # don't change the site, so they don't deploy. Pull requests always run,
+    # because a required check that never starts would block the merge.
+    paths-ignore: ["**.md", "sanity/**", "studio/**"]
   # Adds a "Run workflow" button on the Actions tab, for redeploying after
   # publishing in Sanity (the site only picks up content when it's built).
   workflow_dispatch:
@@ -23,23 +23,20 @@ jobs:
     name: Web
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    defaults:
-      run:
-        working-directory: web
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: npm
-          cache-dependency-path: web/package-lock.json
+          cache-dependency-path: package-lock.json
       - run: npm ci
       # Astro's image cache. Restored after `npm ci`, which empties
       # node_modules. Each run saves a fresh copy, and the next run starts
       # from the newest one, so only new or changed images are downloaded.
       - uses: actions/cache@v6
         with:
-          path: web/node_modules/.astro
+          path: node_modules/.astro
           key: astro-${{ runner.os }}-${{ github.run_id }}
           restore-keys: astro-${{ runner.os }}-
       # `--no` fails instead of downloading a tool that isn't installed.
@@ -56,31 +53,31 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: dist
-          path: web/dist
+          path: dist
           retention-days: 1
           if-no-files-found: error
 
-  studio:
-    name: Studio
+  sanity:
+    name: Sanity
     runs-on: ubuntu-latest
     timeout-minutes: 10
     defaults:
       run:
-        working-directory: studio
+        working-directory: sanity
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: npm
-          cache-dependency-path: studio/package-lock.json
+          cache-dependency-path: sanity/package-lock.json
       - run: npm ci
       - run: npx --no -- tsc --noEmit
       - run: npx --no -- eslint .
 
   deploy:
     name: Deploy
-    needs: [web, studio]
+    needs: [web, sanity]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -94,21 +91,18 @@ jobs:
     concurrency:
       group: production
       cancel-in-progress: false
-    defaults:
-      run:
-        working-directory: web
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: npm
-          cache-dependency-path: web/package-lock.json
+          cache-dependency-path: package-lock.json
       - run: npm ci
       - uses: actions/download-artifact@v8
         with:
           name: dist
-          path: web/dist
+          path: dist
       # Uploads the Worker and the built site. The Worker's own secrets
       # (CONTACT_TO, TURNSTILE_SECRET_KEY) stay as they are on Cloudflare.
       - run: npx --no -- wrangler deploy

@@ -1,22 +1,28 @@
 #!/bin/bash
 # Claude Code PostToolUse hook: runs Prettier on a file right after Claude edits it.
-# Only files inside web/ or studio/ are formatted, using that folder's own Prettier
-# and config. Exit code 2 sends Prettier's error back to Claude.
+# Uses the Prettier installed in the nearest folder above the file (sanity/, the root, ...)
+# with that folder's own config. Files with no Prettier above them are left alone.
+# Exit code 2 sends Prettier's error back to Claude.
 
 root="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/../.." && pwd)}"
 file=$(jq -r '.tool_input.file_path // empty')
 [ -n "$file" ] && [ -f "$file" ] || exit 0
 
 case "$file" in
-  "$root"/web/*) dir="$root/web" ;;
-  "$root"/studio/*) dir="$root/studio" ;;
+  "$root"/*) ;;
   *) exit 0 ;;
 esac
 
 # Skip installed packages and build output.
 case "$file" in
-  */node_modules/* | */dist/* | */.astro/* | */.sanity/*) exit 0 ;;
+  */node_modules/* | */dist/* | */.astro/* | */.sanity/* | */.wrangler/*) exit 0 ;;
 esac
+
+dir=$(dirname "$file")
+until [ -x "$dir/node_modules/.bin/prettier" ] || [ "$dir" = "$root" ] || [ "$dir" = "/" ]; do
+  dir=$(dirname "$dir")
+done
+[ -x "$dir/node_modules/.bin/prettier" ] || exit 0
 
 # fnm only loads in interactive shells, so load it here when node is missing.
 if ! command -v node >/dev/null 2>&1; then
