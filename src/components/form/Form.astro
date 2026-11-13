@@ -11,7 +11,7 @@ interface Props extends HTMLAttributes<"form"> {
   action?: string;
   /** Submit button text while sending. */
   sendingMessage?: string;
-  /** Message shown after submission. */
+  /** Message shown after submission. Pass an empty string to show your own. */
   successMessage?: string;
   /** Message shown after an error. */
   errorMessage?: string;
@@ -49,13 +49,15 @@ const content = await slotContent(Astro.slots);
       <Fragment set:html={content} />
     </form>
 
-    <p
-      class="form_note form_note-sent text-style-main"
-      role="status"
-      tabindex="-1"
-    >
-      {successMessage}
-    </p>
+    {successMessage && (
+      <p
+        class="form_note form_note-sent text-style-main"
+        role="status"
+        tabindex="-1"
+      >
+        {successMessage}
+      </p>
+    )}
     <p
       class="form_note form_note-failed text-style-main"
       role="alert"

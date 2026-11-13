@@ -321,7 +321,10 @@ const { render = true, class: className, ...rest } = Astro.props;
     });
 
     document.addEventListener("pointerover", (event) => {
-      if (event.target instanceof HTMLIFrameElement) hide();
+      if (event.target instanceof HTMLIFrameElement) return hide();
+      if (!root.classList.contains("has-cursor")) return;
+      target = event.target instanceof Element ? event.target : null;
+      update();
     });
 
     for (const type of ["toggle", "close"]) {

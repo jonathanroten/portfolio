@@ -232,6 +232,7 @@
   color: inherit;
   border: var(--border-width-medium) solid var(--text);
   border-radius: var(--radius-xsmall);
+  text-box: normal;
   transition:
     background-color var(--hover-duration) var(--hover-ease),
     border-color var(--hover-duration) var(--hover-ease);
