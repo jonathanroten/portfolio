@@ -60,8 +60,8 @@
         animation-timing-function: var(--page-ease);
       }
       &::view-transition-old(root) {
-        animation-name: case-study-leave-move, case-study-leave-fade;
-        animation-timing-function: var(--page-ease), linear;
+        animation-name: case-study-leave-fade;
+        animation-timing-function: linear;
       }
       &::view-transition-new(root) {
         animation-name: case-study-enter-fade;
@@ -76,12 +76,6 @@
       &::view-transition-old(case-study-title),
       &::view-transition-new(case-study-title) {
         width: auto;
-      }
-    }
-
-    @keyframes case-study-leave-move {
-      to {
-        translate: 0 calc(var(--page-travel) * -1);
       }
     }
 
