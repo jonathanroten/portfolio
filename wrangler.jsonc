@@ -25,7 +25,7 @@
     },
   ],
 
-  "preview_urls": false,
+  "preview_urls": true,
   "previews": {},
 
   "observability": {
