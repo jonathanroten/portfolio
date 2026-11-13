@@ -40,13 +40,15 @@ const {
   >
     <span class="next-case-study_label">
       <span class="sr-only">Next</span>
-      {number !== undefined && (
-        <span class="text-style-h5" data-view-transition="number">
-          {String(number).padStart(2, "0")}
+      <span class="next-case-study_name" data-cursor="" data-cursor-unlabelled>
+        {number !== undefined && (
+          <span class="text-style-h5" data-view-transition="number">
+            {String(number).padStart(2, "0")}
+          </span>
+        )}
+        <span class="text-style-h5" data-view-transition="title">
+          {heading}
         </span>
-      )}
-      <span class="text-style-h5" data-view-transition="title">
-        {heading}
       </span>
       <span class="next-case-study_hint text-style-h6" aria-hidden="true">
         Next
@@ -87,6 +89,12 @@ const {
         align-items: baseline;
         gap: var(--space-4);
       }
+      .next-case-study_name {
+        display: flex;
+        align-items: baseline;
+        gap: inherit;
+        transition: color var(--hover-duration-gentle) var(--hover-ease);
+      }
       .next-case-study_hint {
         display: flex;
         gap: 0.25em;
@@ -119,8 +127,12 @@ const {
         opacity: 0.6;
       }
       @media (hover: hover) and (pointer: fine) {
-        &:hover .next-case-study_overlay {
+        &:has(.next-case-study_name:hover, .next-case-study_image:hover)
+          .next-case-study_overlay {
           opacity: 0.6;
+        }
+        .next-case-study_name:hover {
+          color: var(--text-2);
         }
         .next-case-study_hint {
           display: none;
