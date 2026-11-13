@@ -18,8 +18,8 @@ export default defineCliConfig({
   },
   typegen: {
     enabled: true,
-    path: '../web/src/**/*.{ts,astro}',
-    generates: '../web/sanity.types.ts',
+    path: '../src/**/*.{ts,astro}',
+    generates: '../sanity.types.ts',
     formatGeneratedCode: false,
   },
 })

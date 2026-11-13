@@ -1,7 +1,7 @@
 {
   "extends": "astro/tsconfigs/strict",
   "include": [".astro/types.d.ts", "**/*"],
-  "exclude": ["dist", "worker", ".wrangler"],
+  "exclude": ["dist", "worker", ".wrangler", "sanity"],
   "compilerOptions": {
     "types": ["@sanity/astro/module"],
     "paths": {

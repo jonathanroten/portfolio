@@ -1,24 +1,43 @@
-# jonathanroten.com
+## Lumos For Astro
 
-The source for my portfolio site: a static Astro site built on Lumos for Astro, integrated with Sanity CMS and hosted on Cloudflare Workers. This is a personal project, shared for reference. It doesn't take outside contributions, so pull requests and issues are not accepted.
+<p align="center">
+  <a href="https://www.npmjs.com/package/create-lumos"><img alt="npm version" src="https://img.shields.io/npm/v/create-lumos?labelColor=1E1E1E&color=C6FB50"></a>
+  <a href="LICENSE"><img alt="license" src="https://img.shields.io/npm/l/create-lumos?labelColor=1E1E1E&color=C6FB50"></a>
+  <a href="https://github.com/lumosframework/lumos-for-astro/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/lumosframework/lumos-for-astro/actions/workflows/ci.yml/badge.svg"></a>
+</p>
 
-## Stack
+A component and styling framework for building Astro sites, designed around
+efficiency, scalability and accessibility.
 
-| Part         | Built with                                                                                                                                                                                                      |
-| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Site         | [Astro](https://astro.build) with [Lumos for Astro](https://lumosframework.com), a component and styling framework                                                                                              |
-| Content      | [Sanity](https://www.sanity.io), edited in the Studio in `studio`                                                                                                                                               |
-| Hosting      | [Cloudflare Workers](https://developers.cloudflare.com/workers/): the built pages are served as static files                                                                                                    |
-| Contact form | A small Worker at `/api/*`, with [Turnstile](https://developers.cloudflare.com/turnstile/) bot checks, per-visitor rate limiting, and [Email Routing](https://developers.cloudflare.com/email-routing/) to send |
-| Motion       | [Lenis](https://lenis.darkroom.engineering) smooth scrolling, and a [three.js](https://threejs.org) shader for the speed-reactive image effects                                                                 |
-| Deploys      | [GitHub Actions](https://docs.github.com/actions): every pull request is checked, and `main` deploys to Cloudflare once the checks pass |
+Documentation lives at **[lumosframework.com](https://lumosframework.com)**.
 
-## Repository layout
+## Getting started
 
-| Folder                    | What's in it                                                                                                                                                 |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `web`                     | The Astro site. Read `web/LUMOS.md` before adding pages, components or styles.                                                                               |
-| `web/src/components`      | Lumos library components plus the site's own, such as `interactive/ImageTrail.astro` (the home hero) and `content/GalleryInfinite.astro` (the Stuff gallery) |
-| `web/src/utils/sanity.ts` | Every Sanity query, and the image URL helper                                                                                                                 |
-| `web/worker`              | The contact form Worker                                                                                                                                      |
-| `studio`                  | Sanity Studio: schemas in `schemaTypes`, sidebar in `structure`, media helpers in `helpers`                                                                  |
+```sh
+npm create lumos@latest my-site
+```
+
+That scaffolds a new site from this repository and installs its dependencies
+with whichever package manager you ran it with. Then:
+
+```sh
+cd my-site
+npm run dev
+```
+
+| Script            | What it does                      |
+| ----------------- | --------------------------------- |
+| `npm run dev`     | Starts the dev server             |
+| `npm run build`   | Builds the site to `dist/`        |
+| `npm run preview` | Serves the built site             |
+| `npm run check`   | Type-checks every `.astro` file   |
+| `npm run format`  | Formats the project with Prettier |
+
+## Documentation
+
+Component reference, styling guides and examples are at
+[lumosframework.com](https://lumosframework.com).
+
+## License
+
+[MIT](LICENSE)

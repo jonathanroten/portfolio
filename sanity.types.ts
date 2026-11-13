@@ -305,7 +305,7 @@ export type Geopoint = {
 
 export type AllSanitySchemaTypes = SiteSettings | SanityImageAssetReference | HomePage | SanityImageCrop | SanityImageHotspot | ServiceReference | GalleryItem | Gallery | Service | CaseStudyImage | CaseStudy | Slug | MediaFolderReference | MediaFolder | MediaTag | SanityImagePaletteSwatch | SanityImagePalette | SanityImageDimensions | SanityImageMetadata | SanityFileAsset | SanityAssetSourceData | SanityImageAsset | Geopoint;
 
-// Source: ../web/src/utils/sanity.ts
+// Source: ../src/utils/sanity.ts
 // Variable: HERO_IMAGES_QUERY
 // Query: *[_id == "homePage"][0].heroImages[defined(asset)] { asset, hotspot, crop }
 export type HERO_IMAGES_QUERY_RESULT = Array<{
@@ -314,7 +314,7 @@ export type HERO_IMAGES_QUERY_RESULT = Array<{
   crop: SanityImageCrop | null;
 }> | null;
 
-// Source: ../web/src/utils/sanity.ts
+// Source: ../src/utils/sanity.ts
 // Variable: GALLERY_QUERY
 // Query: *[_id == "gallery"][0].items[defined(asset)] { alt, aspectRatio, asset, hotspot, crop, "services": services[defined(@->title)]->title }
 export type GALLERY_QUERY_RESULT = Array<{
@@ -326,12 +326,12 @@ export type GALLERY_QUERY_RESULT = Array<{
   services: Array<string>;
 }> | null;
 
-// Source: ../web/src/utils/sanity.ts
+// Source: ../src/utils/sanity.ts
 // Variable: SERVICES_QUERY
 // Query: *[_type == "service" && defined(title)] | order(title asc).title
 export type SERVICES_QUERY_RESULT = Array<string>;
 
-// Source: ../web/src/utils/sanity.ts
+// Source: ../src/utils/sanity.ts
 // Variable: CASE_STUDIES_QUERY
 // Query: *[_type == "caseStudy" && defined(slug.current)] | order(orderRank) {  title,  "slug": slug.current,  "services": services[defined(@->title)]->title,  description,  featureGallery[defined(asset)] { alt, asset, hotspot, crop, "layout": coalesce(layout, "default") },  engagement,  "heroImage": select(defined(heroImage.asset) => heroImage { alt, asset, hotspot, crop }, null),  brief,  briefGallery[defined(asset)] { alt, asset, hotspot, crop, "layout": coalesce(layout, "default") },  approach,  approachGallery[defined(asset)] { alt, asset, hotspot, crop, "layout": coalesce(layout, "default") }}
 export type CASE_STUDIES_QUERY_RESULT = Array<{
@@ -371,7 +371,7 @@ export type CASE_STUDIES_QUERY_RESULT = Array<{
   }> | null;
 }>;
 
-// Source: ../web/src/utils/sanity.ts
+// Source: ../src/utils/sanity.ts
 // Variable: SITE_SETTINGS_QUERY
 // Query: *[_id == "siteSettings"][0] {  "navigation": navigation[defined(label) && defined(href)] { _key, label, href },  "socialLinks": socialLinks[defined(label) && defined(url)] { _key, label, url },  seoDescription}
 export type SITE_SETTINGS_QUERY_RESULT = {
@@ -392,7 +392,7 @@ export type SITE_SETTINGS_QUERY_RESULT = {
   seoDescription: string;
 } | null;
 
-// Source: ../web/src/utils/sanity.ts
+// Source: ../src/utils/sanity.ts
 // Variable: DESCRIPTION_QUERY
 // Query: *[_id == "homePage"][0].description[0].children[defined(text)] {  text,  "highlight": "highlight" in coalesce(marks, [])}
 export type DESCRIPTION_QUERY_RESULT = Array<{

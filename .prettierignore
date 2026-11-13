@@ -4,3 +4,5 @@ node_modules
 sanity.types.ts
 worker/worker-configuration.d.ts
 .agents
+sanity
+.playwright-mcp
