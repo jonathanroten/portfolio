@@ -1,5 +1,7 @@
 ---
 import type { HTMLAttributes } from "astro/types";
+import arrow from "@/assets/icons/arrow.svg";
+import Icon from "@/components/media/Icon.astro";
 
 interface Props extends HTMLAttributes<"a"> {
   /** Set to `false` to omit the component. */
@@ -32,15 +34,26 @@ const {
     class:list={["next-case-study_wrap", className]}
     href={href}
     rel="next"
-    data-cursor-free
+    data-cursor="Next"
+    data-cursor-arrow="down"
     {...rest}
   >
-    <span class="next-case-study_label" data-cursor="">
+    <span class="next-case-study_label">
       <span class="sr-only">Next</span>
       {number !== undefined && (
-        <span class="text-style-h5">{String(number).padStart(2, "0")}</span>
+        <span class="text-style-h5" data-view-transition="number">
+          {String(number).padStart(2, "0")}
+        </span>
       )}
-      <span class="text-style-h5">{heading}</span>
+      <span class="text-style-h5" data-view-transition="title">
+        {heading}
+      </span>
+      <span class="next-case-study_hint text-style-h6" aria-hidden="true">
+        Next
+        <span class="next-case-study_chevron">
+          <Icon src={arrow} variant="small" />
+        </span>
+      </span>
     </span>
     <div class="next-case-study_image background-skeleton">
       <slot />
@@ -49,6 +62,17 @@ const {
   </a>
 )}
 
+<script>
+  for (const img of document.querySelectorAll<HTMLImageElement>(
+    ".next-case-study_image img",
+  )) {
+    const warm = () =>
+      Object.assign(new Image(), { sizes: "100vw", srcset: img.srcset });
+    if (img.complete) warm();
+    else img.addEventListener("load", warm, { once: true });
+  }
+</script>
+
 <style is:global>
   @layer components {
     .next-case-study_wrap {
@@ -56,12 +80,24 @@ const {
       display: flex;
       flex-direction: column;
       gap: var(--site-gutter);
-      padding-top: var(--space-5);
+      padding-top: var(--space-8);
       border-top: var(--border-width) solid var(--border);
       .next-case-study_label {
         display: flex;
+        align-items: baseline;
         gap: var(--space-4);
-        width: fit-content;
+      }
+      .next-case-study_hint {
+        display: flex;
+        gap: 0.25em;
+        margin-left: auto;
+        white-space: nowrap;
+      }
+      .next-case-study_chevron {
+        align-self: center;
+        font-size: 0.625em;
+        width: 1em;
+        rotate: 90deg;
       }
       .next-case-study_image {
         aspect-ratio: 32 / 9;
@@ -82,9 +118,12 @@ const {
       &:focus-visible .next-case-study_overlay {
         opacity: 0.6;
       }
-      @media (hover: hover) {
+      @media (hover: hover) and (pointer: fine) {
         &:hover .next-case-study_overlay {
           opacity: 0.6;
+        }
+        .next-case-study_hint {
+          display: none;
         }
       }
     }

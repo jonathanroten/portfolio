@@ -71,6 +71,13 @@
   --smooth-scroll-duration: 2300ms;
   --smooth-scroll-ease: cubic-bezier(0.16, 1, 0.3, 1);
 
+  /* Page motion */
+  --page-duration: 800ms;
+  --page-duration-slow: 1000ms;
+  --page-stagger: 100ms;
+  --page-travel: 30vh;
+  --page-ease: var(--smooth-scroll-ease);
+
   /* Radius */
   --radius-xsmall: 0.25rem;
   --radius-small: 0.5rem;

@@ -1,5 +1,6 @@
 ---
 import type { HTMLAttributes } from "astro/types";
+import { slotContent } from "@/utils/slots.ts";
 
 interface Props extends HTMLAttributes<"div"> {
   /** Set to `false` to omit the component. */
@@ -31,16 +32,26 @@ const {
   class: className,
   ...rest
 } = Astro.props;
+
+const image = await slotContent(Astro.slots);
 ---
 
 {render && heading && (
   <div class:list={["intro-case-study_wrap", className]} {...rest}>
     {number !== undefined && (
-      <span class="intro-case-study_number text-style-h5">
+      <span
+        class="intro-case-study_number text-style-h5"
+        data-view-transition="number"
+      >
         {String(number).padStart(2, "0")}
       </span>
     )}
-    <h1 class="intro-case-study_title text-style-h5">{heading}</h1>
+    <h1
+      class="intro-case-study_title text-style-h5"
+      data-view-transition="title"
+    >
+      {heading}
+    </h1>
     {description && (
       <p class="intro-case-study_text text-style-h4">{description}</p>
     )}
@@ -59,6 +70,11 @@ const {
           </div>
         )}
       </dl>
+    )}
+    {image && (
+      <div class="intro-case-study_image">
+        <Fragment set:html={image} />
+      </div>
     )}
   </div>
 )}
@@ -86,6 +102,24 @@ const {
         gap: var(--space-3);
         margin-top: var(--space-8);
       }
+      .intro-case-study_image {
+        grid-column: 1 / -1;
+        margin-top: var(--site-gutter);
+      }
+      :root.case-study-arriving & {
+        .intro-case-study_text,
+        .intro-case-study_meta {
+          animation: intro-case-study-reveal var(--page-duration)
+            var(--page-ease) calc(var(--page-stagger) * 3) both;
+        }
+        .intro-case-study_meta {
+          animation-delay: calc(var(--page-stagger) * 4);
+        }
+        .intro-case-study_image {
+          animation: intro-case-study-rise var(--page-duration-slow)
+            var(--page-ease) calc(var(--page-stagger) * 5) both;
+        }
+      }
       @media (width >= 48rem) {
         .intro-case-study_text {
           text-wrap: pretty;
@@ -95,6 +129,20 @@ const {
           justify-content: space-between;
           gap: var(--site-gutter);
         }
+      }
+    }
+
+    @keyframes intro-case-study-reveal {
+      from {
+        opacity: 0;
+        translate: 0 var(--space-5);
+      }
+    }
+
+    @keyframes intro-case-study-rise {
+      from {
+        opacity: 0;
+        translate: 0 var(--page-travel);
       }
     }
   }

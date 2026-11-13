@@ -8,6 +8,7 @@ import Paragraph from "@/components/typography/Paragraph.astro";
 import Img from "@/components/media/Img.astro";
 import IntroCaseStudy from "@/components/content/IntroCaseStudy.astro";
 import NextCaseStudy from "@/components/content/NextCaseStudy.astro";
+import CaseStudyTransition from "@/components/utility/CaseStudyTransition.astro";
 import { galleryCrops, imageUrl } from "@/utils/sanity.ts";
 import { getCaseStudies, type CaseStudy } from "@/utils/case-studies.ts";
 
@@ -38,30 +39,28 @@ const hero = galleryCrops.fullWidth;
   footer={next ? "none" : "full"}
   smoothScroll
 >
+  <CaseStudyTransition slot="head" />
   <!-- Hero -->
-  <Section
-    class="padding-top-5"
-    paddingBottom="none"
-    containerClass="gap-gutter"
-  >
+  <Section id="case-study-hero" class="padding-top-5" paddingBottom="none">
     <IntroCaseStudy
       number={caseStudy.number}
       heading={caseStudy.title}
       description={caseStudy.description}
       services={caseStudy.services}
       engagement={caseStudy.engagement}
-    />
-    {caseStudy.heroImage && (
-      <Img
-        src={imageUrl(caseStudy.heroImage, hero.width, hero.ratio)}
-        alt={caseStudy.heroImage.alt}
-        variant="full-width"
-        width={hero.width}
-        height={Math.round(hero.width / hero.ratio)}
-        loading="eager"
-        fetchPriority="high"
-      />
-    )}
+    >
+      {caseStudy.heroImage && (
+        <Img
+          src={imageUrl(caseStudy.heroImage, hero.width, hero.ratio)}
+          alt={caseStudy.heroImage.alt}
+          variant="full-width"
+          width={hero.width}
+          height={Math.round(hero.width / hero.ratio)}
+          loading="eager"
+          fetchPriority="high"
+        />
+      )}
+    </IntroCaseStudy>
   </Section>
   <!-- Brief, then approach -->
   {[
@@ -113,7 +112,7 @@ const hero = galleryCrops.fullWidth;
       <NextCaseStudy
         number={next.number}
         heading={next.title}
-        href={`/case-studies/${next.slug}`}
+        href={`/case-studies/${next.slug}/`}
       >
         {next.heroImage && (
           <Img
