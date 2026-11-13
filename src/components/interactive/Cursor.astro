@@ -210,9 +210,14 @@ const { render = true, class: className, ...rest } = Astro.props;
       const state = target?.closest<HTMLElement>("[data-cursor-state]")?.dataset
         .cursorState;
       const grabbing = state === "grabbing";
-      const marked = grabbing
+      const nearest = grabbing
         ? null
-        : target?.closest<HTMLElement>('[data-cursor]:not([data-cursor=""])');
+        : target?.closest<HTMLElement>(
+            '[data-cursor]:not([data-cursor=""]), [data-cursor-unlabelled]',
+          );
+      const marked = nearest?.hasAttribute("data-cursor-unlabelled")
+        ? null
+        : nearest;
       const label = marked?.dataset.cursor ?? "";
       const native = target?.closest(nativeCursor);
       lock = state || native ? null : (target?.closest(lockable) ?? null);
