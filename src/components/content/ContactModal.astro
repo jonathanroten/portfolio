@@ -31,17 +31,25 @@ const timelines = [
 
 {render && (
   <div class:list={["contact-modal_wrap", "margin-trim", className]} {...rest}>
-    <Heading tag="h2" class="margin-bottom-4">
+    <Heading
+      tag="h2"
+      class="margin-bottom-4"
+      tabindex="-1"
+      data-contact-title="Thank you."
+    >
       Say Hello.
     </Heading>
-    <Paragraph variant="main">
+    <Paragraph
+      variant="main"
+      data-contact-intro="Yup, that worked! I really appreciate the note. I’ll be in touch soon."
+    >
       Tell me a bit about what you have in mind, or just say hello. I’ll get
       back to you soon.
     </Paragraph>
     <Form
       name="talk"
       action="/api/contact"
-      successMessage="Yup, that worked! I really appreciate the note. I’ll be in touch soon."
+      successMessage=""
       errorMessage="Hmmmm… That didn’t work. Please try again, or email hello@jonathanroten.com."
       class="margin-top-5 flex-grow"
     >
@@ -90,8 +98,8 @@ const timelines = [
             <Select label="Timeline" options={timelines} labelHidden required />
           </fieldset>
         </div>
+        <Turnstile />
       </div>
-      <Turnstile />
       <ButtonWrapper marginTop="auto">
         <Button type="submit" size="large" class="width-full">
           Let’s Talk
@@ -122,6 +130,18 @@ const timelines = [
       toggle.addEventListener("change", sync);
       sync();
     }
+
+    const status = contact.querySelector<HTMLElement>(".form_wrap");
+    const title = contact.querySelector<HTMLElement>("[data-contact-title]");
+    const intro = contact.querySelector<HTMLElement>("[data-contact-intro]");
+    if (!status || !title || !intro) continue;
+
+    new MutationObserver(() => {
+      if (status.dataset.state !== "sent") return;
+      title.textContent = title.dataset.contactTitle ?? "";
+      intro.textContent = intro.dataset.contactIntro ?? "";
+      title.focus();
+    }).observe(status, { attributeFilter: ["data-state"] });
   }
 </script>
 
