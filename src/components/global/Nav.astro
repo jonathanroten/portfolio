@@ -167,6 +167,9 @@ const { render = true, overlap = false } = Astro.props;
       transition:
         color var(--open-duration) var(--open-ease),
         background-color var(--open-duration) var(--open-ease);
+      :root[data-page-leaving] & {
+        view-transition-name: none;
+      }
       &.overlap {
         position: fixed;
         inset-inline: 0;

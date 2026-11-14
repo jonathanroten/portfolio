@@ -1,0 +1,115 @@
+<style is:inline>
+  /* Keep inline: Chrome skips the transition if this opt-in loads late from the bundled stylesheet. */
+  @media (prefers-reduced-motion: no-preference) {
+    @view-transition {
+      navigation: auto;
+    }
+  }
+</style>
+<link rel="expect" href="#main" blocking="render" />
+
+<script is:inline>
+  (function () {
+    const isCaseStudy = (url) =>
+      new URL(url).pathname.startsWith("/case-studies/");
+
+    addEventListener("pageswap", (event) => {
+      const activation = event.activation;
+      if (!event.viewTransition || !activation) return;
+      if (!["push", "replace"].includes(activation.navigationType)) return;
+      if (isCaseStudy(location.href) && isCaseStudy(activation.entry.url))
+        return;
+      document.documentElement.dataset.pageLeaving = "";
+    });
+
+    addEventListener("pageshow", (event) => {
+      if (event.persisted) delete document.documentElement.dataset.pageLeaving;
+    });
+
+    addEventListener("pagereveal", (event) => {
+      const transition = event.viewTransition;
+      if (!transition) return;
+      const activation = window.navigation?.activation;
+      const isNewVisit = activation
+        ? ["push", "replace"].includes(activation.navigationType)
+        : performance.getEntriesByType("navigation")[0]?.type === "navigate";
+      if (!isNewVisit) return;
+      const from = activation ? activation.from?.url : document.referrer;
+      if (from && isCaseStudy(from) && isCaseStudy(location.href)) return;
+
+      transition.types.add("page");
+      const curtain = document.createElement("div");
+      curtain.className = "page-transition_wrap theme-brand";
+      curtain.setAttribute("aria-hidden", "true");
+      const lifted = new Promise((resolve) =>
+        curtain.addEventListener("animationend", resolve, { once: true }),
+      ).then(() => curtain.remove());
+      (document.body ?? document.documentElement).append(curtain);
+      transition.ready.then(
+        () => {
+          const root = document.documentElement;
+          root.dataset.pageArriving = String(performance.now());
+          const reveals = document
+            .getAnimations()
+            .filter((animation) =>
+              animation.effect?.target?.matches?.("[data-page-reveal]"),
+            )
+            .map((animation) => animation.finished);
+          Promise.allSettled([lifted, ...reveals]).then(() => {
+            delete root.dataset.pageArriving;
+          });
+        },
+        () => curtain.remove(),
+      );
+    });
+  })();
+</script>
+
+<style is:global>
+  @layer components {
+    .page-transition_wrap {
+      position: fixed;
+      inset: 0;
+      z-index: 101;
+      pointer-events: none;
+      background-color: var(--background);
+      animation: page-transition-lift var(--page-curtain-lift) var(--page-ease)
+        calc(var(--page-curtain-cover) + var(--page-curtain-hold)) forwards;
+    }
+
+    :active-view-transition-type(page) {
+      &::view-transition-old(*) {
+        animation: none;
+      }
+      &::view-transition-new(*) {
+        animation: page-transition-hidden var(--page-curtain-cover) both;
+      }
+      &::view-transition-new(root) {
+        animation: page-transition-wipe var(--page-curtain-cover)
+          var(--close-ease-smooth) both;
+      }
+    }
+
+    @keyframes page-transition-hidden {
+      from,
+      to {
+        opacity: 0;
+      }
+    }
+
+    @keyframes page-transition-wipe {
+      from {
+        clip-path: inset(100% 0 0 0);
+      }
+      to {
+        clip-path: inset(0);
+      }
+    }
+
+    @keyframes page-transition-lift {
+      to {
+        translate: 0 -100%;
+      }
+    }
+  }
+</style>

@@ -109,7 +109,7 @@ const images: GalleryImage[] = items.map((item) => {
     keySpeed: 1.1,
     click: { distance: 8, time: 400 },
     seatDistance: 32,
-    popDelay: 400,
+    revealWait: 3000,
     uploadGap: 32,
     motion: {
       smoothing: 50,
@@ -275,7 +275,8 @@ const images: GalleryImage[] = items.map((item) => {
     ];
     const prefersPlainImages = () =>
       plainQueries.some((query) => query.matches);
-    let popDelay = config.popDelay;
+    const firstLoads: Promise<void>[] = [];
+    let collecting = true;
     const viewSize = { width: 0, height: 0 };
     const tileSize = { width: 0, height: 0 };
     const canvas = gallery.querySelector<HTMLCanvasElement>(
@@ -339,6 +340,15 @@ const images: GalleryImage[] = items.map((item) => {
       return `${ux * push}px ${uy * push}px`;
     };
 
+    const onScreen = (
+      anchor: { x: number; y: number },
+      extent: { x: number; y: number },
+    ) =>
+      Math.abs(anchor.x - center.x) <
+        viewSize.width / tileSize.width / 2 + extent.x &&
+      Math.abs(anchor.y - center.y) <
+        viewSize.height / tileSize.height / 2 + extent.y;
+
     const syncPush = () => {
       for (const tile of tiles.values()) {
         for (const image of tile.children) {
@@ -360,20 +370,15 @@ const images: GalleryImage[] = items.map((item) => {
         image.draggable = false;
         const index = imageAt(tx, ty, shape, rank);
         const slot = `${tx},${ty},${place}`;
-        placed.set(image, {
-          anchor: { x: tx + anchor.x, y: ty + anchor.y },
-          extent,
-          index,
-          slot,
-        });
+        const position = { x: tx + anchor.x, y: ty + anchor.y };
+        placed.set(image, { anchor: position, extent, index, slot });
         image.style.zIndex = String(stacking.get(slot) ?? "");
-        const delay = calm.matches ? 0 : Math.random() * popDelay;
-        loadImage(image, items[index].src).then(
+        const loaded = loadImage(image, items[index].src);
+        if (collecting && onScreen(position, extent)) firstLoads.push(loaded);
+        loaded.then(
           () => {
-            setTimeout(() => {
-              image.classList.add("is-loaded");
-              label(image);
-            }, delay);
+            image.classList.add("is-loaded");
+            label(image);
             if (image.crossOrigin && !sources.has(index)) {
               sources.set(index, image);
               uploadTextures();
@@ -828,6 +833,7 @@ const images: GalleryImage[] = items.map((item) => {
     );
 
     document.addEventListener("keydown", (event) => {
+      if (!gallery.classList.contains("is-revealed")) return;
       if (event.key === "Escape") return unfocus();
       if (
         event.key === "Enter" &&
@@ -864,8 +870,22 @@ const images: GalleryImage[] = items.map((item) => {
 
     new ResizeObserver(resize).observe(gallery);
     resize();
-    popDelay = 0;
+    collecting = false;
     gallery.classList.add("is-ready");
+
+    Promise.race([
+      Promise.allSettled(firstLoads),
+      new Promise((resolve) => setTimeout(resolve, config.revealWait)),
+    ]).then(() => {
+      const arriving = Number(document.documentElement.dataset.pageArriving);
+      if (arriving) {
+        gallery.style.setProperty(
+          "--_reveal-elapsed",
+          `${performance.now() - arriving}ms`,
+        );
+      }
+      gallery.classList.add("is-revealed");
+    });
 
     for (const query of plainQueries) {
       query.addEventListener("change", startShader);
@@ -906,6 +926,21 @@ const images: GalleryImage[] = items.map((item) => {
       touch-action: none;
       -webkit-user-select: none;
       user-select: none;
+      opacity: 0;
+      pointer-events: none;
+      &.is-revealed {
+        opacity: 1;
+        pointer-events: auto;
+        @media (prefers-reduced-motion: no-preference) {
+          animation: page-reveal var(--page-reveal-duration)
+            var(--page-reveal-ease)
+            max(
+              0ms,
+              var(--page-reveal) - var(--_reveal-elapsed, var(--page-reveal))
+            )
+            backwards;
+        }
+      }
       &::before {
         content: "";
         position: absolute;

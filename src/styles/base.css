@@ -77,6 +77,13 @@
   --page-stagger: 100ms;
   --page-travel: 30vh;
   --page-ease: var(--smooth-scroll-ease);
+  --page-next-pace: 1.5;
+  --page-curtain-cover: 730ms;
+  --page-curtain-hold: 110ms;
+  --page-curtain-lift: 930ms;
+  --page-reveal: calc(var(--page-curtain-cover) + var(--page-curtain-hold) + var(--page-stagger));
+  --page-reveal-duration: 1200ms;
+  --page-reveal-ease: cubic-bezier(0.25, 1, 0.5, 1);
 
   /* Radius */
   --radius-xsmall: 0.25rem;

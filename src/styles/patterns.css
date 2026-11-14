@@ -257,3 +257,27 @@
     opacity: 0.5;
   }
 }
+
+/* Page reveal */
+:root[data-page-arriving] [data-page-reveal] {
+  animation: page-reveal var(--page-reveal-duration) var(--page-reveal-ease) calc(var(--page-reveal) + var(--page-stagger) * var(--_page-step, 0)) both;
+}
+
+[data-page-reveal="1"] {
+  --_page-step: 1;
+}
+
+[data-page-reveal="2"] {
+  --_page-step: 2;
+}
+
+[data-page-reveal="3"] {
+  --_page-step: 3;
+}
+
+@keyframes page-reveal {
+  from {
+    opacity: 0;
+    translate: 0 var(--space-5);
+  }
+}
