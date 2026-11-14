@@ -17,18 +17,21 @@
       if (from && isCaseStudy(from) && isCaseStudy(location.href)) return;
 
       transition.types.add("page");
-      transition.ready
-        .then(() => {
-          document.documentElement.dataset.pageArriving = String(
-            performance.now(),
-          );
-        })
-        .catch(() => {});
       const curtain = document.createElement("div");
       curtain.className = "page-transition_wrap theme-brand";
       curtain.setAttribute("aria-hidden", "true");
+      curtain.addEventListener("animationend", () => curtain.remove(), {
+        once: true,
+      });
       (document.body ?? document.documentElement).append(curtain);
-      transition.finished.catch(() => {}).finally(() => curtain.remove());
+      transition.ready.then(
+        () => {
+          document.documentElement.dataset.pageArriving = String(
+            performance.now(),
+          );
+        },
+        () => curtain.remove(),
+      );
     });
   })();
 </script>
@@ -41,64 +44,46 @@
   }
 
   @layer components {
-    ::view-transition-group(*) {
-      animation-duration: var(--open-duration-slow);
-      animation-timing-function: var(--open-ease-smooth);
-    }
-
     .page-transition_wrap {
       position: fixed;
       inset: 0;
       z-index: 101;
       pointer-events: none;
       background-color: var(--background);
-      view-transition-name: page-curtain;
+      animation: page-transition-lift var(--page-curtain-lift) var(--page-ease)
+        calc(var(--page-curtain-cover) + var(--page-curtain-hold)) forwards;
     }
 
     :active-view-transition-type(page) {
       &::view-transition-old(*) {
-        animation: page-transition-hide 1ms var(--page-curtain-cover) both;
-      }
-      &::view-transition-new(*) {
-        animation: page-transition-show 1ms var(--page-curtain-cover) both;
-      }
-      &::view-transition-group(page-curtain) {
         animation: none;
       }
-      &::view-transition-new(page-curtain) {
-        animation:
-          page-transition-cover var(--page-curtain-cover)
-            var(--close-ease-smooth) both,
-          page-transition-lift var(--page-curtain-lift) var(--page-ease)
-            calc(var(--page-curtain-cover) + var(--page-curtain-hold)) forwards;
+      &::view-transition-new(*) {
+        animation: page-transition-hidden var(--page-curtain-cover) both;
+      }
+      &::view-transition-new(root) {
+        animation: page-transition-wipe var(--page-curtain-cover)
+          var(--close-ease-smooth) both;
       }
     }
 
-    @keyframes page-transition-hide {
+    @keyframes page-transition-hidden {
+      from,
       to {
         opacity: 0;
       }
     }
 
-    @keyframes page-transition-show {
+    @keyframes page-transition-wipe {
       from {
-        opacity: 0;
-      }
-    }
-
-    @keyframes page-transition-cover {
-      from {
-        translate: 0 100%;
+        clip-path: inset(100% 0 0 0);
       }
       to {
-        translate: 0 0;
+        clip-path: inset(0);
       }
     }
 
     @keyframes page-transition-lift {
-      from {
-        translate: 0 0;
-      }
       to {
         translate: 0 -100%;
       }
