@@ -13,6 +13,19 @@
     const isCaseStudy = (url) =>
       new URL(url).pathname.startsWith("/case-studies/");
 
+    addEventListener("pageswap", (event) => {
+      const activation = event.activation;
+      if (!event.viewTransition || !activation) return;
+      if (!["push", "replace"].includes(activation.navigationType)) return;
+      if (isCaseStudy(location.href) && isCaseStudy(activation.entry.url))
+        return;
+      document.documentElement.dataset.pageLeaving = "";
+    });
+
+    addEventListener("pageshow", (event) => {
+      if (event.persisted) delete document.documentElement.dataset.pageLeaving;
+    });
+
     addEventListener("pagereveal", (event) => {
       const transition = event.viewTransition;
       if (!transition) return;
