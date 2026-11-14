@@ -76,7 +76,7 @@ const image = await slotContent(Astro.slots);
       </dl>
     )}
     {image && (
-      <div class="intro-case-study_image">
+      <div class="intro-case-study_image" data-page-reveal="3">
         <Fragment set:html={image} />
       </div>
     )}
@@ -131,9 +131,9 @@ const image = await slotContent(Astro.slots);
       }
       :root[data-page-arriving] & {
         .intro-case-study_image {
-          animation: intro-case-study-rise var(--page-duration-slow)
-            var(--page-ease) calc(var(--page-reveal) + var(--page-stagger) * 3)
-            both;
+          animation-name: intro-case-study-rise;
+          animation-duration: var(--page-duration-slow);
+          animation-timing-function: var(--page-ease);
         }
       }
       @media (width >= 48rem) {
