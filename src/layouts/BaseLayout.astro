@@ -9,6 +9,7 @@ import Modal from "@/components/interactive/Modal.astro";
 import ContactModal from "@/components/content/ContactModal.astro";
 import SmoothScroll from "@/components/utility/SmoothScroll.astro";
 import Cursor from "@/components/interactive/Cursor.astro";
+import PageTransition from "@/components/utility/PageTransition.astro";
 import type { SeoProps } from "@/types.ts";
 
 type Props = SeoProps & {
@@ -48,6 +49,7 @@ const {
 <html lang="en" class:list={[theme !== "inherit" && `theme-${theme}`]}>
   <head>
     <BaseHead {...seo} />
+    <PageTransition />
     <slot name="head" />
   </head>
   <body>

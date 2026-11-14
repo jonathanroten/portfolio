@@ -1,0 +1,107 @@
+<link rel="expect" href="#main" blocking="render" />
+
+<script is:inline>
+  (function () {
+    const isCaseStudy = (url) =>
+      new URL(url).pathname.startsWith("/case-studies/");
+
+    addEventListener("pagereveal", (event) => {
+      const transition = event.viewTransition;
+      if (!transition) return;
+      const activation = window.navigation?.activation;
+      const isNewVisit = activation
+        ? ["push", "replace"].includes(activation.navigationType)
+        : performance.getEntriesByType("navigation")[0]?.type === "navigate";
+      if (!isNewVisit) return;
+      const from = activation ? activation.from?.url : document.referrer;
+      if (from && isCaseStudy(from) && isCaseStudy(location.href)) return;
+
+      transition.types.add("page");
+      transition.ready
+        .then(() => {
+          document.documentElement.dataset.pageArriving = String(
+            performance.now(),
+          );
+        })
+        .catch(() => {});
+      const curtain = document.createElement("div");
+      curtain.className = "page-transition_wrap theme-brand";
+      curtain.setAttribute("aria-hidden", "true");
+      (document.body ?? document.documentElement).append(curtain);
+      transition.finished.catch(() => {}).finally(() => curtain.remove());
+    });
+  })();
+</script>
+
+<style is:global>
+  @media (prefers-reduced-motion: no-preference) {
+    @view-transition {
+      navigation: auto;
+    }
+  }
+
+  @layer components {
+    ::view-transition-group(*) {
+      animation-duration: var(--open-duration-slow);
+      animation-timing-function: var(--open-ease-smooth);
+    }
+
+    .page-transition_wrap {
+      position: fixed;
+      inset: 0;
+      z-index: 101;
+      pointer-events: none;
+      background-color: var(--background);
+      view-transition-name: page-curtain;
+    }
+
+    :active-view-transition-type(page) {
+      &::view-transition-old(*) {
+        animation: page-transition-hide 1ms var(--page-curtain-cover) both;
+      }
+      &::view-transition-new(*) {
+        animation: page-transition-show 1ms var(--page-curtain-cover) both;
+      }
+      &::view-transition-group(page-curtain) {
+        animation: none;
+      }
+      &::view-transition-new(page-curtain) {
+        animation:
+          page-transition-cover var(--page-curtain-cover)
+            var(--close-ease-smooth) both,
+          page-transition-lift var(--page-curtain-lift) var(--page-ease)
+            calc(var(--page-curtain-cover) + var(--page-curtain-hold)) forwards;
+      }
+    }
+
+    @keyframes page-transition-hide {
+      to {
+        opacity: 0;
+      }
+    }
+
+    @keyframes page-transition-show {
+      from {
+        opacity: 0;
+      }
+    }
+
+    @keyframes page-transition-cover {
+      from {
+        translate: 0 100%;
+      }
+      to {
+        translate: 0 0;
+      }
+    }
+
+    @keyframes page-transition-lift {
+      from {
+        translate: 0 0;
+      }
+      to {
+        translate: 0 -100%;
+      }
+    }
+  }
+</style>

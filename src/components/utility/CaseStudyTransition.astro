@@ -42,21 +42,12 @@
 </script>
 
 <style is:global>
-  @media (prefers-reduced-motion: no-preference) {
-    @view-transition {
-      navigation: auto;
-    }
-  }
-
   @layer components {
-    ::view-transition-group(*) {
-      animation-duration: var(--open-duration-slow);
-      animation-timing-function: var(--open-ease-smooth);
-    }
-
     :active-view-transition-type(case-study-next) {
       &::view-transition-group(*) {
-        animation-duration: var(--page-duration-slow);
+        animation-duration: calc(
+          var(--page-duration-slow) * var(--page-next-pace)
+        );
         animation-timing-function: var(--page-ease);
       }
       &::view-transition-old(root) {
@@ -69,7 +60,7 @@
       }
       &::view-transition-group(case-study-number),
       &::view-transition-group(case-study-title) {
-        animation-duration: var(--page-duration);
+        animation-duration: calc(var(--page-duration) * var(--page-next-pace));
       }
       &::view-transition-old(case-study-number),
       &::view-transition-new(case-study-number),
@@ -91,7 +82,7 @@
       5% {
         opacity: 0;
       }
-      25%,
+      50%,
       to {
         opacity: 1;
       }

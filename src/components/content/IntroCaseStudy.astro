@@ -42,6 +42,7 @@ const image = await slotContent(Astro.slots);
       <span
         class="intro-case-study_number text-style-h5"
         data-view-transition="number"
+        data-page-reveal="0"
       >
         {String(number).padStart(2, "0")}
       </span>
@@ -49,14 +50,17 @@ const image = await slotContent(Astro.slots);
     <h1
       class="intro-case-study_title text-style-h5"
       data-view-transition="title"
+      data-page-reveal="0"
     >
       {heading}
     </h1>
     {description && (
-      <p class="intro-case-study_text text-style-h4">{description}</p>
+      <p class="intro-case-study_text text-style-h4" data-page-reveal="1">
+        {description}
+      </p>
     )}
     {(!!services?.length || !!engagement) && (
-      <dl class="intro-case-study_meta">
+      <dl class="intro-case-study_meta" data-page-reveal="2">
         {!!services?.length && (
           <div>
             <dt class="sr-only">Services Provided</dt>
@@ -109,15 +113,27 @@ const image = await slotContent(Astro.slots);
       :root.case-study-arriving & {
         .intro-case-study_text,
         .intro-case-study_meta {
-          animation: intro-case-study-reveal var(--page-duration)
-            var(--page-ease) calc(var(--page-stagger) * 3) both;
+          animation: page-reveal var(--page-reveal-duration)
+            var(--page-reveal-ease)
+            calc(var(--page-stagger) * 3 * var(--page-next-pace)) both;
         }
         .intro-case-study_meta {
-          animation-delay: calc(var(--page-stagger) * 4);
+          animation-delay: calc(
+            var(--page-stagger) * 4 * var(--page-next-pace)
+          );
         }
         .intro-case-study_image {
+          animation: intro-case-study-rise
+            calc(var(--page-duration-slow) * var(--page-next-pace))
+            var(--page-ease)
+            calc(var(--page-stagger) * 5 * var(--page-next-pace)) both;
+        }
+      }
+      :root[data-page-arriving] & {
+        .intro-case-study_image {
           animation: intro-case-study-rise var(--page-duration-slow)
-            var(--page-ease) calc(var(--page-stagger) * 5) both;
+            var(--page-ease) calc(var(--page-reveal) + var(--page-stagger) * 3)
+            both;
         }
       }
       @media (width >= 48rem) {
@@ -129,13 +145,6 @@ const image = await slotContent(Astro.slots);
           justify-content: space-between;
           gap: var(--site-gutter);
         }
-      }
-    }
-
-    @keyframes intro-case-study-reveal {
-      from {
-        opacity: 0;
-        translate: 0 var(--space-5);
       }
     }
 

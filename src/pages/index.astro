@@ -29,8 +29,11 @@ const description = await getDescription();
       <Heading tag="h1" class="sr-only">
         Jonathan Roten's Portfolio
       </Heading>
-      <IntroHome description={description} />
-      <div class="width-full display-inline-flex justify-content-between">
+      <IntroHome description={description} data-page-reveal="0" />
+      <div
+        class="width-full display-inline-flex justify-content-between"
+        data-page-reveal="1"
+      >
         <span class="text-style-h6">
           <FormattedDate
             date={today}
