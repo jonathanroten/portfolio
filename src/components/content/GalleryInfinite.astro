@@ -340,6 +340,15 @@ const images: GalleryImage[] = items.map((item) => {
       return `${ux * push}px ${uy * push}px`;
     };
 
+    const onScreen = (
+      anchor: { x: number; y: number },
+      extent: { x: number; y: number },
+    ) =>
+      Math.abs(anchor.x - center.x) <
+        viewSize.width / tileSize.width / 2 + extent.x &&
+      Math.abs(anchor.y - center.y) <
+        viewSize.height / tileSize.height / 2 + extent.y;
+
     const syncPush = () => {
       for (const tile of tiles.values()) {
         for (const image of tile.children) {
@@ -361,15 +370,11 @@ const images: GalleryImage[] = items.map((item) => {
         image.draggable = false;
         const index = imageAt(tx, ty, shape, rank);
         const slot = `${tx},${ty},${place}`;
-        placed.set(image, {
-          anchor: { x: tx + anchor.x, y: ty + anchor.y },
-          extent,
-          index,
-          slot,
-        });
+        const position = { x: tx + anchor.x, y: ty + anchor.y };
+        placed.set(image, { anchor: position, extent, index, slot });
         image.style.zIndex = String(stacking.get(slot) ?? "");
         const loaded = loadImage(image, items[index].src);
-        if (collecting) firstLoads.push(loaded);
+        if (collecting && onScreen(position, extent)) firstLoads.push(loaded);
         loaded.then(
           () => {
             image.classList.add("is-loaded");
