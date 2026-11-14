@@ -28,15 +28,23 @@
       const curtain = document.createElement("div");
       curtain.className = "page-transition_wrap theme-brand";
       curtain.setAttribute("aria-hidden", "true");
-      curtain.addEventListener("animationend", () => curtain.remove(), {
-        once: true,
-      });
+      const lifted = new Promise((resolve) =>
+        curtain.addEventListener("animationend", resolve, { once: true }),
+      ).then(() => curtain.remove());
       (document.body ?? document.documentElement).append(curtain);
       transition.ready.then(
         () => {
-          document.documentElement.dataset.pageArriving = String(
-            performance.now(),
-          );
+          const root = document.documentElement;
+          root.dataset.pageArriving = String(performance.now());
+          const reveals = document
+            .getAnimations()
+            .filter((animation) =>
+              animation.effect?.target?.matches?.("[data-page-reveal]"),
+            )
+            .map((animation) => animation.finished);
+          Promise.allSettled([lifted, ...reveals]).then(() => {
+            delete root.dataset.pageArriving;
+          });
         },
         () => curtain.remove(),
       );
