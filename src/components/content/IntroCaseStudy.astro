@@ -142,18 +142,22 @@ const image = await slotContent(Astro.slots);
     }
 
     :active-view-transition-type(case-study-next) {
+      --_next-step: calc(var(--page-stagger) * var(--page-next-pace));
+      --_next-reveal: calc(var(--_next-step) * 5);
+      @media (width >= 48rem) {
+        --_next-reveal: calc(var(--_next-step) * 3);
+      }
       &::view-transition-new(case-study-text),
       &::view-transition-new(case-study-meta) {
         animation: page-reveal var(--page-reveal-duration)
-          var(--page-reveal-ease)
-          calc(var(--page-stagger) * 3 * var(--page-next-pace)) both;
+          var(--page-reveal-ease) var(--_next-reveal) both;
       }
       &::view-transition-new(case-study-meta) {
-        animation-delay: calc(var(--page-stagger) * 4 * var(--page-next-pace));
+        animation-delay: calc(var(--_next-reveal) + var(--_next-step));
       }
       &::view-transition-new(case-study-image) {
         animation: intro-case-study-rise var(--page-next-duration)
-          var(--page-ease) calc(var(--page-stagger) * 5 * var(--page-next-pace))
+          var(--page-ease) calc(var(--_next-reveal) + var(--_next-step) * 2)
           both;
       }
     }
