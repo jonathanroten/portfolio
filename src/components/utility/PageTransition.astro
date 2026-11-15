@@ -12,6 +12,8 @@
   (function () {
     const isCaseStudy = (url) =>
       new URL(url).pathname.startsWith("/case-studies/");
+    const hasMouse = () =>
+      matchMedia("(hover: hover) and (pointer: fine)").matches;
 
     const nameAll = (transition, scope) => {
       const elements = [
@@ -34,7 +36,7 @@
           nameAll(event.viewTransition, 'a[rel="next"]');
         return;
       }
-      document.documentElement.dataset.pageLeaving = "";
+      if (hasMouse()) document.documentElement.dataset.pageLeaving = "";
     });
 
     addEventListener("pageshow", (event) => {
@@ -61,7 +63,7 @@
 
       transition.types.add("page");
       const root = document.documentElement;
-      const mouse = matchMedia("(hover: hover) and (pointer: fine)").matches;
+      const mouse = hasMouse();
       if (mouse) root.dataset.pageCovering = "";
       const uncover = () => delete root.dataset.pageCovering;
       const curtain = document.createElement("div");
@@ -104,13 +106,14 @@
       --_overscan: 0.25;
       position: fixed;
       inset: calc(var(--_overscan) * -100%) 0 0;
-      z-index: 101;
+      z-index: 99;
       pointer-events: none;
       background-color: var(--background);
       animation: page-transition-fade-out var(--page-curtain-lift)
         var(--page-ease)
         calc(var(--page-curtain-cover) + var(--page-curtain-hold)) forwards;
       @media (hover: hover) and (pointer: fine) {
+        z-index: 101;
         animation-name: page-transition-lift;
       }
     }
