@@ -107,11 +107,11 @@ export type MotionShaderItem = {
   top: number;
   width: number;
   height: number;
-  /** This image's own motion. Without it, the image uses the shared motion. */
-  motion?: MotionShaderMotion;
+  /** How this image is moving. */
+  motion: MotionShaderMotion;
 };
 
-/** How the images are moving this frame, in CSS pixels. */
+/** How an image is moving this frame, in CSS pixels. */
 export type MotionShaderMotion = {
   /** Motion blur along x. */
   blurX: number;
@@ -119,24 +119,14 @@ export type MotionShaderMotion = {
   blurY: number;
   /** How far red and blue separate from green along the motion. Negative swaps them. */
   shift: number;
-  /** How far each image sits behind its true position along x. */
+  /** How far the image sits behind its true position along x. */
   lagX: number;
-  /** How far each image sits behind its true position along y. */
+  /** How far the image sits behind its true position along y. */
   lagY: number;
-  /** How far the middle of each image bows back along x. */
+  /** How far the middle of the image bows back along x. */
   bendX: number;
-  /** How far the middle of each image bows back along y. */
+  /** How far the middle of the image bows back along y. */
   bendY: number;
-};
-
-const STILL: MotionShaderMotion = {
-  blurX: 0,
-  blurY: 0,
-  shift: 0,
-  lagX: 0,
-  lagY: 0,
-  bendX: 0,
-  bendY: 0,
 };
 
 /**
@@ -227,20 +217,17 @@ export function createMotionShader(
       camera.updateProjectionMatrix();
     },
 
-    /**
-     * Draws `items` in order, so later items sit on top. Each item moves by its
-     * own `motion`, or by `motion` here when it has none.
-     */
-    draw(items: MotionShaderItem[], motion: MotionShaderMotion = STILL) {
+    /** Draws `items` in order, so later items sit on top. */
+    draw(items: MotionShaderItem[]) {
       const ratio = Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO);
       if (ratio !== renderer.getPixelRatio()) renderer.setPixelRatio(ratio);
       shared.uPixelRatio.value = ratio;
-      items.forEach(({ key, left, top, width, height, motion: own }, index) => {
+      items.forEach(({ key, left, top, width, height, motion }, index) => {
         const mesh = meshAt(index);
         const source = textures.get(key);
         mesh.visible = !!source;
         if (!source) return;
-        const { blurX, blurY, shift, lagX, lagY, bendX, bendY } = own ?? motion;
+        const { blurX, blurY, shift, lagX, lagY, bendX, bendY } = motion;
         const length = Math.hypot(blurX, blurY);
         const spread = Math.abs(shift);
         const samples = Math.ceil(

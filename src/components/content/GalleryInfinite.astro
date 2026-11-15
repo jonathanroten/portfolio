@@ -597,7 +597,7 @@ const images: GalleryImage[] = items.map((item) => {
         );
         const leanX = lean.x * leanFade;
         const leanY = lean.y * leanFade;
-        active.draw(visible, {
+        const wallMotion = {
           blurX: heading.x * motion.blur * strength,
           blurY: heading.y * motion.blur * strength,
           shift: motion.shift * (leanX * heading.x + leanY * heading.y),
@@ -605,7 +605,8 @@ const images: GalleryImage[] = items.map((item) => {
           lagY: leanY * motion.blur * motion.lag,
           bendX: leanX * motion.bend,
           bendY: leanY * motion.bend,
-        });
+        };
+        active.draw(visible.map((item) => ({ ...item, motion: wallMotion })));
       } else {
         lean.x = 0;
         lean.y = 0;
