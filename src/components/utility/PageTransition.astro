@@ -61,11 +61,14 @@
 
       transition.types.add("page");
       const root = document.documentElement;
-      root.dataset.pageCovering = "";
+      const mouse = matchMedia("(hover: hover) and (pointer: fine)").matches;
+      if (mouse) root.dataset.pageCovering = "";
       const uncover = () => delete root.dataset.pageCovering;
       const curtain = document.createElement("div");
-      curtain.className = "page-transition_wrap theme-brand";
+      curtain.className = "page-transition_wrap";
+      if (mouse) curtain.classList.add("theme-brand");
       curtain.setAttribute("aria-hidden", "true");
+      curtain.addEventListener("animationstart", uncover, { once: true });
       const lifted = new Promise((resolve) =>
         curtain.addEventListener("animationend", resolve, { once: true }),
       ).then(() => {
@@ -103,27 +106,18 @@
       inset: calc(var(--_overscan) * -100%) 0 0;
       z-index: 101;
       pointer-events: none;
-      box-shadow: inset 0 0 0 100vmax var(--background);
+      background-color: var(--background);
       animation: page-transition-fade-out var(--page-curtain-lift)
         var(--page-ease)
         calc(var(--page-curtain-cover) + var(--page-curtain-hold)) forwards;
       @media (hover: hover) and (pointer: fine) {
-        background-color: var(--background);
-        box-shadow: none;
         animation-name: page-transition-lift;
       }
     }
 
     :root[data-page-covering] {
-      --_untint: var(--page-curtain-lift);
-      animation:
-        page-transition-tint var(--page-curtain-cover) var(--close-ease-smooth)
-          forwards,
-        page-transition-untint var(--_untint) var(--page-ease)
-          calc(var(--page-curtain-cover) + var(--page-curtain-hold)) forwards;
-      @media (hover: hover) and (pointer: fine) {
-        --_untint: 0s;
-      }
+      animation: page-transition-tint var(--page-curtain-cover)
+        var(--close-ease-smooth) forwards;
     }
 
     :active-view-transition-type(page) {
@@ -186,15 +180,6 @@
     @keyframes page-transition-tint {
       to {
         background-color: var(--brand-500);
-      }
-    }
-
-    @keyframes page-transition-untint {
-      from {
-        background-color: var(--brand-500);
-      }
-      to {
-        background-color: var(--background);
       }
     }
 
