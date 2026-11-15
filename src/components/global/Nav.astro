@@ -115,20 +115,36 @@ const { render = true, overlap = false } = Astro.props;
   const desktopQuery = window.matchMedia("(width >= 48rem)");
 
   if (nav && toggle) {
+    const menu = nav.querySelector<HTMLElement>(".nav_menu");
+    const settled = () =>
+      Promise.allSettled(
+        (menu?.getAnimations({ subtree: true }) ?? []).map(
+          (animation) => animation.finished,
+        ),
+      );
+    if (menu) menu.hidden = !desktopQuery.matches;
+
     const setOpen = (open: boolean) => {
+      if (open && menu) {
+        menu.hidden = false;
+        void menu.offsetHeight;
+      }
       nav.classList.toggle("open", open);
       nav.classList.toggle("theme-brand", open);
       toggle.setAttribute("aria-expanded", String(open));
       for (const el of document.body.children) {
         if (el instanceof HTMLElement && !el.contains(nav)) el.inert = open;
       }
+      if (open || !menu) return;
+      settled().then(() => {
+        if (!nav.classList.contains("open"))
+          menu.hidden = !desktopQuery.matches;
+      });
     };
 
     toggle.addEventListener("click", () => {
       setOpen(toggle.getAttribute("aria-expanded") !== "true");
     });
-
-    const menu = nav.querySelector<HTMLElement>(".nav_menu");
 
     nav.querySelectorAll("a").forEach((link) => {
       link.addEventListener("click", (event) => {
@@ -141,11 +157,7 @@ const { render = true, overlap = false } = Astro.props;
         setOpen(false);
         if (!sameTab || !menu) return;
         event.preventDefault();
-        Promise.allSettled(
-          menu
-            .getAnimations({ subtree: true })
-            .map((animation) => animation.finished),
-        ).then(() => location.assign(link.href));
+        settled().then(() => location.assign(link.href));
       });
     });
 
@@ -162,9 +174,7 @@ const { render = true, overlap = false } = Astro.props;
       if (!nav.contains(target)) setOpen(false);
     });
 
-    desktopQuery.addEventListener("change", (event) => {
-      if (event.matches) setOpen(false);
-    });
+    desktopQuery.addEventListener("change", () => setOpen(false));
   }
 </script>
 
@@ -305,6 +315,9 @@ const { render = true, overlap = false } = Astro.props;
       .nav_wrap.open & {
         grid-template-rows: 1fr;
         visibility: visible;
+      }
+      &[hidden] {
+        display: none;
       }
       @media (width >= 48rem) {
         position: static;

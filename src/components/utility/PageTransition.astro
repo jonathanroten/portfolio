@@ -66,7 +66,6 @@
       const curtain = document.createElement("div");
       curtain.className = "page-transition_wrap theme-brand";
       curtain.setAttribute("aria-hidden", "true");
-      curtain.addEventListener("animationstart", uncover, { once: true });
       const lifted = new Promise((resolve) =>
         curtain.addEventListener("animationend", resolve, { once: true }),
       ).then(() => {
@@ -104,14 +103,27 @@
       inset: calc(var(--_overscan) * -100%) 0 0;
       z-index: 101;
       pointer-events: none;
-      background-color: var(--background);
-      animation: page-transition-lift var(--page-curtain-lift) var(--page-ease)
+      box-shadow: inset 0 0 0 100vmax var(--background);
+      animation: page-transition-fade-out var(--page-curtain-lift)
+        var(--page-ease)
         calc(var(--page-curtain-cover) + var(--page-curtain-hold)) forwards;
+      @media (hover: hover) and (pointer: fine) {
+        background-color: var(--background);
+        box-shadow: none;
+        animation-name: page-transition-lift;
+      }
     }
 
     :root[data-page-covering] {
-      animation: page-transition-tint var(--page-curtain-cover)
-        var(--close-ease-smooth) forwards;
+      --_untint: var(--page-curtain-lift);
+      animation:
+        page-transition-tint var(--page-curtain-cover) var(--close-ease-smooth)
+          forwards,
+        page-transition-untint var(--_untint) var(--page-ease)
+          calc(var(--page-curtain-cover) + var(--page-curtain-hold)) forwards;
+      @media (hover: hover) and (pointer: fine) {
+        --_untint: 0s;
+      }
     }
 
     :active-view-transition-type(page) {
@@ -122,8 +134,11 @@
         animation: page-transition-hidden var(--page-curtain-cover) both;
       }
       &::view-transition-new(root) {
-        animation: page-transition-wipe var(--page-curtain-cover)
+        animation: page-transition-fade-in var(--page-curtain-cover)
           var(--close-ease-smooth) both;
+        @media (hover: hover) and (pointer: fine) {
+          animation-name: page-transition-wipe;
+        }
       }
     }
 
@@ -171,6 +186,27 @@
     @keyframes page-transition-tint {
       to {
         background-color: var(--brand-500);
+      }
+    }
+
+    @keyframes page-transition-untint {
+      from {
+        background-color: var(--brand-500);
+      }
+      to {
+        background-color: var(--background);
+      }
+    }
+
+    @keyframes page-transition-fade-in {
+      from {
+        opacity: 0;
+      }
+    }
+
+    @keyframes page-transition-fade-out {
+      to {
+        opacity: 0;
       }
     }
 
