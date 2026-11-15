@@ -55,6 +55,11 @@ const sizes = [
 
 <script>
   import type { MotionShader } from "@/utils/motion-shader.ts";
+  import {
+    loadMotionShader,
+    onPlainImagesChange,
+    prefersPlainImages,
+  } from "@/utils/motion-shader-loader.ts";
 
   const clamp = (value: number, min: number, max: number) =>
     Math.max(min, Math.min(value, max));
@@ -102,13 +107,6 @@ const sizes = [
     const reducedMotionQuery = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     );
-    const plainQueries = [
-      reducedMotionQuery,
-      window.matchMedia("(prefers-contrast: more)"),
-      window.matchMedia("(forced-colors: active)"),
-    ];
-    const prefersPlainImages = () =>
-      plainQueries.some((query) => query.matches);
 
     const pointer = { x: 0, y: 0 };
     const last = { x: 0, y: 0 };
@@ -211,19 +209,14 @@ const sizes = [
       ) {
         return;
       }
-      const context = canvas.getContext("webgl2", {
-        depth: false,
-        antialias: false,
-        failIfMajorPerformanceCaveat: true,
-      });
-      if (!context) return;
+      const loading = loadMotionShader(canvas);
+      if (!loading) return;
       shaderRequested = true;
-      import("@/utils/motion-shader.ts")
-        .then(({ createMotionShader }) => {
-          const active = createMotionShader(canvas, context);
-          active.resize(view.width, view.height);
-          shader = active;
-          return uploadTextures(active);
+      loading
+        .then((loaded) => {
+          loaded.resize(view.width, view.height);
+          shader = loaded;
+          return uploadTextures(loaded);
         })
         .catch(console.warn);
     };
@@ -531,9 +524,8 @@ const sizes = [
     observer.observe(scope);
     observer.observe(trail);
     if (nav) observer.observe(nav);
-    for (const query of [trailQuery, ...plainQueries]) {
-      query.addEventListener("change", startShader);
-    }
+    trailQuery.addEventListener("change", startShader);
+    onPlainImagesChange(startShader);
     if (document.readyState === "complete") startShader();
     else window.addEventListener("load", startShader, { once: true });
   }

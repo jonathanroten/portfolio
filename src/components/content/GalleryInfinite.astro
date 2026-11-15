@@ -80,6 +80,11 @@ const images: GalleryImage[] = items.map((item) => {
 <script>
   import type { GalleryImage } from "@/types.ts";
   import type { MotionShader } from "@/utils/motion-shader.ts";
+  import {
+    loadMotionShader,
+    onPlainImagesChange,
+    prefersPlainImages,
+  } from "@/utils/motion-shader-loader.ts";
 
   const config = {
     tileWidth: 1440,
@@ -268,13 +273,6 @@ const images: GalleryImage[] = items.map((item) => {
     let seated = false;
     const held = new Set<string>();
     const calm = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const plainQueries = [
-      calm,
-      window.matchMedia("(prefers-contrast: more)"),
-      window.matchMedia("(forced-colors: active)"),
-    ];
-    const prefersPlainImages = () =>
-      plainQueries.some((query) => query.matches);
     const firstLoads: Promise<void>[] = [];
     let collecting = true;
     const viewSize = { width: 0, height: 0 };
@@ -499,16 +497,12 @@ const images: GalleryImage[] = items.map((item) => {
       if (shaderRequested || corsBlocked || !canvas || prefersPlainImages()) {
         return;
       }
-      const context = canvas.getContext("webgl2", {
-        depth: false,
-        antialias: false,
-        failIfMajorPerformanceCaveat: true,
-      });
-      if (!context) return;
+      const loading = loadMotionShader(canvas);
+      if (!loading) return;
       shaderRequested = true;
-      import("@/utils/motion-shader.ts")
-        .then(({ createMotionShader }) => {
-          shader = createMotionShader(canvas, context);
+      loading
+        .then((loaded) => {
+          shader = loaded;
           shader.resize(viewSize.width, viewSize.height);
           uploadTextures();
         })
@@ -887,9 +881,7 @@ const images: GalleryImage[] = items.map((item) => {
       gallery.classList.add("is-revealed");
     });
 
-    for (const query of plainQueries) {
-      query.addEventListener("change", startShader);
-    }
+    onPlainImagesChange(startShader);
     if (document.readyState === "complete") startShader();
     else window.addEventListener("load", startShader, { once: true });
   };
