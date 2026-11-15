@@ -13,12 +13,27 @@
     const isCaseStudy = (url) =>
       new URL(url).pathname.startsWith("/case-studies/");
 
+    const nameAll = (transition, scope) => {
+      const elements = [
+        ...document.querySelectorAll(`${scope} [data-view-transition]`),
+      ];
+      for (const el of elements) {
+        el.style.viewTransitionName = `case-study-${el.dataset.viewTransition}`;
+      }
+      transition.finished.finally(() => {
+        for (const el of elements) el.style.viewTransitionName = "";
+      });
+    };
+
     addEventListener("pageswap", (event) => {
       const activation = event.activation;
       if (!event.viewTransition || !activation) return;
       if (!["push", "replace"].includes(activation.navigationType)) return;
-      if (isCaseStudy(location.href) && isCaseStudy(activation.entry.url))
+      if (isCaseStudy(location.href) && isCaseStudy(activation.entry.url)) {
+        if (activation.navigationType === "push")
+          nameAll(event.viewTransition, 'a[rel="next"]');
         return;
+      }
       document.documentElement.dataset.pageLeaving = "";
     });
 
@@ -35,7 +50,12 @@
         : performance.getEntriesByType("navigation")[0]?.type === "navigate";
       if (!isNewVisit) return;
       const from = activation ? activation.from?.url : document.referrer;
-      if (from && isCaseStudy(from) && isCaseStudy(location.href)) return;
+      if (from && isCaseStudy(from) && isCaseStudy(location.href)) {
+        if (activation?.navigationType !== "push") return;
+        transition.types.add("case-study-next");
+        nameAll(transition, "#case-study-hero");
+        return;
+      }
 
       transition.types.add("page");
       const curtain = document.createElement("div");
@@ -90,6 +110,31 @@
       }
     }
 
+    :active-view-transition-type(case-study-next) {
+      &::view-transition-group(*) {
+        animation-duration: var(--page-next-duration);
+        animation-timing-function: var(--page-ease);
+      }
+      &::view-transition-old(root) {
+        animation-name: page-transition-next-leave;
+        animation-timing-function: linear;
+      }
+      &::view-transition-new(root) {
+        animation-name: page-transition-next-enter;
+        animation-timing-function: linear;
+      }
+      &::view-transition-group(case-study-number),
+      &::view-transition-group(case-study-title) {
+        animation-duration: calc(var(--page-duration) * var(--page-next-pace));
+      }
+      &::view-transition-old(case-study-number),
+      &::view-transition-new(case-study-number),
+      &::view-transition-old(case-study-title),
+      &::view-transition-new(case-study-title) {
+        width: auto;
+      }
+    }
+
     @keyframes page-transition-hidden {
       from,
       to {
@@ -109,6 +154,24 @@
     @keyframes page-transition-lift {
       to {
         translate: 0 -100%;
+      }
+    }
+
+    @keyframes page-transition-next-leave {
+      12%,
+      to {
+        opacity: 0;
+      }
+    }
+
+    @keyframes page-transition-next-enter {
+      from,
+      5% {
+        opacity: 0;
+      }
+      50%,
+      to {
+        opacity: 1;
       }
     }
   }

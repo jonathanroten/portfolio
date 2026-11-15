@@ -8,7 +8,6 @@ import Paragraph from "@/components/typography/Paragraph.astro";
 import Img from "@/components/media/Img.astro";
 import IntroCaseStudy from "@/components/content/IntroCaseStudy.astro";
 import NextCaseStudy from "@/components/content/NextCaseStudy.astro";
-import CaseStudyTransition from "@/components/utility/CaseStudyTransition.astro";
 import { galleryCrops, imageUrl } from "@/utils/sanity.ts";
 import { getCaseStudies, type CaseStudy } from "@/utils/case-studies.ts";
 
@@ -39,7 +38,6 @@ const hero = galleryCrops.fullWidth;
   footer={next ? "none" : "full"}
   smoothScroll
 >
-  <CaseStudyTransition slot="head" />
   <!-- Hero -->
   <Section id="case-study-hero" class="padding-top-5" paddingBottom="none">
     <IntroCaseStudy

@@ -465,6 +465,7 @@ const images: GalleryImage[] = items.map((item) => {
       shader?.resize(viewSize.width, viewSize.height);
       syncFocus();
       syncTiles();
+      if (collecting) reveal();
     };
 
     const canvas = gallery.querySelector<HTMLCanvasElement>(
@@ -864,24 +865,31 @@ const images: GalleryImage[] = items.map((item) => {
     });
     window.addEventListener("blur", () => held.clear());
 
+    const reveal = () => {
+      collecting = false;
+      Promise.race([
+        Promise.allSettled(firstLoads),
+        new Promise((resolve) => setTimeout(resolve, config.revealWait)),
+      ])
+        .then(() => new Promise((resolve) => requestAnimationFrame(resolve)))
+        .then(() => document.activeViewTransition?.ready.catch(() => {}))
+        .then(() => {
+          const arriving = Number(
+            document.documentElement.dataset.pageArriving,
+          );
+          if (arriving) {
+            gallery.style.setProperty(
+              "--_reveal-elapsed",
+              `${performance.now() - arriving}ms`,
+            );
+          }
+          gallery.classList.add("is-revealed");
+        });
+    };
+
     new ResizeObserver(resize).observe(gallery);
     resize();
-    collecting = false;
     gallery.classList.add("is-ready");
-
-    Promise.race([
-      Promise.allSettled(firstLoads),
-      new Promise((resolve) => setTimeout(resolve, config.revealWait)),
-    ]).then(() => {
-      const arriving = Number(document.documentElement.dataset.pageArriving);
-      if (arriving) {
-        gallery.style.setProperty(
-          "--_reveal-elapsed",
-          `${performance.now() - arriving}ms`,
-        );
-      }
-      gallery.classList.add("is-revealed");
-    });
 
     onPlainImagesChange(startShader);
     if (document.readyState === "complete") startShader();
@@ -911,6 +919,10 @@ const images: GalleryImage[] = items.map((item) => {
   @layer components {
     .gallery-infinite_wrap {
       --_leaving: calc(var(--open-duration) * 0.5);
+      --_reveal-start: calc(
+        var(--page-curtain-cover) + var(--page-curtain-hold) +
+          var(--page-curtain-lift) * 0.3
+      );
       --_focus-inset-block: var(--nav-total-height);
       --_focus-inset-inline: var(--site-margin);
       position: absolute;
@@ -930,7 +942,8 @@ const images: GalleryImage[] = items.map((item) => {
             var(--page-reveal-ease)
             max(
               0ms,
-              var(--page-reveal) - var(--_reveal-elapsed, var(--page-reveal))
+              var(--_reveal-start) -
+                var(--_reveal-elapsed, var(--_reveal-start))
             )
             backwards;
         }

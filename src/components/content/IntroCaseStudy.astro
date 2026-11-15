@@ -55,12 +55,20 @@ const image = await slotContent(Astro.slots);
       {heading}
     </h1>
     {description && (
-      <p class="intro-case-study_text text-style-h4" data-page-reveal="1">
+      <p
+        class="intro-case-study_text text-style-h4"
+        data-view-transition="text"
+        data-page-reveal="1"
+      >
         {description}
       </p>
     )}
     {(!!services?.length || !!engagement) && (
-      <dl class="intro-case-study_meta" data-page-reveal="2">
+      <dl
+        class="intro-case-study_meta"
+        data-view-transition="meta"
+        data-page-reveal="2"
+      >
         {!!services?.length && (
           <div>
             <dt class="sr-only">Services Provided</dt>
@@ -76,7 +84,11 @@ const image = await slotContent(Astro.slots);
       </dl>
     )}
     {image && (
-      <div class="intro-case-study_image" data-page-reveal="3">
+      <div
+        class="intro-case-study_image"
+        data-view-transition="image"
+        data-page-reveal="3"
+      >
         <Fragment set:html={image} />
       </div>
     )}
@@ -110,25 +122,6 @@ const image = await slotContent(Astro.slots);
         grid-column: 1 / -1;
         margin-top: var(--site-gutter);
       }
-      :root.case-study-arriving & {
-        .intro-case-study_text,
-        .intro-case-study_meta {
-          animation: page-reveal var(--page-reveal-duration)
-            var(--page-reveal-ease)
-            calc(var(--page-stagger) * 3 * var(--page-next-pace)) both;
-        }
-        .intro-case-study_meta {
-          animation-delay: calc(
-            var(--page-stagger) * 4 * var(--page-next-pace)
-          );
-        }
-        .intro-case-study_image {
-          animation: intro-case-study-rise
-            calc(var(--page-duration-slow) * var(--page-next-pace))
-            var(--page-ease)
-            calc(var(--page-stagger) * 5 * var(--page-next-pace)) both;
-        }
-      }
       :root[data-page-arriving] & {
         .intro-case-study_image {
           animation-name: intro-case-study-rise;
@@ -145,6 +138,23 @@ const image = await slotContent(Astro.slots);
           justify-content: space-between;
           gap: var(--site-gutter);
         }
+      }
+    }
+
+    :active-view-transition-type(case-study-next) {
+      &::view-transition-new(case-study-text),
+      &::view-transition-new(case-study-meta) {
+        animation: page-reveal var(--page-reveal-duration)
+          var(--page-reveal-ease)
+          calc(var(--page-stagger) * 3 * var(--page-next-pace)) both;
+      }
+      &::view-transition-new(case-study-meta) {
+        animation-delay: calc(var(--page-stagger) * 4 * var(--page-next-pace));
+      }
+      &::view-transition-new(case-study-image) {
+        animation: intro-case-study-rise var(--page-next-duration)
+          var(--page-ease) calc(var(--page-stagger) * 5 * var(--page-next-pace))
+          both;
       }
     }
 

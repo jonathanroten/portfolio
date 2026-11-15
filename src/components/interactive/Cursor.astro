@@ -461,5 +461,15 @@ const { render = true, class: className, ...rest } = Astro.props;
     :root.has-cursor:not(.is-native) * {
       cursor: none !important;
     }
+
+    :active-view-transition-type(case-study-next) {
+      .cursor_wrap {
+        inset: 0;
+        view-transition-name: cursor;
+      }
+      &::view-transition-new(cursor) {
+        animation: none;
+      }
+    }
   }
 </style>
