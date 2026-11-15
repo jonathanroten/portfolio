@@ -426,12 +426,33 @@ const sizes = [
     };
 
     const render = (now: number) => {
-      const elapsed = Math.min(now - lastTime, 50);
+      const elapsed = clamp(now - lastTime, 0, 50);
       const frames = elapsed / (1000 / 60);
       lastTime = now;
       coast(frames);
       if (hasMoved) spawn(frames);
       syncDrawing(elapsed);
+      const resting =
+        !drawing &&
+        strength < config.motion.settled &&
+        Math.hypot(velocity.x, velocity.y) < 0.01 &&
+        Math.hypot(driftVelocity.x, driftVelocity.y) < 0.01 &&
+        !items.some((item) => item.classList.contains("is-active"));
+      if (resting) {
+        velocity.x = 0;
+        velocity.y = 0;
+        driftVelocity.x = 0;
+        driftVelocity.y = 0;
+        strength = 0;
+        frame = null;
+        return;
+      }
+      frame = window.requestAnimationFrame(render);
+    };
+
+    const start = () => {
+      if (frame) return;
+      lastTime = performance.now();
       frame = window.requestAnimationFrame(render);
     };
 
@@ -492,10 +513,9 @@ const sizes = [
           lastPointer.y = pointer.y;
           hasMoved = true;
         }
+        start();
       };
       scope.addEventListener("mousemove", mouseHandler);
-      lastTime = performance.now();
-      frame = window.requestAnimationFrame(render);
     };
 
     let currentFlip: boolean | null = null;
