@@ -12,6 +12,8 @@
   (function () {
     const isCaseStudy = (url) =>
       new URL(url).pathname.startsWith("/case-studies/");
+    const hasMouse = () =>
+      matchMedia("(hover: hover) and (pointer: fine)").matches;
 
     const nameAll = (transition, scope) => {
       const elements = [
@@ -34,7 +36,7 @@
           nameAll(event.viewTransition, 'a[rel="next"]');
         return;
       }
-      document.documentElement.dataset.pageLeaving = "";
+      if (hasMouse()) document.documentElement.dataset.pageLeaving = "";
     });
 
     addEventListener("pageshow", (event) => {
@@ -59,7 +61,8 @@
 
       transition.types.add("page");
       const curtain = document.createElement("div");
-      curtain.className = "page-transition_wrap theme-brand";
+      curtain.className = "page-transition_wrap";
+      if (hasMouse()) curtain.classList.add("theme-brand");
       curtain.setAttribute("aria-hidden", "true");
       const lifted = new Promise((resolve) =>
         curtain.addEventListener("animationend", resolve, { once: true }),
@@ -90,11 +93,16 @@
     .page-transition_wrap {
       position: fixed;
       inset: 0;
-      z-index: 101;
+      z-index: 99;
       pointer-events: none;
       background-color: var(--background);
-      animation: page-transition-lift var(--page-curtain-lift) var(--page-ease)
+      animation: page-transition-fade-out var(--page-curtain-lift)
+        var(--page-ease)
         calc(var(--page-curtain-cover) + var(--page-curtain-hold)) forwards;
+      @media (hover: hover) and (pointer: fine) {
+        z-index: 101;
+        animation-name: page-transition-lift;
+      }
     }
 
     :active-view-transition-type(page) {
@@ -105,8 +113,11 @@
         animation: page-transition-hidden var(--page-curtain-cover) both;
       }
       &::view-transition-new(root) {
-        animation: page-transition-wipe var(--page-curtain-cover)
+        animation: page-transition-fade-in var(--page-curtain-cover)
           var(--close-ease-smooth) both;
+        @media (hover: hover) and (pointer: fine) {
+          animation-name: page-transition-wipe;
+        }
       }
     }
 
@@ -148,6 +159,18 @@
       }
       to {
         clip-path: inset(0);
+      }
+    }
+
+    @keyframes page-transition-fade-in {
+      from {
+        opacity: 0;
+      }
+    }
+
+    @keyframes page-transition-fade-out {
+      to {
+        opacity: 0;
       }
     }
 

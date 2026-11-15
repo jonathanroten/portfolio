@@ -128,8 +128,25 @@ const { render = true, overlap = false } = Astro.props;
       setOpen(toggle.getAttribute("aria-expanded") !== "true");
     });
 
+    const menu = nav.querySelector<HTMLElement>(".nav_menu");
+
     nav.querySelectorAll("a").forEach((link) => {
-      link.addEventListener("click", () => setOpen(false));
+      link.addEventListener("click", (event) => {
+        const sameTab =
+          nav.classList.contains("open") &&
+          event.button === 0 &&
+          !(event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) &&
+          !link.target &&
+          link.origin === location.origin;
+        setOpen(false);
+        if (!sameTab || !menu) return;
+        event.preventDefault();
+        Promise.allSettled(
+          menu
+            .getAnimations({ subtree: true })
+            .map((animation) => animation.finished),
+        ).then(() => location.assign(link.href));
+      });
     });
 
     document.addEventListener("keydown", (event) => {
@@ -272,13 +289,13 @@ const { render = true, overlap = false } = Astro.props;
     }
 
     .nav_menu {
-      position: absolute;
-      top: 100%;
+      position: fixed;
+      top: var(--nav-total-height);
       inset-inline: 0;
       display: grid;
       grid-template-rows: 0fr;
       visibility: hidden;
-      max-height: calc(100svh - var(--nav-total-height));
+      max-height: calc(100dvh - var(--nav-total-height));
       overflow: clip;
       background-color: var(--background);
       transition:
@@ -316,7 +333,7 @@ const { render = true, overlap = false } = Astro.props;
     .nav_menu_content {
       display: flex;
       flex-direction: column;
-      min-height: calc(100svh - var(--nav-total-height));
+      min-height: calc(100dvh - var(--nav-total-height));
       padding: 0 var(--site-margin) var(--site-margin);
       @media (width >= 48rem) {
         min-height: 0;
