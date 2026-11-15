@@ -55,6 +55,36 @@ const sizes = [
 
 <script>
   import type { MotionShader } from "@/utils/motion-shader.ts";
+  import {
+    loadMotionShader,
+    onPlainImagesChange,
+    prefersPlainImages,
+  } from "@/utils/motion-shader-loader.ts";
+
+  const config = {
+    threshold: 24,
+    life: 750,
+    flipMs: 1500,
+    uploadGap: 32,
+    motion: {
+      smoothing: 50,
+      pause: 100,
+      minSpeed: 16,
+      maxSpeed: 48,
+      attack: 0.3,
+      release: 0.1,
+      fadeMoving: 0.04,
+      fadeResting: 0.25,
+      settled: 0.005,
+      blur: 32,
+      shift: 4,
+      lag: 0.5,
+      bend: 28,
+      drift: 0.3,
+      driftSmoothing: 150,
+      friction: 0.1,
+    },
+  };
 
   const clamp = (value: number, min: number, max: number) =>
     Math.max(min, Math.min(value, max));
@@ -71,44 +101,12 @@ const sizes = [
     const nav = scope.matches("main > :first-child")
       ? document.querySelector<HTMLElement>(".nav_wrap:not(.overlap)")
       : null;
-
-    const config = {
-      threshold: 24,
-      life: 750,
-      flipMs: 1500,
-      uploadGap: 32,
-      motion: {
-        smoothing: 50,
-        pause: 100,
-        minSpeed: 16,
-        maxSpeed: 48,
-        attack: 0.3,
-        release: 0.1,
-        fadeMoving: 0.04,
-        fadeResting: 0.25,
-        settled: 0.005,
-        blur: 32,
-        shift: 4,
-        lag: 0.5,
-        bend: 28,
-        drift: 0.3,
-        driftSmoothing: 150,
-        friction: 0.1,
-      },
-    };
     const total = items.length;
 
     const trailQuery = window.matchMedia(trail.dataset.trailQuery ?? "not all");
     const reducedMotionQuery = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     );
-    const plainQueries = [
-      reducedMotionQuery,
-      window.matchMedia("(prefers-contrast: more)"),
-      window.matchMedia("(forced-colors: active)"),
-    ];
-    const prefersPlainImages = () =>
-      plainQueries.some((query) => query.matches);
 
     const pointer = { x: 0, y: 0 };
     const last = { x: 0, y: 0 };
@@ -121,27 +119,28 @@ const sizes = [
     let frame: number | null = null;
     let mouseHandler: ((event: MouseEvent) => void) | null = null;
 
-    const canvas = trail.querySelector<HTMLCanvasElement>(
-      ":scope > .image-trail_canvas",
-    );
     const toggle = trail.querySelector<HTMLButtonElement>(
       "[data-trail-toggle]",
     );
     let playing = !reducedMotionQuery.matches;
-    const images = items.map((item) => item.querySelector("img"));
     const places = items.map(() => ({ x: 0, y: 0, order: 0 }));
-    const launches = items.map(() => ({ x: 0, y: 1, strength: 0 }));
     const drifts = items.map(() => ({ x: 0, y: 0 }));
     const room = { left: 0, right: 0, top: 0, bottom: 0 };
     const view = { left: 0, top: 0, width: 0, height: 0 };
     const origin = { x: 0, y: 0 };
     const itemSize = { width: 0, height: 0 };
     const travel = { x: 0, y: 0 };
-    const velocity = { x: 0, y: 0 };
     const driftVelocity = { x: 0, y: 0 };
-    const heading = { x: 0, y: 1 };
     let moveTime = -Infinity;
     let lastTime = 0;
+
+    const canvas = trail.querySelector<HTMLCanvasElement>(
+      ":scope > .image-trail_canvas",
+    );
+    const images = items.map((item) => item.querySelector("img"));
+    const launches = items.map(() => ({ x: 0, y: 1, strength: 0 }));
+    const velocity = { x: 0, y: 0 };
+    const heading = { x: 0, y: 1 };
     let shader: MotionShader | null = null;
     let shaderRequested = false;
     let drawing = false;
@@ -211,19 +210,14 @@ const sizes = [
       ) {
         return;
       }
-      const context = canvas.getContext("webgl2", {
-        depth: false,
-        antialias: false,
-        failIfMajorPerformanceCaveat: true,
-      });
-      if (!context) return;
+      const loading = loadMotionShader(canvas);
+      if (!loading) return;
       shaderRequested = true;
-      import("@/utils/motion-shader.ts")
-        .then(({ createMotionShader }) => {
-          const active = createMotionShader(canvas, context);
-          active.resize(view.width, view.height);
-          shader = active;
-          return uploadTextures(active);
+      loading
+        .then((loaded) => {
+          loaded.resize(view.width, view.height);
+          shader = loaded;
+          return uploadTextures(loaded);
         })
         .catch(console.warn);
     };
@@ -433,12 +427,33 @@ const sizes = [
     };
 
     const render = (now: number) => {
-      const elapsed = Math.min(now - lastTime, 50);
+      const elapsed = clamp(now - lastTime, 0, 50);
       const frames = elapsed / (1000 / 60);
       lastTime = now;
       coast(frames);
       if (hasMoved) spawn(frames);
       syncDrawing(elapsed);
+      const resting =
+        !drawing &&
+        strength < config.motion.settled &&
+        Math.hypot(velocity.x, velocity.y) < 0.01 &&
+        Math.hypot(driftVelocity.x, driftVelocity.y) < 0.01 &&
+        !items.some((item) => item.classList.contains("is-active"));
+      if (resting) {
+        velocity.x = 0;
+        velocity.y = 0;
+        driftVelocity.x = 0;
+        driftVelocity.y = 0;
+        strength = 0;
+        frame = null;
+        return;
+      }
+      frame = window.requestAnimationFrame(render);
+    };
+
+    const start = () => {
+      if (frame) return;
+      lastTime = performance.now();
       frame = window.requestAnimationFrame(render);
     };
 
@@ -499,10 +514,9 @@ const sizes = [
           lastPointer.y = pointer.y;
           hasMoved = true;
         }
+        start();
       };
       scope.addEventListener("mousemove", mouseHandler);
-      lastTime = performance.now();
-      frame = window.requestAnimationFrame(render);
     };
 
     let currentFlip: boolean | null = null;
@@ -531,9 +545,8 @@ const sizes = [
     observer.observe(scope);
     observer.observe(trail);
     if (nav) observer.observe(nav);
-    for (const query of [trailQuery, ...plainQueries]) {
-      query.addEventListener("change", startShader);
-    }
+    trailQuery.addEventListener("change", startShader);
+    onPlainImagesChange(startShader);
     if (document.readyState === "complete") startShader();
     else window.addEventListener("load", startShader, { once: true });
   }

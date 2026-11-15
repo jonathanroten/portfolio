@@ -80,6 +80,11 @@ const images: GalleryImage[] = items.map((item) => {
 <script>
   import type { GalleryImage } from "@/types.ts";
   import type { MotionShader } from "@/utils/motion-shader.ts";
+  import {
+    loadMotionShader,
+    onPlainImagesChange,
+    prefersPlainImages,
+  } from "@/utils/motion-shader-loader.ts";
 
   const config = {
     tileWidth: 1440,
@@ -268,43 +273,10 @@ const images: GalleryImage[] = items.map((item) => {
     let seated = false;
     const held = new Set<string>();
     const calm = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const plainQueries = [
-      calm,
-      window.matchMedia("(prefers-contrast: more)"),
-      window.matchMedia("(forced-colors: active)"),
-    ];
-    const prefersPlainImages = () =>
-      plainQueries.some((query) => query.matches);
     const firstLoads: Promise<void>[] = [];
     let collecting = true;
     const viewSize = { width: 0, height: 0 };
     const tileSize = { width: 0, height: 0 };
-    const canvas = gallery.querySelector<HTMLCanvasElement>(
-      ".gallery-infinite_canvas",
-    );
-    const sources = new Map<number, HTMLImageElement>();
-    const lastCenter = { x: 0.5, y: 0.5 };
-    const lean = { x: 0, y: 0 };
-    const velocity = { x: 0, y: 0 };
-    const heading = { x: 0, y: 1 };
-    let shader: MotionShader | null = null;
-    let shaderRequested = false;
-    let uploading = false;
-    let drawing = false;
-    let strength = 0;
-
-    const uploadTextures = () => {
-      if (uploading || !shader) return;
-      const active = shader;
-      const next = [...sources].find(([index]) => !active.has(index));
-      if (!next) return;
-      uploading = true;
-      active.upload(...next);
-      setTimeout(() => {
-        uploading = false;
-        uploadTextures();
-      }, config.uploadGap);
-    };
 
     const label = (image: HTMLElement) => {
       if (focused || !image.classList.contains("is-loaded")) {
@@ -493,22 +465,46 @@ const images: GalleryImage[] = items.map((item) => {
       shader?.resize(viewSize.width, viewSize.height);
       syncFocus();
       syncTiles();
+      if (collecting) reveal();
+    };
+
+    const canvas = gallery.querySelector<HTMLCanvasElement>(
+      ".gallery-infinite_canvas",
+    );
+    const sources = new Map<number, HTMLImageElement>();
+    const lastCenter = { x: 0.5, y: 0.5 };
+    const lean = { x: 0, y: 0 };
+    const velocity = { x: 0, y: 0 };
+    const heading = { x: 0, y: 1 };
+    let shader: MotionShader | null = null;
+    let shaderRequested = false;
+    let uploading = false;
+    let drawing = false;
+    let strength = 0;
+
+    const uploadTextures = () => {
+      if (uploading || !shader) return;
+      const active = shader;
+      const next = [...sources].find(([index]) => !active.has(index));
+      if (!next) return;
+      uploading = true;
+      active.upload(...next);
+      setTimeout(() => {
+        uploading = false;
+        uploadTextures();
+      }, config.uploadGap);
     };
 
     const startShader = () => {
       if (shaderRequested || corsBlocked || !canvas || prefersPlainImages()) {
         return;
       }
-      const context = canvas.getContext("webgl2", {
-        depth: false,
-        antialias: false,
-        failIfMajorPerformanceCaveat: true,
-      });
-      if (!context) return;
+      const loading = loadMotionShader(canvas);
+      if (!loading) return;
       shaderRequested = true;
-      import("@/utils/motion-shader.ts")
-        .then(({ createMotionShader }) => {
-          shader = createMotionShader(canvas, context);
+      loading
+        .then((loaded) => {
+          shader = loaded;
           shader.resize(viewSize.width, viewSize.height);
           uploadTextures();
         })
@@ -603,7 +599,7 @@ const images: GalleryImage[] = items.map((item) => {
         );
         const leanX = lean.x * leanFade;
         const leanY = lean.y * leanFade;
-        active.draw(visible, {
+        const wallMotion = {
           blurX: heading.x * motion.blur * strength,
           blurY: heading.y * motion.blur * strength,
           shift: motion.shift * (leanX * heading.x + leanY * heading.y),
@@ -611,7 +607,8 @@ const images: GalleryImage[] = items.map((item) => {
           lagY: leanY * motion.blur * motion.lag,
           bendX: leanX * motion.bend,
           bendY: leanY * motion.bend,
-        });
+        };
+        active.draw(visible.map((item) => ({ ...item, motion: wallMotion })));
       } else {
         lean.x = 0;
         lean.y = 0;
@@ -868,28 +865,33 @@ const images: GalleryImage[] = items.map((item) => {
     });
     window.addEventListener("blur", () => held.clear());
 
+    const reveal = () => {
+      collecting = false;
+      Promise.race([
+        Promise.allSettled(firstLoads),
+        new Promise((resolve) => setTimeout(resolve, config.revealWait)),
+      ])
+        .then(() => new Promise((resolve) => requestAnimationFrame(resolve)))
+        .then(() => document.activeViewTransition?.ready.catch(() => {}))
+        .then(() => {
+          const arriving = Number(
+            document.documentElement.dataset.pageArriving,
+          );
+          if (arriving) {
+            gallery.style.setProperty(
+              "--_reveal-elapsed",
+              `${performance.now() - arriving}ms`,
+            );
+          }
+          gallery.classList.add("is-revealed");
+        });
+    };
+
     new ResizeObserver(resize).observe(gallery);
     resize();
-    collecting = false;
     gallery.classList.add("is-ready");
 
-    Promise.race([
-      Promise.allSettled(firstLoads),
-      new Promise((resolve) => setTimeout(resolve, config.revealWait)),
-    ]).then(() => {
-      const arriving = Number(document.documentElement.dataset.pageArriving);
-      if (arriving) {
-        gallery.style.setProperty(
-          "--_reveal-elapsed",
-          `${performance.now() - arriving}ms`,
-        );
-      }
-      gallery.classList.add("is-revealed");
-    });
-
-    for (const query of plainQueries) {
-      query.addEventListener("change", startShader);
-    }
+    onPlainImagesChange(startShader);
     if (document.readyState === "complete") startShader();
     else window.addEventListener("load", startShader, { once: true });
   };
@@ -917,6 +919,10 @@ const images: GalleryImage[] = items.map((item) => {
   @layer components {
     .gallery-infinite_wrap {
       --_leaving: calc(var(--open-duration) * 0.5);
+      --_reveal-start: calc(
+        var(--page-curtain-cover) + var(--page-curtain-hold) +
+          var(--page-curtain-lift) * 0.3
+      );
       --_focus-inset-block: var(--nav-total-height);
       --_focus-inset-inline: var(--site-margin);
       position: absolute;
@@ -936,7 +942,8 @@ const images: GalleryImage[] = items.map((item) => {
             var(--page-reveal-ease)
             max(
               0ms,
-              var(--page-reveal) - var(--_reveal-elapsed, var(--page-reveal))
+              var(--_reveal-start) -
+                var(--_reveal-elapsed, var(--_reveal-start))
             )
             backwards;
         }

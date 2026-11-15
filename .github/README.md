@@ -4,14 +4,14 @@ The source for my portfolio site: a static Astro site built on Lumos for Astro, 
 
 ## Stack
 
-| Part         | Built with                                                                                                                                                                                                      |
-| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Site         | [Astro](https://astro.build) with [Lumos for Astro](https://lumosframework.com), a component and styling framework                                                                                              |
-| Content      | [Sanity](https://www.sanity.io), edited in the Sanity Studio in `sanity`                                                                                                                                        |
-| Hosting      | [Cloudflare Workers](https://developers.cloudflare.com/workers/): the built pages are served as static files                                                                                                    |
-| Contact form | A small Worker at `/api/*`, with [Turnstile](https://developers.cloudflare.com/turnstile/) bot checks, per-visitor rate limiting, and [Email Routing](https://developers.cloudflare.com/email-routing/) to send |
-| Motion       | [Lenis](https://lenis.darkroom.engineering) smooth scrolling, and a [three.js](https://threejs.org) shader for the speed-reactive image effects                                                                 |
-| Deploys      | [Workers Builds](https://developers.cloudflare.com/workers/ci-cd/builds/): GitHub Actions checks every pull request, Cloudflare builds a preview of each branch and deploys `main`                              |
+| Part         | Built with                                                                                                                                                                                                                                                                                 |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Site         | [Astro](https://astro.build) with [Lumos for Astro](https://lumosframework.com), a component and styling framework                                                                                                                                                                         |
+| Content      | [Sanity](https://www.sanity.io), edited in the Sanity Studio in `sanity`                                                                                                                                                                                                                   |
+| Hosting      | [Cloudflare Workers](https://developers.cloudflare.com/workers/): the built pages are served as static files                                                                                                                                                                               |
+| Contact form | A small Worker at `/api/*`, with [Turnstile](https://developers.cloudflare.com/turnstile/) bot checks, per-visitor rate limiting, and [Email Routing](https://developers.cloudflare.com/email-routing/) to send                                                                            |
+| Motion       | [Lenis](https://lenis.darkroom.engineering) smooth scrolling, a [three.js](https://threejs.org) shader for the speed-reactive image effects, and the browser's own [view transitions](https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API) between pages, with no library |
+| Deploys      | [Workers Builds](https://developers.cloudflare.com/workers/ci-cd/builds/): GitHub Actions checks every pull request, Cloudflare builds a preview of each branch and deploys `main`                                                                                                         |
 
 ## Repository layout
 
