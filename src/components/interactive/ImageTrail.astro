@@ -61,6 +61,31 @@ const sizes = [
     prefersPlainImages,
   } from "@/utils/motion-shader-loader.ts";
 
+  const config = {
+    threshold: 24,
+    life: 750,
+    flipMs: 1500,
+    uploadGap: 32,
+    motion: {
+      smoothing: 50,
+      pause: 100,
+      minSpeed: 16,
+      maxSpeed: 48,
+      attack: 0.3,
+      release: 0.1,
+      fadeMoving: 0.04,
+      fadeResting: 0.25,
+      settled: 0.005,
+      blur: 32,
+      shift: 4,
+      lag: 0.5,
+      bend: 28,
+      drift: 0.3,
+      driftSmoothing: 150,
+      friction: 0.1,
+    },
+  };
+
   const clamp = (value: number, min: number, max: number) =>
     Math.max(min, Math.min(value, max));
 
@@ -76,31 +101,6 @@ const sizes = [
     const nav = scope.matches("main > :first-child")
       ? document.querySelector<HTMLElement>(".nav_wrap:not(.overlap)")
       : null;
-
-    const config = {
-      threshold: 24,
-      life: 750,
-      flipMs: 1500,
-      uploadGap: 32,
-      motion: {
-        smoothing: 50,
-        pause: 100,
-        minSpeed: 16,
-        maxSpeed: 48,
-        attack: 0.3,
-        release: 0.1,
-        fadeMoving: 0.04,
-        fadeResting: 0.25,
-        settled: 0.005,
-        blur: 32,
-        shift: 4,
-        lag: 0.5,
-        bend: 28,
-        drift: 0.3,
-        driftSmoothing: 150,
-        friction: 0.1,
-      },
-    };
     const total = items.length;
 
     const trailQuery = window.matchMedia(trail.dataset.trailQuery ?? "not all");
@@ -119,27 +119,28 @@ const sizes = [
     let frame: number | null = null;
     let mouseHandler: ((event: MouseEvent) => void) | null = null;
 
-    const canvas = trail.querySelector<HTMLCanvasElement>(
-      ":scope > .image-trail_canvas",
-    );
     const toggle = trail.querySelector<HTMLButtonElement>(
       "[data-trail-toggle]",
     );
     let playing = !reducedMotionQuery.matches;
-    const images = items.map((item) => item.querySelector("img"));
     const places = items.map(() => ({ x: 0, y: 0, order: 0 }));
-    const launches = items.map(() => ({ x: 0, y: 1, strength: 0 }));
     const drifts = items.map(() => ({ x: 0, y: 0 }));
     const room = { left: 0, right: 0, top: 0, bottom: 0 };
     const view = { left: 0, top: 0, width: 0, height: 0 };
     const origin = { x: 0, y: 0 };
     const itemSize = { width: 0, height: 0 };
     const travel = { x: 0, y: 0 };
-    const velocity = { x: 0, y: 0 };
     const driftVelocity = { x: 0, y: 0 };
-    const heading = { x: 0, y: 1 };
     let moveTime = -Infinity;
     let lastTime = 0;
+
+    const canvas = trail.querySelector<HTMLCanvasElement>(
+      ":scope > .image-trail_canvas",
+    );
+    const images = items.map((item) => item.querySelector("img"));
+    const launches = items.map(() => ({ x: 0, y: 1, strength: 0 }));
+    const velocity = { x: 0, y: 0 };
+    const heading = { x: 0, y: 1 };
     let shader: MotionShader | null = null;
     let shaderRequested = false;
     let drawing = false;

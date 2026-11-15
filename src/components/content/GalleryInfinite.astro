@@ -277,32 +277,6 @@ const images: GalleryImage[] = items.map((item) => {
     let collecting = true;
     const viewSize = { width: 0, height: 0 };
     const tileSize = { width: 0, height: 0 };
-    const canvas = gallery.querySelector<HTMLCanvasElement>(
-      ".gallery-infinite_canvas",
-    );
-    const sources = new Map<number, HTMLImageElement>();
-    const lastCenter = { x: 0.5, y: 0.5 };
-    const lean = { x: 0, y: 0 };
-    const velocity = { x: 0, y: 0 };
-    const heading = { x: 0, y: 1 };
-    let shader: MotionShader | null = null;
-    let shaderRequested = false;
-    let uploading = false;
-    let drawing = false;
-    let strength = 0;
-
-    const uploadTextures = () => {
-      if (uploading || !shader) return;
-      const active = shader;
-      const next = [...sources].find(([index]) => !active.has(index));
-      if (!next) return;
-      uploading = true;
-      active.upload(...next);
-      setTimeout(() => {
-        uploading = false;
-        uploadTextures();
-      }, config.uploadGap);
-    };
 
     const label = (image: HTMLElement) => {
       if (focused || !image.classList.contains("is-loaded")) {
@@ -491,6 +465,33 @@ const images: GalleryImage[] = items.map((item) => {
       shader?.resize(viewSize.width, viewSize.height);
       syncFocus();
       syncTiles();
+    };
+
+    const canvas = gallery.querySelector<HTMLCanvasElement>(
+      ".gallery-infinite_canvas",
+    );
+    const sources = new Map<number, HTMLImageElement>();
+    const lastCenter = { x: 0.5, y: 0.5 };
+    const lean = { x: 0, y: 0 };
+    const velocity = { x: 0, y: 0 };
+    const heading = { x: 0, y: 1 };
+    let shader: MotionShader | null = null;
+    let shaderRequested = false;
+    let uploading = false;
+    let drawing = false;
+    let strength = 0;
+
+    const uploadTextures = () => {
+      if (uploading || !shader) return;
+      const active = shader;
+      const next = [...sources].find(([index]) => !active.has(index));
+      if (!next) return;
+      uploading = true;
+      active.upload(...next);
+      setTimeout(() => {
+        uploading = false;
+        uploadTextures();
+      }, config.uploadGap);
     };
 
     const startShader = () => {
