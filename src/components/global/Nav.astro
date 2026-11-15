@@ -128,8 +128,25 @@ const { render = true, overlap = false } = Astro.props;
       setOpen(toggle.getAttribute("aria-expanded") !== "true");
     });
 
+    const menu = nav.querySelector<HTMLElement>(".nav_menu");
+
     nav.querySelectorAll("a").forEach((link) => {
-      link.addEventListener("click", () => setOpen(false));
+      link.addEventListener("click", (event) => {
+        const sameTab =
+          nav.classList.contains("open") &&
+          event.button === 0 &&
+          !(event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) &&
+          !link.target &&
+          link.origin === location.origin;
+        setOpen(false);
+        if (!sameTab || !menu) return;
+        event.preventDefault();
+        Promise.allSettled(
+          menu
+            .getAnimations({ subtree: true })
+            .map((animation) => animation.finished),
+        ).then(() => location.assign(link.href));
+      });
     });
 
     document.addEventListener("keydown", (event) => {
