@@ -38,7 +38,9 @@
     });
 
     addEventListener("pageshow", (event) => {
-      if (event.persisted) delete document.documentElement.dataset.pageLeaving;
+      if (!event.persisted) return;
+      delete document.documentElement.dataset.pageLeaving;
+      delete document.documentElement.dataset.pageCovering;
     });
 
     addEventListener("pagereveal", (event) => {
@@ -58,16 +60,22 @@
       }
 
       transition.types.add("page");
+      const root = document.documentElement;
+      root.dataset.pageCovering = "";
+      const uncover = () => delete root.dataset.pageCovering;
       const curtain = document.createElement("div");
       curtain.className = "page-transition_wrap theme-brand";
       curtain.setAttribute("aria-hidden", "true");
+      curtain.addEventListener("animationstart", uncover, { once: true });
       const lifted = new Promise((resolve) =>
         curtain.addEventListener("animationend", resolve, { once: true }),
-      ).then(() => curtain.remove());
-      (document.body ?? document.documentElement).append(curtain);
+      ).then(() => {
+        curtain.remove();
+        uncover();
+      });
+      (document.body ?? root).append(curtain);
       transition.ready.then(
         () => {
-          const root = document.documentElement;
           root.dataset.pageArriving = String(performance.now());
           const reveals = document
             .getAnimations()
@@ -79,7 +87,10 @@
             delete root.dataset.pageArriving;
           });
         },
-        () => curtain.remove(),
+        () => {
+          curtain.remove();
+          uncover();
+        },
       );
     });
   })();
@@ -88,13 +99,19 @@
 <style is:global>
   @layer components {
     .page-transition_wrap {
+      --_overscan: 0.25;
       position: fixed;
-      inset: 0;
+      inset: calc(var(--_overscan) * -100%) 0 0;
       z-index: 101;
       pointer-events: none;
       background-color: var(--background);
       animation: page-transition-lift var(--page-curtain-lift) var(--page-ease)
         calc(var(--page-curtain-cover) + var(--page-curtain-hold)) forwards;
+    }
+
+    :root[data-page-covering] {
+      animation: page-transition-tint var(--page-curtain-cover)
+        var(--close-ease-smooth) forwards;
     }
 
     :active-view-transition-type(page) {
@@ -151,9 +168,15 @@
       }
     }
 
+    @keyframes page-transition-tint {
+      to {
+        background-color: var(--brand-500);
+      }
+    }
+
     @keyframes page-transition-lift {
       to {
-        translate: 0 -100%;
+        translate: 0 calc(-100% / (1 + var(--_overscan)));
       }
     }
 

@@ -289,13 +289,13 @@ const { render = true, overlap = false } = Astro.props;
     }
 
     .nav_menu {
-      position: absolute;
-      top: 100%;
+      position: fixed;
+      top: var(--nav-total-height);
       inset-inline: 0;
       display: grid;
       grid-template-rows: 0fr;
       visibility: hidden;
-      max-height: calc(100svh - var(--nav-total-height));
+      max-height: calc(100dvh - var(--nav-total-height));
       overflow: clip;
       background-color: var(--background);
       transition:
@@ -333,7 +333,7 @@ const { render = true, overlap = false } = Astro.props;
     .nav_menu_content {
       display: flex;
       flex-direction: column;
-      min-height: calc(100svh - var(--nav-total-height));
+      min-height: calc(100dvh - var(--nav-total-height));
       padding: 0 var(--site-margin) var(--site-margin);
       @media (width >= 48rem) {
         min-height: 0;
