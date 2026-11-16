@@ -85,6 +85,12 @@
   --page-reveal: calc(var(--page-curtain-cover) + var(--page-curtain-hold) + var(--page-curtain-lift) / 2);
   --page-reveal-duration: 1200ms;
   --page-reveal-ease: cubic-bezier(0.25, 1, 0.5, 1);
+  --page-intro-delay: var(--open-duration-gentle);
+  --page-intro-flip: calc(var(--page-duration) * 2);
+  --page-intro-hold: var(--page-duration-slow);
+  --page-intro-exit: calc(var(--page-intro-delay) + var(--page-intro-flip) + var(--page-intro-hold));
+  --page-intro-exit-duration: var(--page-duration);
+  --page-intro-reveal: calc(var(--page-intro-exit) + var(--page-intro-exit-duration));
 
   /* Radius */
   --radius-xsmall: 0.25rem;

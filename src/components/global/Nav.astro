@@ -24,7 +24,13 @@ const { render = true, overlap = false } = Astro.props;
 {render && (
   <header class:list={["nav_wrap", overlap && "overlap"]}>
     <div class="nav_inner">
-      <a class="nav_logo" href="/" aria-label={SITE_NAME} data-cursor-free>
+      <a
+        class="nav_logo"
+        href="/"
+        aria-label={SITE_NAME}
+        data-cursor-free
+        data-intro-replay
+      >
         <Icon src={logo} variant="full-width" />
       </a>
       <button
