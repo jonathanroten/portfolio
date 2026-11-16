@@ -8,11 +8,24 @@ interface Props extends HTMLAttributes<"div"> {
   render?: boolean;
   /** Image sources, in trail order. */
   images?: ComponentProps<typeof Img>["src"][];
+  /**
+   * Open with the images flipping, settle on one, then reveal the page. Plays
+   * once per tab on a mouse device when the visit starts on this page, and
+   * again when a `data-intro-replay` link on this page is clicked.
+   */
+  intro?: boolean;
 }
 
-const { render = true, images, class: className, ...rest } = Astro.props;
+const {
+  render = true,
+  images,
+  intro = false,
+  class: className,
+  ...rest
+} = Astro.props;
 
 const trailQuery = "(width >= 64rem) and (hover: hover) and (pointer: fine)";
+const introWaitMs = 2500;
 
 const sizes = [
   `${trailQuery} 18.75rem`,
@@ -26,8 +39,33 @@ const sizes = [
   <div
     class:list={["image-trail_wrap", className]}
     data-trail-query={trailQuery}
+    data-trail-intro={intro ? "" : undefined}
     {...rest}
   >
+    {intro && <script define:vars={{ trailQuery, introWaitMs }}>
+      const root = document.documentElement;
+      let seen = true;
+      let replay = false;
+      try {
+        seen = sessionStorage.getItem("image-trail-intro") !== null;
+        sessionStorage.setItem("image-trail-intro", "");
+        replay = sessionStorage.getItem("image-trail-intro-replay") !== null;
+        sessionStorage.removeItem("image-trail-intro-replay");
+      } catch {}
+      const from =
+        window.navigation?.activation?.from?.url ?? document.referrer;
+      const internal = !!from && new URL(from).origin === location.origin;
+      if (
+        (replay || (!seen && !internal)) &&
+        matchMedia(trailQuery).matches &&
+        !matchMedia("(prefers-reduced-motion: reduce)").matches
+      ) {
+        root.dataset.pageIntro = "wait";
+        setTimeout(() => {
+          if (root.dataset.pageIntro === "wait") delete root.dataset.pageIntro;
+        }, introWaitMs);
+      }
+    </script>}
     <canvas class="image-trail_canvas" aria-hidden="true" />
     {images.map((src, i) => (
       <div class="image-trail_item" aria-hidden="true">
@@ -65,6 +103,7 @@ const sizes = [
     threshold: 24,
     life: 750,
     flipMs: 1500,
+    introFlipMs: 167,
     uploadGap: 32,
     motion: {
       smoothing: 50,
@@ -88,6 +127,8 @@ const sizes = [
 
   const clamp = (value: number, min: number, max: number) =>
     Math.max(min, Math.min(value, max));
+
+  const root = document.documentElement;
 
   for (const trail of document.querySelectorAll<HTMLElement>(
     ".image-trail_wrap",
@@ -145,6 +186,10 @@ const sizes = [
     let shaderRequested = false;
     let drawing = false;
     let strength = 0;
+    let introActive = false;
+    let introTimer: number | null = null;
+    const introPending = () =>
+      trail.hasAttribute("data-trail-intro") && "pageIntro" in root.dataset;
 
     const measure = () => {
       const area = scope.getBoundingClientRect();
@@ -203,6 +248,8 @@ const sizes = [
     const startShader = () => {
       if (
         shaderRequested ||
+        introActive ||
+        introPending() ||
         !canvas ||
         document.readyState !== "complete" ||
         !trailQuery.matches ||
@@ -521,10 +568,87 @@ const sizes = [
 
     let currentFlip: boolean | null = null;
     const applyMode = () => {
+      if (introActive) return endIntro();
       const flipbook = !trailQuery.matches;
       if (flipbook === currentFlip) return;
       currentFlip = flipbook;
       run(flipbook);
+    };
+
+    const stopIntroFlips = () => {
+      if (!introTimer) return;
+      window.clearTimeout(introTimer);
+      introTimer = null;
+    };
+
+    const endIntro = () => {
+      if (!introActive) return;
+      introActive = false;
+      stopIntroFlips();
+      items.forEach((item) => item.classList.remove("is-active"));
+      trail.classList.remove("is-intro");
+      index = 0;
+      applyMode();
+      startShader();
+    };
+
+    const flipIntro = () => {
+      if (!introActive) return;
+      advance();
+      introTimer = window.setTimeout(flipIntro, config.introFlipMs);
+    };
+
+    const playIntro = async () => {
+      const decoded = await Promise.allSettled(
+        images.map((image) => image?.decode()),
+      );
+      const ready = decoded.every((result) => result.status === "fulfilled");
+      if (!ready || root.dataset.pageIntro !== "wait" || !trailQuery.matches) {
+        if (root.dataset.pageIntro === "wait") delete root.dataset.pageIntro;
+        applyMode();
+        startShader();
+        return;
+      }
+      introActive = true;
+      index = Math.floor(Math.random() * total);
+      root.dataset.pageIntro = "play";
+      trail.classList.add("is-intro");
+      const animations = document.getAnimations();
+      const reveals = animations.filter((animation) =>
+        (animation.effect as KeyframeEffect | null)?.target?.matches(
+          "[data-page-reveal]",
+        ),
+      );
+      Promise.allSettled(reveals.map(({ finished }) => finished)).then(() => {
+        delete root.dataset.pageIntro;
+        startShader();
+      });
+      const flip = animations.find(
+        (animation) =>
+          animation instanceof CSSAnimation &&
+          animation.animationName === "image-trail-intro-flip",
+      );
+      const exit = animations.find(
+        (animation) =>
+          animation instanceof CSSAnimation &&
+          animation.animationName === "image-trail-intro-out",
+      );
+      if (flip && exit) {
+        const onStart = (event: AnimationEvent) => {
+          if (
+            event.target !== trail ||
+            event.animationName !== "image-trail-intro-flip"
+          )
+            return;
+          trail.removeEventListener("animationstart", onStart);
+          flipIntro();
+        };
+        trail.addEventListener("animationstart", onStart);
+        flip.finished.then(stopIntroFlips, stopIntroFlips);
+        exit.finished.then(endIntro, endIntro);
+      } else {
+        endIntro();
+      }
     };
 
     let settleTimer: number | null = null;
@@ -535,11 +659,54 @@ const sizes = [
 
     trailQuery.addEventListener("change", scheduleApply);
     reducedMotionQuery.addEventListener("change", () => {
+      endIntro();
       playing = !reducedMotionQuery.matches;
       if (currentFlip !== null) run(currentFlip);
     });
     toggle?.addEventListener("click", () => setPlaying(!playing));
-    applyMode();
+
+    if (trail.hasAttribute("data-trail-intro")) {
+      let replayHref = "";
+      document.addEventListener("click", (event) => {
+        const link = (
+          event.target as Element | null
+        )?.closest<HTMLAnchorElement>("a[data-intro-replay]");
+        if (
+          !link ||
+          event.defaultPrevented ||
+          event.button !== 0 ||
+          event.metaKey ||
+          event.ctrlKey ||
+          event.shiftKey ||
+          event.altKey ||
+          !trailQuery.matches ||
+          reducedMotionQuery.matches
+        ) {
+          return;
+        }
+        if (introActive || introPending()) {
+          event.preventDefault();
+          return;
+        }
+        replayHref = link.href;
+      });
+      window.addEventListener("pageswap", (event) => {
+        const to = event.activation?.entry.url;
+        if (!replayHref || (to && to !== replayHref)) return;
+        try {
+          sessionStorage.setItem("image-trail-intro-replay", "");
+        } catch {
+          return;
+        }
+        event.viewTransition?.skipTransition();
+      });
+      window.addEventListener("pageshow", () => {
+        replayHref = "";
+      });
+    }
+
+    if (introPending()) playIntro();
+    else applyMode();
 
     const observer = new ResizeObserver(measure);
     observer.observe(scope);
@@ -611,13 +778,13 @@ const sizes = [
         height: 1cap;
       }
 
+      &:is(.is-flipbook, .is-intro) .image-trail_item {
+        translate: 0 var(--_center-offset, 0);
+      }
+
       &.is-flipbook {
         --_img-width: min(58svh * var(--_img-ratio), 70vw);
         z-index: auto;
-
-        .image-trail_item {
-          translate: 0 var(--_center-offset, 0);
-        }
 
         .image-trail_canvas {
           display: none;
@@ -625,6 +792,19 @@ const sizes = [
 
         .image-trail_controls {
           display: flex;
+        }
+      }
+
+      /* Intro */
+      &.is-intro {
+        @media (prefers-reduced-motion: no-preference) {
+          animation:
+            image-trail-intro-in var(--open-duration-gentle) var(--open-ease)
+              var(--page-intro-delay) both,
+            image-trail-intro-flip var(--page-intro-flip) linear
+              var(--page-intro-delay) forwards,
+            image-trail-intro-out var(--page-intro-exit-duration)
+              var(--close-ease-smooth) var(--page-intro-exit) forwards;
         }
       }
 
@@ -651,6 +831,24 @@ const sizes = [
           height: auto;
           aspect-ratio: var(--_img-ratio);
         }
+      }
+    }
+
+    @keyframes image-trail-intro-in {
+      from {
+        opacity: 0;
+      }
+    }
+
+    @keyframes image-trail-intro-out {
+      to {
+        opacity: 0;
+      }
+    }
+
+    @keyframes image-trail-intro-flip {
+      to {
+        --_intro-flip: 1;
       }
     }
   }
