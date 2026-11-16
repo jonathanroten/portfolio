@@ -1,5 +1,6 @@
 {
   "name": "portfolio",
+  "private": true,
   "type": "module",
   "version": "0.0.1",
   "license": "MIT",
@@ -36,8 +37,8 @@
     "wrangler": "^4.123.0"
   },
   "lumos": {
-    "version": "1.0.2",
-    "commit": "5e81e860175ed6cf4086c203e4178c2c6744ad93",
+    "version": "1.0.4",
+    "commit": "43e4d5290fd7fa5165e2118689e680971624f0cb",
     "scaffolded": "2026-09-04"
   }
 }
