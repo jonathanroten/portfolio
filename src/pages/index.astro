@@ -8,7 +8,8 @@ import IntroHome from "@/components/content/IntroHome.astro";
 import ImageTrail from "@/components/interactive/ImageTrail.astro";
 import FeatureCaseStudy from "@/components/content/FeatureCaseStudy.astro";
 
-import { getDescription, getHeroImages, imageUrl } from "@/utils/sanity.ts";
+import { getDescription, getHeroImages } from "@/sanity/lib/queries.ts";
+import { imageUrl } from "@/sanity/lib/image.ts";
 import { getCaseStudies } from "@/utils/case-studies.ts";
 
 const caseStudies = await getCaseStudies();

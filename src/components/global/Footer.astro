@@ -10,7 +10,7 @@ import FooterItem from "@/components/global/FooterItem.astro";
 import webflowCertificate from "@/assets/documents/webflow.pdf";
 import javascriptCertificate from "@/assets/documents/javascript.pdf";
 import { SITE_NAME } from "@/consts.ts";
-import { getServices } from "@/utils/sanity.ts";
+import { getServices } from "@/sanity/lib/queries.ts";
 
 const currentYear = new Date().getFullYear();
 const services = await getServices();

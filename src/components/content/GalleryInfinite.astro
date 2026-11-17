@@ -1,7 +1,8 @@
 ---
 import type { HTMLAttributes } from "astro/types";
 import type { GalleryImage } from "@/types.ts";
-import { imageUrl, type getGalleryItems } from "@/utils/sanity.ts";
+import { imageUrl } from "@/sanity/lib/image.ts";
+import type { getGalleryItems } from "@/sanity/lib/queries.ts";
 
 interface Props extends HTMLAttributes<"div"> {
   /** Set to `false` to omit the component. */
