@@ -124,6 +124,22 @@ export const caseStudy = defineType({
       of: [defineArrayMember({type: 'caseStudyImage'})],
     }),
   ],
+  validation: (rule) =>
+    rule
+      .custom((document) => {
+        const hasText = (value: unknown) => typeof value === 'string' && value.trim() !== ''
+        const hasItems = (value: unknown) => Array.isArray(value) && value.length > 0
+        if (!document) return true
+        const hasContent =
+          hasText(document.brief) ||
+          hasItems(document.briefGallery) ||
+          hasText(document.approach) ||
+          hasItems(document.approachGallery)
+        return hasContent
+          ? true
+          : 'This case study won’t get a page or a Next link until its Brief or Approach has text or images.'
+      })
+      .warning(),
   preview: {
     select: {title: 'title', media: 'featureGallery.0'},
   },
