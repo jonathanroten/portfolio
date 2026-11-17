@@ -10,8 +10,6 @@ type Props = HTMLAttributes<"div"> & {
   label?: string;
   /** Slider bounds. */
   variant?: "bleed" | "crop-start" | "contained";
-  /** Current slide position. */
-  align?: "start" | "center";
   /** Slides shown below 30rem. Defaults to `1.02`.
    *
    * @min 1
@@ -32,23 +30,16 @@ type Props = HTMLAttributes<"div"> & {
    * @min 1
    * @max 12 */
   large?: number;
-  /** Loop past the last slide. */
-  loop?: boolean;
-  /** Fade slides out at both edges. */
-  fade?: boolean;
 };
 
 const {
   render = true,
   label = "Slider",
   variant = "bleed",
-  align = "start",
   xsmall = 1.02,
   small,
   medium,
   large,
-  loop = false,
-  fade = false,
   class: className,
   ...rest
 } = Astro.props;
@@ -79,19 +70,11 @@ const visible =
     .join("; ") || undefined;
 
 const slides = await slotContent(Astro.slots);
-const caption = await slotContent(Astro.slots, "caption");
 ---
 
 {render && slides && (
   <div
-    class:list={[
-      "slider_wrap",
-      variant !== "bleed" && variant,
-      align !== "start" && align,
-      loop && "loop",
-      fade && "fade",
-      className,
-    ]}
+    class:list={["slider_wrap", variant !== "bleed" && variant, className]}
     style={visible}
     {...rest}
   >
@@ -101,11 +84,6 @@ const caption = await slotContent(Astro.slots, "caption");
 
     <div class="slider_controls">
       <div class="slider_markers" />
-      {caption && (
-        <div class="slider_caption margin-trim">
-          <Fragment set:html={caption} />
-        </div>
-      )}
       <div class="slider_steps">
         <Button
           variant="arrow"
@@ -145,39 +123,6 @@ const caption = await slotContent(Astro.slots, "caption");
       slide.setAttribute("aria-label", `${i + 1} of ${slides.length}`);
     });
 
-    const loop = slider.classList.contains("loop") && slides.length > 1;
-    let offset = 0;
-
-    if (loop) {
-      const style = getComputedStyle(slider);
-      const most = Math.max(
-        ...["xs", "sm", "md", "lg"].map(
-          (size) =>
-            parseFloat(style.getPropertyValue(`--_visible-${size}`)) || 1,
-        ),
-      );
-      const copies = Math.ceil((Math.ceil(most) + 1) / slides.length);
-      const copy = () =>
-        slides.map((slide) => {
-          const clone = slide.cloneNode(true) as HTMLElement;
-          clone.setAttribute("aria-hidden", "true");
-          clone.inert = true;
-          clone
-            .querySelectorAll("[id]")
-            .forEach((el) => el.removeAttribute("id"));
-          return clone;
-        });
-
-      for (let i = 0; i < copies; i++) {
-        list.prepend(...copy());
-        list.append(...copy());
-      }
-      offset = copies * slides.length;
-    }
-
-    const wrap = (index: number) =>
-      ((index % slides.length) + slides.length) % slides.length;
-
     const reduced = matchMedia("(prefers-reduced-motion: reduce)");
     const behavior = () => (reduced.matches ? "auto" : "smooth");
 
@@ -197,7 +142,6 @@ const caption = await slotContent(Astro.slots, "caption");
     };
 
     const pages = () => {
-      if (loop) return slides.length;
       const step = stride();
       if (step <= 0) return 1;
       return Math.max(1, slides.length - Math.round(view() / step) + 1);
@@ -209,7 +153,6 @@ const caption = await slotContent(Astro.slots, "caption");
     };
 
     let drawn = 0;
-    let held = 0;
 
     const draw = (total: number) => {
       if (!markers) return;
@@ -221,10 +164,7 @@ const caption = await slotContent(Astro.slots, "caption");
           marker.className = "slider_marker";
           marker.setAttribute("aria-label", `Go to slide ${i + 1}`);
           marker.addEventListener("click", () =>
-            list.scrollTo({
-              left: (offset + i) * stride(),
-              behavior: behavior(),
-            }),
+            list.scrollTo({ left: i * stride(), behavior: behavior() }),
           );
           return marker;
         }),
@@ -240,12 +180,10 @@ const caption = await slotContent(Astro.slots, "caption");
       const atEnd = list.scrollLeft >= end - 1;
 
       for (const step of steps) {
-        step.disabled =
-          !loop && (Number(step.dataset.step) < 0 ? atStart : atEnd);
+        step.disabled = Number(step.dataset.step) < 0 ? atStart : atEnd;
       }
 
-      const index = loop ? wrap(current() - offset) : current();
-      held = index;
+      const index = current();
       markers?.querySelectorAll(".slider_marker").forEach((marker, i) => {
         marker.classList.toggle("is-active", i === index);
         if (i === index) marker.setAttribute("aria-current", "true");
@@ -255,43 +193,13 @@ const caption = await slotContent(Astro.slots, "caption");
       controls?.classList.toggle("is-empty", end <= 1);
     };
 
-    let goal: number | null = null;
-    let touching = false;
-    let idle = 0;
-
-    const settle = () => {
-      if (!loop || pressed || touching) return;
-      const index = current();
-      const shift = offset + wrap(index - offset) - index;
-      if (shift === 0) return;
-      list.scrollTo({
-        left: list.scrollLeft + shift * stride(),
-        behavior: "instant",
-      });
-      if (goal === null) return;
-      goal += shift;
-      list.scrollTo({ left: goal * stride(), behavior: behavior() });
-    };
-
-    const later = () => {
-      clearTimeout(idle);
-      idle = window.setTimeout(() => {
-        settle();
-        goal = null;
-      }, 150);
-    };
-
     for (const step of steps) {
-      step.addEventListener("click", () => {
-        const by = Number(step.dataset.step);
-        if (!loop) {
-          list.scrollBy({ left: by * stride(), behavior: behavior() });
-          return;
-        }
-        settle();
-        goal = (goal ?? current()) + by;
-        list.scrollTo({ left: goal * stride(), behavior: behavior() });
-      });
+      step.addEventListener("click", () =>
+        list.scrollBy({
+          left: Number(step.dataset.step) * stride(),
+          behavior: behavior(),
+        }),
+      );
     }
 
     let origin = 0;
@@ -304,7 +212,6 @@ const caption = await slotContent(Astro.slots, "caption");
     };
 
     list.addEventListener("pointerdown", (event) => {
-      goal = null;
       if (event.pointerType !== "mouse" || event.button !== 0) return;
       if (list.scrollWidth <= list.clientWidth) return;
       pressed = true;
@@ -337,7 +244,6 @@ const caption = await slotContent(Astro.slots, "caption");
       }
       list.addEventListener("scrollend", restore, { once: true });
       setTimeout(restore, 400);
-      if (loop) later();
     };
 
     list.addEventListener("pointerup", release);
@@ -364,36 +270,9 @@ const caption = await slotContent(Astro.slots, "caption");
       { passive: true },
     );
 
-    if (loop) {
-      list.addEventListener("scroll", later, { passive: true });
-      list.addEventListener("touchstart", () => (touching = true), {
-        passive: true,
-      });
-      for (const type of ["touchend", "touchcancel"]) {
-        list.addEventListener(
-          type,
-          () => {
-            touching = false;
-            later();
-          },
-          { passive: true },
-        );
-      }
-    }
-
     slider.classList.add("is-ready");
 
-    let width = 0;
-    const resize = new ResizeObserver(() => {
-      if (loop && list.clientWidth !== width) {
-        width = list.clientWidth;
-        list.scrollTo({
-          left: (offset + held) * stride(),
-          behavior: "instant",
-        });
-      }
-      sync();
-    });
+    const resize = new ResizeObserver(sync);
     resize.observe(list);
 
     addEventListener("load", sync);
@@ -420,24 +299,9 @@ const caption = await slotContent(Astro.slots, "caption");
       }
       @media (width >= 48rem) {
         --_visible: var(--_visible-md);
-
-        .slider_controls:has(.slider_caption) {
-          grid-template-columns: 1fr auto 1fr;
-        }
-        .slider_caption {
-          grid-area: auto;
-        }
       }
       @media (width >= 64rem) {
         --_visible: var(--_visible-lg);
-      }
-
-      &.center {
-        --_slide: calc(
-          (100cqw - (var(--_visible) - 1) * var(--_gap-size)) / var(--_visible)
-        );
-        --_center: calc((100cqw - var(--_slide)) / 2);
-        container-type: inline-size;
       }
     }
 
@@ -451,7 +315,7 @@ const caption = await slotContent(Astro.slots, "caption");
       scrollbar-width: none;
       cursor: grab;
       margin-inline: calc(-1 * var(--_edge));
-      padding-inline: calc(var(--_edge) + var(--_center, 0rem));
+      padding-inline: var(--_edge);
       scroll-padding-inline: var(--_edge);
 
       &::-webkit-scrollbar {
@@ -480,38 +344,18 @@ const caption = await slotContent(Astro.slots, "caption");
           );
         min-width: 0;
         scroll-snap-align: start;
-
-        .slider_wrap.center & {
-          flex-basis: var(--_slide);
-          scroll-snap-align: center;
-        }
       }
 
       .slider_wrap.crop-start & {
         margin-inline-start: 0;
-        padding-inline-start: var(--_center, 0rem);
+        padding-inline-start: 0;
         scroll-padding-inline-start: 0;
       }
 
       .slider_wrap.contained & {
         margin-inline: 0;
-        padding-inline: var(--_center, 0rem);
+        padding-inline: 0;
         scroll-padding-inline: 0;
-      }
-
-      .slider_wrap.fade & {
-        --_fade: calc(var(--_edge) + var(--_center, 0rem));
-        mask-image: linear-gradient(
-          to right,
-          transparent,
-          black var(--_fade),
-          black calc(100% - var(--_fade)),
-          transparent
-        );
-
-        &:focus-visible {
-          outline-offset: var(--focus-offset-inner);
-        }
       }
     }
 
@@ -521,22 +365,9 @@ const caption = await slotContent(Astro.slots, "caption");
       justify-content: space-between;
       gap: var(--space-4);
 
-      &:has(.slider_caption) {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-      }
-
-      .slider_wrap:not(.is-ready) &:not(:has(.slider_caption)),
-      &.is-empty:not(:has(.slider_caption)) {
-        display: none;
-      }
-    }
-
-    .slider_markers,
-    .slider_steps {
       .slider_wrap:not(.is-ready) &,
-      .slider_controls.is-empty & {
-        visibility: hidden;
+      &.is-empty {
+        display: none;
       }
     }
 
@@ -544,11 +375,6 @@ const caption = await slotContent(Astro.slots, "caption");
       display: flex;
       align-items: center;
       gap: var(--space-1);
-    }
-
-    .slider_caption {
-      grid-area: 1 / 1 / 2 / -1;
-      text-align: center;
     }
 
     .slider_marker {
@@ -572,7 +398,6 @@ const caption = await slotContent(Astro.slots, "caption");
 
     .slider_steps {
       display: flex;
-      justify-content: flex-end;
       gap: var(--space-2);
     }
   }
