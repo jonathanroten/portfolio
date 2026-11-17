@@ -288,7 +288,7 @@
 }
 
 :root[data-page-intro="wait"] [data-page-reveal] {
-  opacity: 0;
+  opacity: var(--page-reveal-opacity);
 }
 
 [data-page-reveal] {
@@ -311,7 +311,7 @@
 
 @keyframes page-reveal {
   from {
-    opacity: 0;
+    opacity: var(--page-reveal-opacity);
     translate: 0 var(--space-5);
   }
 }
