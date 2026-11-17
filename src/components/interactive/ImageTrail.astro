@@ -26,13 +26,13 @@ const {
 
 const trailQuery = "(width >= 64rem) and (hover: hover) and (pointer: fine)";
 const introWaitMs = 2500;
-const largeWidth = "21.25rem";
+const trailWidth = "18.75rem";
 
 const sizes = [
-  `${trailQuery} ${largeWidth}`,
-  `(width < 48rem) min(${largeWidth}, 68vw)`,
-  `(height < 30rem) and (hover: none) min(${largeWidth}, 68vh)`,
-  `min(${largeWidth}, 47vh)`,
+  `${trailQuery} ${trailWidth}`,
+  "(width < 48rem) 68vw",
+  "(height < 30rem) and (hover: none) 68vh",
+  "47vh",
 ].join(", ");
 ---
 
@@ -41,7 +41,7 @@ const sizes = [
     class:list={["image-trail_wrap", className]}
     data-trail-query={trailQuery}
     data-trail-intro={intro ? "" : undefined}
-    style={`--_img-width-large: ${largeWidth}`}
+    style={`--_img-width-trail: ${trailWidth}`}
     {...rest}
   >
     {intro && <script define:vars={{ trailQuery, introWaitMs }}>
@@ -731,7 +731,7 @@ const sizes = [
 
   @layer components {
     .image-trail_wrap {
-      --_img-width: 18.75rem;
+      --_img-width: var(--_img-width-trail);
       --_img-ratio: 4/5;
       --_bounds-inset: var(--site-margin);
       display: flex;
@@ -786,11 +786,7 @@ const sizes = [
       }
 
       &.is-flipbook {
-        --_img-width: min(
-          var(--_img-width-large),
-          58svh * var(--_img-ratio),
-          70vw
-        );
+        --_img-width: min(58svh * var(--_img-ratio), 70vw);
         z-index: auto;
 
         .image-trail_canvas {
@@ -804,12 +800,6 @@ const sizes = [
 
       /* Intro */
       &.is-intro {
-        --_img-width: var(--_img-width-large);
-
-        .image-trail_item {
-          will-change: auto;
-        }
-
         @media (prefers-reduced-motion: no-preference) {
           animation:
             image-trail-intro-in var(--open-duration-slow) var(--open-ease)
@@ -829,11 +819,7 @@ const sizes = [
         max-height: 100svh;
 
         &.is-flipbook {
-          --_img-width: min(
-            var(--_img-width-large),
-            85svh * var(--_img-ratio),
-            68vw
-          );
+          --_img-width: min(85svh * var(--_img-ratio), 68vw);
 
           .image-trail_item {
             translate: none;
