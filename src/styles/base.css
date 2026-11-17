@@ -99,7 +99,7 @@
   --page-reveal-ease: var(--ease-out-soft);
   --page-intro-delay: var(--duration-3);
   --page-intro-flip: calc(var(--page-duration) * 2);
-  --page-intro-hold: var(--page-duration-slow);
+  --page-intro-hold: var(--duration-7);
   --page-intro-exit: calc(var(--page-intro-delay) + var(--page-intro-flip) + var(--page-intro-hold));
   --page-intro-exit-duration: var(--page-duration);
   --page-intro-reveal: calc(var(--page-intro-exit) + var(--page-intro-exit-duration));
