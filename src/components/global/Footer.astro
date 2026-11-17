@@ -50,7 +50,7 @@ const { render = true } = Astro.props;
       <Grid xsmall={1} small={2} medium={3} class="gap-row-8" role="list">
         <FooterItem
           heading="Experience"
-          variant="list-stacked"
+          variant="stacked"
           items={[
             { label: "Elephant In The Room: June 2021 – Present" },
             { label: "Novant Health: Oct 2020 – June 2021" },
@@ -62,7 +62,7 @@ const { render = true } = Astro.props;
         {services.length > 0 && (
           <FooterItem
             heading="Services"
-            variant="list-inline"
+            variant="inline"
             items={services.map((label) => ({ label }))}
           />
         )}
@@ -75,7 +75,7 @@ const { render = true } = Astro.props;
         />
         <FooterItem
           heading="Profile"
-          variant="list-stacked"
+          variant="stacked"
           items={[
             { label: "Favorite Food: Mom's Mac + Cheese" },
             { label: "Childhood Hero: Mugsy Bogues" },
@@ -84,7 +84,7 @@ const { render = true } = Astro.props;
         />
         <FooterItem
           heading="Certifications"
-          variant="list-stacked"
+          variant="stacked"
           items={[
             { label: "Webflow Practitioner", href: webflowCertificate },
             {
@@ -95,7 +95,7 @@ const { render = true } = Astro.props;
         />
         <FooterItem
           heading="Additional Info"
-          variant="list-stacked"
+          variant="stacked"
           items={[
             {
               label: "Follow Me On Instagram",

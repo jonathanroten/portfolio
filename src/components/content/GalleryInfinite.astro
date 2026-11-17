@@ -162,10 +162,16 @@ const images: GalleryImage[] = items.map((item) => {
       await image.decode();
     } catch (error) {
       if (!image.crossOrigin) throw error;
-      corsBlocked = true;
+      image.src = src;
+      const retried = await image.decode().then(
+        () => true,
+        () => false,
+      );
+      if (retried) return;
       image.crossOrigin = null;
       image.src = src;
       await image.decode();
+      corsBlocked = true;
     }
   };
 
@@ -638,7 +644,7 @@ const images: GalleryImage[] = items.map((item) => {
       center.y += (target.y - center.y) * blend;
       syncTiles();
       syncDrawing(elapsed);
-      gallery.dispatchEvent(new Event("scroll"));
+      gallery.dispatchEvent(new Event("cursor-refresh", { bubbles: true }));
       const pending = Math.hypot(
         (target.x - center.x) * tileSize.width,
         (target.y - center.y) * tileSize.height,
@@ -955,7 +961,7 @@ const images: GalleryImage[] = items.map((item) => {
         background-color: var(--backdrop);
         opacity: 0;
         pointer-events: none;
-        transition: opacity var(--open-duration-gentle) var(--open-ease);
+        transition: opacity var(--open-duration-slow) var(--open-ease);
       }
       &:has(.is-focus)::before {
         opacity: 1;
@@ -1007,9 +1013,9 @@ const images: GalleryImage[] = items.map((item) => {
       position: absolute;
       opacity: 0;
       transition:
-        filter var(--open-duration-gentle) var(--open-ease),
-        scale var(--open-duration-slow) var(--open-ease),
-        translate var(--open-duration-slow) var(--open-ease);
+        filter var(--open-duration-slow) var(--open-ease),
+        scale var(--open-duration-slower) var(--open-ease),
+        translate var(--open-duration-slower) var(--open-ease);
       &.is-loaded {
         opacity: 1;
       }

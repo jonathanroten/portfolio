@@ -33,18 +33,10 @@ const countRows = (gallery: CaseStudy["featureGallery"]) => {
   return rows.slice(0, galleryRows).flat();
 };
 
-const items = (caseStudies ?? [])
-  .filter(
-    (caseStudy) =>
-      caseStudy.title ||
-      caseStudy.services.length ||
-      caseStudy.description ||
-      caseStudy.featureGallery.length,
-  )
-  .map((caseStudy) => ({
-    ...caseStudy,
-    featureGallery: countRows(caseStudy.featureGallery),
-  }));
+const items = (caseStudies ?? []).map((caseStudy) => ({
+  ...caseStudy,
+  featureGallery: countRows(caseStudy.featureGallery),
+}));
 
 const total = String(items.length).padStart(2, "0");
 ---
@@ -55,9 +47,9 @@ const total = String(items.length).padStart(2, "0");
     role="list"
     {...rest}
   >
-    {items.map((caseStudy, i) => {
-      const href = `/case-studies/${caseStudy.slug}`;
-      const number = String(i + 1).padStart(2, "0");
+    {items.map((caseStudy) => {
+      const href = `/case-studies/${caseStudy.slug}/`;
+      const number = String(caseStudy.number).padStart(2, "0");
       const titleId = uid("feature-case-study-title");
       const Tag = caseStudy.ready ? "a" : "div";
       const linkAttrs = caseStudy.ready
@@ -100,7 +92,7 @@ const total = String(items.length).padStart(2, "0");
                         <Heading tag="h3" variant="h5" class="margin-bottom-3">
                           Services Provided
                         </Heading>
-                        <ul>
+                        <ul class="list-inline">
                           {caseStudy.services.map((service) => (
                             <li class="text-style-main">{service}</li>
                           ))}
@@ -174,7 +166,7 @@ const total = String(items.length).padStart(2, "0");
         padding: var(--space-8) 0 var(--space-6);
       }
       .feature-case-study_title {
-        transition: color var(--hover-duration-gentle) var(--hover-ease);
+        transition: color var(--hover-duration-slow) var(--hover-ease);
       }
       .feature-case-study_gallery {
         display: flex;
@@ -231,21 +223,6 @@ const total = String(items.length).padStart(2, "0");
           padding-top: calc(var(--space-3) - var(--space-1));
           padding-bottom: var(--space-3);
         }
-      }
-    }
-
-    .feature-case-study_content {
-      ul {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0 0.5ch;
-        @supports (text-box: trim-both cap alphabetic) {
-          row-gap: calc(1lh - 1cap);
-        }
-      }
-      li:not(:last-child)::after {
-        content: ",";
-        display: inline;
       }
     }
   }

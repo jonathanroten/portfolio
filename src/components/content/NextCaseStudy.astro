@@ -52,7 +52,7 @@ const {
       </span>
       <span class="next-case-study_hint text-style-h6" aria-hidden="true">
         Next
-        <span class="next-case-study_chevron">
+        <span class="next-case-study_chevron icon-inline">
           <Icon src={arrow} variant="small" />
         </span>
       </span>
@@ -93,7 +93,7 @@ const {
         display: flex;
         align-items: baseline;
         gap: inherit;
-        transition: color var(--hover-duration-gentle) var(--hover-ease);
+        transition: color var(--hover-duration-slow) var(--hover-ease);
       }
       .next-case-study_hint {
         display: flex;
@@ -102,9 +102,6 @@ const {
         white-space: nowrap;
       }
       .next-case-study_chevron {
-        align-self: center;
-        font-size: 0.625em;
-        width: 1em;
         rotate: 90deg;
       }
       .next-case-study_image {
@@ -121,7 +118,7 @@ const {
           transparent,
           var(--background)
         );
-        transition: opacity var(--hover-duration-gentle) var(--hover-ease);
+        transition: opacity var(--hover-duration-slow) var(--hover-ease);
       }
       &:focus-visible .next-case-study_overlay {
         opacity: 0.6;
