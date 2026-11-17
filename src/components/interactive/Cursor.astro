@@ -21,7 +21,7 @@ const { render = true, class: className, ...rest } = Astro.props;
     <div class="cursor_dot" />
     <div class="cursor_tag text-style-h6">
       <span class="cursor_label" />
-      <span class="cursor_chevron">
+      <span class="cursor_chevron icon-inline">
         <Icon src={arrow} variant="small" />
       </span>
     </div>
@@ -57,7 +57,7 @@ const { render = true, class: className, ...rest } = Astro.props;
       return width;
     };
 
-    const gentleRate = Math.log(1024) / duration("--hover-duration-gentle");
+    const slowRate = Math.log(1024) / duration("--hover-duration-slow");
     const quickRate = Math.log(1024) / duration("--hover-duration");
     const point = { x: 0, y: 0 };
     const reticle = { x: 0, y: 0, w: 0, h: 0, labelX: 0, labelY: 0 };
@@ -133,7 +133,7 @@ const { render = true, class: className, ...rest } = Astro.props;
       const goal = aim();
       for (const axis of axes) {
         const rate =
-          lock || axis === "w" || axis === "h" ? gentleRate : quickRate;
+          lock || axis === "w" || axis === "h" ? slowRate : quickRate;
         const blend = 1 - Math.exp(-rate * elapsed);
         reticle[axis] += (goal[axis] - reticle[axis]) * blend;
       }
@@ -152,7 +152,7 @@ const { render = true, class: className, ...rest } = Astro.props;
     };
 
     const rollOptions: KeyframeAnimationOptions = {
-      duration: duration("--hover-duration-gentle"),
+      duration: duration("--hover-duration-slow"),
       easing: getComputedStyle(root).getPropertyValue("--hover-ease").trim(),
       fill: "forwards",
     };
@@ -317,6 +317,7 @@ const { render = true, class: className, ...rest } = Astro.props;
     };
 
     addEventListener("scroll", refresh, { passive: true, capture: true });
+    addEventListener("cursor-refresh", refresh);
     addEventListener("wheel", refresh, { passive: true });
     addEventListener("click", refresh);
     addEventListener("keydown", refresh);
@@ -391,7 +392,7 @@ const { render = true, class: className, ...rest } = Astro.props;
       height: var(--_dot);
       border-radius: var(--radius-round);
       background-color: var(--cursor-background);
-      transition: scale var(--hover-duration-gentle) var(--hover-ease);
+      transition: scale var(--hover-duration-slow) var(--hover-ease);
       .cursor_wrap.is-grabbing & {
         scale: 0.75;
       }
@@ -411,14 +412,14 @@ const { render = true, class: className, ...rest } = Astro.props;
       opacity: 0;
       transition:
         opacity var(--hover-duration) var(--hover-ease),
-        scale var(--hover-duration-gentle) var(--hover-ease),
+        scale var(--hover-duration-slow) var(--hover-ease),
         color var(--_color-duration) var(--hover-ease);
       .cursor_wrap.is-labelled & {
         scale: 1;
         opacity: 1;
       }
       &.is-shown {
-        --_color-duration: var(--hover-duration-gentle);
+        --_color-duration: var(--hover-duration-slow);
       }
       &.is-disabled {
         color: color-mix(in lab, var(--light-100) 20%, transparent);
@@ -432,9 +433,6 @@ const { render = true, class: className, ...rest } = Astro.props;
 
     .cursor_chevron {
       display: none;
-      align-self: center;
-      font-size: 0.625em;
-      width: 1em;
       .cursor_tag.is-link & {
         display: block;
       }

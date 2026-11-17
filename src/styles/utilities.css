@@ -942,10 +942,6 @@
   border-radius: inherit;
 }
 
-.radius-xsmall {
-  border-radius: var(--radius-xsmall);
-}
-
 .radius-small {
   border-radius: var(--radius-small);
 }

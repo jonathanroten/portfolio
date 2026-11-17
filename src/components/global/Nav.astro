@@ -214,9 +214,6 @@ const { render = true, overlap = false } = Astro.props;
       justify-content: space-between;
       gap: 0 var(--space-6);
       height: var(--nav-height);
-      @media (width >= 48rem) {
-        align-items: start;
-      }
     }
 
     .nav_logo,
@@ -237,9 +234,6 @@ const { render = true, overlap = false } = Astro.props;
           color: var(--text-2);
         }
       }
-      @media (width >= 48rem) {
-        transition: color var(--hover-duration-gentle) var(--hover-ease);
-      }
     }
 
     .nav_toggle {
@@ -258,9 +252,6 @@ const { render = true, overlap = false } = Astro.props;
         &:hover {
           color: var(--text-2);
         }
-      }
-      @media (width >= 48rem) {
-        display: none;
       }
     }
 
@@ -312,13 +303,6 @@ const { render = true, overlap = false } = Astro.props;
         grid-template-rows: 1fr;
         visibility: visible;
       }
-      @media (width >= 48rem) {
-        position: static;
-        display: block;
-        visibility: visible;
-        overflow: visible;
-        background-color: transparent;
-      }
     }
 
     .nav_menu_inner {
@@ -330,10 +314,6 @@ const { render = true, overlap = false } = Astro.props;
       .nav_wrap.open & {
         opacity: 1;
       }
-      @media (width >= 48rem) {
-        overflow: visible;
-        opacity: 1;
-      }
     }
 
     .nav_menu_content {
@@ -341,10 +321,6 @@ const { render = true, overlap = false } = Astro.props;
       flex-direction: column;
       min-height: calc(100dvh - var(--nav-total-height));
       padding: 0 var(--site-margin) var(--site-margin);
-      @media (width >= 48rem) {
-        min-height: 0;
-        padding: 0;
-      }
     }
 
     .nav_links {
@@ -356,49 +332,15 @@ const { render = true, overlap = false } = Astro.props;
       & > li {
         border-bottom: var(--border-width) solid var(--border);
       }
-      @media (width >= 48rem) {
-        --_fade-color: var(--text-2);
-        flex-direction: row;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: var(--space-4);
-        padding-top: 0;
-        & > li {
-          border-bottom: 0;
-        }
-      }
     }
 
     .nav_link {
       display: block;
       padding-block: var(--space-4);
-      @media (width >= 48rem) {
-        position: relative;
-        padding-block: 0;
-        transition: color var(--hover-duration-gentle) var(--hover-ease);
-        &[aria-current="page"]::after {
-          content: "";
-          position: absolute;
-          inset-inline: calc(var(--h6) * -0.25);
-          top: 50%;
-          height: var(--border-width-medium);
-          background-color: currentcolor;
-          translate: 0 -50%;
-        }
-      }
     }
 
     .nav_link_text {
       display: block;
-      @media (width >= 48rem) {
-        font-family: var(--h6-font-family);
-        font-size: var(--h6);
-        font-weight: var(--h6-font-weight);
-        line-height: var(--h6-line-height);
-        letter-spacing: var(--h6-letter-spacing);
-        text-transform: var(--h6-text-transform);
-        text-wrap: var(--h6-text-wrap);
-      }
     }
 
     .nav_socials {
@@ -408,9 +350,6 @@ const { render = true, overlap = false } = Astro.props;
       padding-block: var(--space-6);
       & > li {
         display: flex;
-      }
-      @media (width >= 48rem) {
-        display: none;
       }
     }
 
@@ -431,9 +370,6 @@ const { render = true, overlap = false } = Astro.props;
       margin-top: auto;
       padding-top: var(--space-6);
       border-top: var(--border-width) solid var(--border);
-      @media (width >= 48rem) {
-        display: none;
-      }
     }
 
     .nav_meta {
@@ -446,6 +382,80 @@ const { render = true, overlap = false } = Astro.props;
 
     :root:has(.nav_wrap.open) {
       overflow: hidden;
+    }
+
+    @media (width >= 48rem) {
+      .nav_inner {
+        align-items: start;
+      }
+
+      .nav_logo {
+        transition: color var(--hover-duration-slow) var(--hover-ease);
+      }
+
+      .nav_toggle {
+        display: none;
+      }
+
+      .nav_menu {
+        position: static;
+        display: block;
+        visibility: visible;
+        overflow: visible;
+        background-color: transparent;
+      }
+
+      .nav_menu_inner {
+        overflow: visible;
+        opacity: 1;
+      }
+
+      .nav_menu_content {
+        min-height: 0;
+        padding: 0;
+      }
+
+      .nav_links {
+        --_fade-color: var(--text-2);
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-4);
+        padding-top: 0;
+        & > li {
+          border-bottom: 0;
+        }
+      }
+
+      .nav_link {
+        position: relative;
+        padding-block: 0;
+        transition: color var(--hover-duration-slow) var(--hover-ease);
+        &[aria-current="page"]::after {
+          content: "";
+          position: absolute;
+          inset-inline: calc(var(--h6) * -0.25);
+          top: 50%;
+          height: var(--border-width-medium);
+          background-color: currentcolor;
+          translate: 0 -50%;
+        }
+      }
+
+      .nav_link_text {
+        font-family: var(--h6-font-family);
+        font-size: var(--h6);
+        font-weight: var(--h6-font-weight);
+        line-height: var(--h6-line-height);
+        letter-spacing: var(--h6-letter-spacing);
+        text-transform: var(--h6-text-transform);
+        text-wrap: var(--h6-text-wrap);
+      }
+
+      .nav_socials,
+      .nav_details {
+        display: none;
+      }
     }
   }
 </style>

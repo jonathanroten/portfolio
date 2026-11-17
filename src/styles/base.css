@@ -27,9 +27,9 @@
   /* Letter spacing */
   --letter-spacing-tight: -0.04em;
   --letter-spacing-normal: 0em;
-  --letter-spacing-small: 0.02em;
-  --letter-spacing-medium: 0.04em;
-  --letter-spacing-large: 0.06em;
+  --letter-spacing-wide: 0.02em;
+  --letter-spacing-wider: 0.04em;
+  --letter-spacing-widest: 0.06em;
 
   /* Line height */
   --line-height-small: 1.125;
@@ -41,51 +41,63 @@
   /* Borders & focus */
   --border-width: 0.0625rem;
   --border-width-medium: 0.09375rem;
-  --border-width-large: 0.1875rem;
-  --border-width-huge: 0.3125rem;
   --focus-width: 0.125rem;
   --focus-offset: 0.1827rem;
   --focus-offset-inner: calc(var(--focus-width) * -1);
   --link-border-gap: 0.4em;
 
+  /* Motion primitives */
+  --duration-1: 100ms;
+  --duration-2: 200ms;
+  --duration-3: 400ms;
+  --duration-4: 600ms;
+  --duration-5: 800ms;
+  --duration-6: 1000ms;
+  --duration-7: 1200ms;
+  --duration-8: 2300ms;
+  --ease-standard: ease;
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-soft: cubic-bezier(0.25, 1, 0.5, 1);
+
   /* Hover motion */
-  --hover-duration: 200ms;
-  --hover-duration-gentle: 400ms;
-  --hover-ease: ease;
+  --hover-duration: var(--duration-2);
+  --hover-duration-slow: var(--duration-3);
+  --hover-ease: var(--ease-standard);
 
   /* Opening motion */
-  --open-duration: var(--hover-duration);
-  --open-duration-gentle: var(--hover-duration-gentle);
-  --open-duration-slow: 600ms;
-  --open-ease: var(--hover-ease);
-  --open-ease-smooth: var(--smooth-scroll-ease);
-  --close-ease-smooth: cubic-bezier(0.65, 0, 0.35, 1);
+  --open-duration: var(--duration-2);
+  --open-duration-slow: var(--duration-3);
+  --open-duration-slower: var(--duration-4);
+  --open-ease: var(--ease-standard);
+  --open-ease-smooth: var(--ease-out);
+  --close-ease-smooth: var(--ease-in-out);
 
   /* Theme motion */
-  --theme-duration: 600ms;
-  --theme-ease: var(--hover-ease);
+  --theme-duration: var(--duration-4);
+  --theme-ease: var(--ease-standard);
 
   /* Scroll motion */
-  --scroll-duration: 800ms;
-  --scroll-ease: cubic-bezier(0.65, 0, 0.35, 1);
-  --smooth-scroll-duration: 2300ms;
-  --smooth-scroll-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --scroll-duration: var(--duration-5);
+  --scroll-ease: var(--ease-in-out);
+  --smooth-scroll-duration: var(--duration-8);
+  --smooth-scroll-ease: var(--ease-out);
 
   /* Page motion */
-  --page-duration: 800ms;
-  --page-duration-slow: 1000ms;
-  --page-stagger: 100ms;
+  --page-duration: var(--duration-5);
+  --page-duration-slow: var(--duration-6);
+  --page-stagger: var(--duration-1);
   --page-travel: 10vh;
-  --page-ease: var(--smooth-scroll-ease);
+  --page-ease: var(--ease-out);
   --page-next-pace: 1.5;
   --page-next-duration: calc(var(--page-duration-slow) * var(--page-next-pace));
-  --page-curtain-cover: 730ms;
-  --page-curtain-hold: 110ms;
-  --page-curtain-lift: 930ms;
+  --page-curtain-cover: var(--page-duration);
+  --page-curtain-hold: var(--page-stagger);
+  --page-curtain-lift: var(--page-duration-slow);
   --page-reveal: calc(var(--page-curtain-cover) + var(--page-curtain-hold) + var(--page-curtain-lift) / 2);
-  --page-reveal-duration: 1200ms;
-  --page-reveal-ease: cubic-bezier(0.25, 1, 0.5, 1);
-  --page-intro-delay: var(--open-duration-gentle);
+  --page-reveal-duration: var(--duration-7);
+  --page-reveal-ease: var(--ease-out-soft);
+  --page-intro-delay: var(--duration-3);
   --page-intro-flip: calc(var(--page-duration) * 2);
   --page-intro-hold: var(--page-duration-slow);
   --page-intro-exit: calc(var(--page-intro-delay) + var(--page-intro-flip) + var(--page-intro-hold));
@@ -121,7 +133,7 @@
   --display-min: 64;
   --display-max: 112;
   --display-line-height: var(--line-height-small);
-  --display-letter-spacing: var(--letter-spacing-small);
+  --display-letter-spacing: var(--letter-spacing-wide);
   --display-text-transform: none;
   --display-margin-top: var(--space-7);
   --display-margin-bottom: var(--space-6);
@@ -133,7 +145,7 @@
   --h1-min: 48;
   --h1-max: 80;
   --h1-line-height: var(--line-height-small);
-  --h1-letter-spacing: var(--letter-spacing-small);
+  --h1-letter-spacing: var(--letter-spacing-wide);
   --h1-text-transform: none;
   --h1-margin-top: var(--space-7);
   --h1-margin-bottom: var(--space-6);
@@ -145,7 +157,7 @@
   --h2-min: 40;
   --h2-max: 48;
   --h2-line-height: var(--line-height-medium);
-  --h2-letter-spacing: var(--letter-spacing-small);
+  --h2-letter-spacing: var(--letter-spacing-wide);
   --h2-text-transform: none;
   --h2-margin-top: var(--space-7);
   --h2-margin-bottom: var(--space-5);
@@ -157,7 +169,7 @@
   --h3-min: 32;
   --h3-max: 44;
   --h3-line-height: var(--line-height-small);
-  --h3-letter-spacing: var(--letter-spacing-medium);
+  --h3-letter-spacing: var(--letter-spacing-wider);
   --h3-text-transform: uppercase;
   --h3-margin-top: var(--space-6);
   --h3-margin-bottom: var(--space-5);
@@ -169,7 +181,7 @@
   --h4-min: 22;
   --h4-max: 28;
   --h4-line-height: var(--line-height-large);
-  --h4-letter-spacing: var(--letter-spacing-small);
+  --h4-letter-spacing: var(--letter-spacing-wide);
   --h4-text-transform: none;
   --h4-margin-top: var(--space-6);
   --h4-margin-bottom: var(--space-4);
@@ -181,7 +193,7 @@
   --h5-min: 16;
   --h5-max: 18;
   --h5-line-height: var(--line-height-large);
-  --h5-letter-spacing: var(--letter-spacing-large);
+  --h5-letter-spacing: var(--letter-spacing-widest);
   --h5-text-transform: uppercase;
   --h5-margin-top: var(--space-5);
   --h5-margin-bottom: var(--space-4);
@@ -193,7 +205,7 @@
   --h6-min: 14;
   --h6-max: 16;
   --h6-line-height: var(--line-height-medium);
-  --h6-letter-spacing: var(--letter-spacing-medium);
+  --h6-letter-spacing: var(--letter-spacing-wider);
   --h6-text-transform: uppercase;
   --h6-margin-top: var(--space-5);
   --h6-margin-bottom: var(--space-3);
@@ -205,7 +217,7 @@
   --text-large-min: 18;
   --text-large-max: 20;
   --text-large-line-height: var(--line-height-large);
-  --text-large-letter-spacing: var(--letter-spacing-small);
+  --text-large-letter-spacing: var(--letter-spacing-wide);
   --text-large-text-transform: none;
   --text-large-margin-top: var(--space-4);
   --text-large-margin-bottom: var(--space-4);
@@ -217,7 +229,7 @@
   --text-main-min: 14;
   --text-main-max: 16;
   --text-main-line-height: var(--line-height-huge);
-  --text-main-letter-spacing: var(--letter-spacing-small);
+  --text-main-letter-spacing: var(--letter-spacing-wide);
   --text-main-text-transform: none;
   --text-main-margin-top: var(--space-4);
   --text-main-margin-bottom: var(--space-4);
@@ -229,7 +241,7 @@
   --text-small-min: 12;
   --text-small-max: 14;
   --text-small-line-height: var(--line-height-huge);
-  --text-small-letter-spacing: var(--letter-spacing-medium);
+  --text-small-letter-spacing: var(--letter-spacing-wider);
   --text-small-text-transform: none;
   --text-small-margin-top: var(--space-4);
   --text-small-margin-bottom: var(--space-4);
@@ -299,7 +311,6 @@
   --background-2: var(--light-200);
   --background-3: var(--light-300);
   --background-skeleton: color-mix(in lab, currentcolor 10%, transparent);
-  --background-accent: color-mix(in lab, var(--brand-500) 10%, transparent);
   --text: var(--dark-900);
   --text-2: color-mix(in lab, currentcolor 60%, transparent);
   --border: color-mix(in lab, var(--text) 20%, transparent);
@@ -345,7 +356,6 @@
   --background-2: var(--dark-800);
   --background-3: var(--dark-700);
   --background-skeleton: color-mix(in lab, currentcolor 10%, transparent);
-  --background-accent: color-mix(in lab, var(--brand-500) 10%, transparent);
   --text: var(--brand-500);
   --text-2: color-mix(in lab, currentcolor 60%, transparent);
   --border: color-mix(in lab, var(--text) 20%, transparent);
@@ -390,7 +400,6 @@
   --background-2: var(--brand-300);
   --background-3: var(--brand-100);
   --background-skeleton: color-mix(in lab, currentcolor 10%, transparent);
-  --background-accent: color-mix(in lab, var(--dark-900) 10%, transparent);
   --text: var(--brand-text);
   --text-2: color-mix(in lab, currentcolor 60%, transparent);
   --border: color-mix(in lab, var(--text) 20%, transparent);

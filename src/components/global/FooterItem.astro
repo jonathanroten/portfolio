@@ -17,7 +17,7 @@ type Base = HTMLAttributes<"div"> & {
   /** Item heading. Supports inline markup. */
   heading?: string;
   /** Content layout. */
-  variant?: "default" | "list-inline" | "list-stacked";
+  variant?: "default" | "inline" | "stacked";
   /** Heading level. */
   headingTag?: "h2" | "h3" | "h4" | "h5" | "h6";
 };
@@ -31,7 +31,7 @@ type Props = Base &
         items?: never;
       }
     | {
-        variant: "list-inline" | "list-stacked";
+        variant: "inline" | "stacked";
         text?: never;
         /** List items. */
         items?: FooterListItem[];
@@ -61,7 +61,7 @@ const hasContent = !!(heading || hasText || hasList);
 if (import.meta.env.DEV && render) {
   if (variant === "default" && items) {
     console.warn(
-      '[lumos] <FooterItem variant="default"> renders a paragraph, so `items` was dropped. Use the list-inline or list-stacked variant to show it.',
+      '[lumos] <FooterItem variant="default"> renders a paragraph, so `items` was dropped. Use the inline or stacked variant to show it.',
     );
   }
   if (variant !== "default" && text) {
@@ -95,7 +95,7 @@ if (import.meta.env.DEV && render) {
           </Paragraph>
         )}
         {hasList && (
-          <ul class="footer-item_list fade-siblings">
+          <ul class="footer-item_list list-inline fade-siblings">
             {items!.map((item) => (
               <li class="text-style-main">
                 {item.href ? (
@@ -139,19 +139,7 @@ if (import.meta.env.DEV && render) {
 
     .footer-item_list {
       list-style: none;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0 0.75ch;
-      @supports (text-box: trim-both cap alphabetic) {
-        row-gap: calc(1lh - 1cap);
-      }
-
-      li:not(:last-child)::after {
-        content: ",";
-        display: inline;
-      }
-
-      .list-stacked & {
+      .stacked & {
         flex-direction: column;
         flex-wrap: nowrap;
 
@@ -162,7 +150,7 @@ if (import.meta.env.DEV && render) {
     }
     .footer-item_link {
       text-decoration: none;
-      transition: color var(--hover-duration-gentle) var(--hover-ease);
+      transition: color var(--hover-duration-slow) var(--hover-ease);
     }
   }
 </style>
