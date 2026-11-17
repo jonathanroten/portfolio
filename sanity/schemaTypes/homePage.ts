@@ -32,7 +32,10 @@ export const homePage = defineType({
           },
         }),
       ],
-      validation: (rule) => rule.required().max(1).error('Keep the description to one paragraph'),
+      validation: (rule) => [
+        rule.required(),
+        rule.max(1).error('Keep the description to one paragraph'),
+      ],
     }),
     defineField({
       name: 'heroImages',

@@ -373,19 +373,17 @@ export type CASE_STUDIES_QUERY_RESULT = Array<{
 
 // Source: ../src/utils/sanity.ts
 // Variable: SITE_SETTINGS_QUERY
-// Query: *[_id == "siteSettings"][0] {  "navigation": navigation[defined(label) && defined(href)] { _key, label, href },  "socialLinks": socialLinks[defined(label) && defined(url)] { _key, label, url },  seoDescription}
+// Query: *[_id == "siteSettings"][0] {  "navigation": navigation[defined(label) && defined(href)] { label, href },  "socialLinks": socialLinks[defined(label) && defined(url)] { label, url },  seoDescription}
 export type SITE_SETTINGS_QUERY_RESULT = {
   navigation: null;
   socialLinks: null;
   seoDescription: null;
 } | {
   navigation: Array<{
-    _key: string;
     label: string;
     href: string;
   }> | null;
   socialLinks: Array<{
-    _key: string;
     label: string;
     url: string;
   }> | null;
@@ -407,7 +405,7 @@ declare global {
     "*[_id == \"gallery\"][0].items[defined(asset)] { alt, aspectRatio, asset, hotspot, crop, \"services\": services[defined(@->title)]->title }": GALLERY_QUERY_RESULT;
     "*[_type == \"service\" && defined(title)] | order(title asc).title": SERVICES_QUERY_RESULT;
     "*[_type == \"caseStudy\" && defined(slug.current)] | order(orderRank) {\n  title,\n  \"slug\": slug.current,\n  \"services\": services[defined(@->title)]->title,\n  description,\n  featureGallery[defined(asset)] { alt, asset, hotspot, crop, \"layout\": coalesce(layout, \"default\") },\n  engagement,\n  \"heroImage\": select(defined(heroImage.asset) => heroImage { alt, asset, hotspot, crop }, null),\n  brief,\n  briefGallery[defined(asset)] { alt, asset, hotspot, crop, \"layout\": coalesce(layout, \"default\") },\n  approach,\n  approachGallery[defined(asset)] { alt, asset, hotspot, crop, \"layout\": coalesce(layout, \"default\") }\n}": CASE_STUDIES_QUERY_RESULT;
-    "*[_id == \"siteSettings\"][0] {\n  \"navigation\": navigation[defined(label) && defined(href)] { _key, label, href },\n  \"socialLinks\": socialLinks[defined(label) && defined(url)] { _key, label, url },\n  seoDescription\n}": SITE_SETTINGS_QUERY_RESULT;
+    "*[_id == \"siteSettings\"][0] {\n  \"navigation\": navigation[defined(label) && defined(href)] { label, href },\n  \"socialLinks\": socialLinks[defined(label) && defined(url)] { label, url },\n  seoDescription\n}": SITE_SETTINGS_QUERY_RESULT;
     "*[_id == \"homePage\"][0].description[0].children[defined(text)] {\n  text,\n  \"highlight\": \"highlight\" in coalesce(marks, [])\n}": DESCRIPTION_QUERY_RESULT;
   }
 }

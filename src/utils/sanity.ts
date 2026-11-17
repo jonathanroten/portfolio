@@ -65,9 +65,17 @@ const CASE_STUDIES_QUERY =
   approachGallery[defined(asset)] { alt, asset, hotspot, crop, "layout": coalesce(layout, "default") }
 }`);
 
-/** Case studies as stored in the Studio, in its order. Read them through `getCaseStudies`. */
-export async function getCaseStudyDocuments(): Promise<CASE_STUDIES_QUERY_RESULT> {
-  return sanityClient.fetch(CASE_STUDIES_QUERY);
+let caseStudiesRequest: Promise<CASE_STUDIES_QUERY_RESULT> | undefined;
+
+/**
+ * Case studies as stored in the Studio, in its order. Read them through
+ * `getCaseStudies`. Memoized in builds like `getServices`, since Home and the
+ * case study pages both call it.
+ */
+export function getCaseStudyDocuments(): Promise<CASE_STUDIES_QUERY_RESULT> {
+  if (import.meta.env.DEV) return sanityClient.fetch(CASE_STUDIES_QUERY);
+  caseStudiesRequest ??= sanityClient.fetch(CASE_STUDIES_QUERY);
+  return caseStudiesRequest;
 }
 
 let servicesRequest: Promise<string[]> | undefined;
@@ -94,8 +102,8 @@ export type SiteSettings = {
 };
 
 const SITE_SETTINGS_QUERY = defineQuery(`*[_id == "siteSettings"][0] {
-  "navigation": navigation[defined(label) && defined(href)] { _key, label, href },
-  "socialLinks": socialLinks[defined(label) && defined(url)] { _key, label, url },
+  "navigation": navigation[defined(label) && defined(href)] { label, href },
+  "socialLinks": socialLinks[defined(label) && defined(url)] { label, url },
   seoDescription
 }`);
 
