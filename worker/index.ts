@@ -34,9 +34,9 @@ export default {
     if (request.method !== "POST") {
       return reply(405, "Method not allowed", { Allow: "POST" });
     }
-    if (Number(request.headers.get("content-length")) > MAX_BODY) {
-      return reply(413, "Too large");
-    }
+    const length = Number(request.headers.get("content-length"));
+    if (!length) return reply(411, "Length required");
+    if (length > MAX_BODY) return reply(413, "Too large");
 
     const ip = request.headers.get("CF-Connecting-IP");
     const { success } = await env.CONTACT_LIMIT.limit({ key: ip ?? "unknown" });
