@@ -3,7 +3,7 @@ import Layout from "@/layouts/BaseLayout.astro";
 import Section from "@/components/wrapper/Section.astro";
 import Heading from "@/components/typography/Heading.astro";
 import GalleryInfinite from "@/components/content/GalleryInfinite.astro";
-import { getGalleryItems } from "@/utils/sanity.ts";
+import { getGalleryItems } from "@/sanity/lib/queries.ts";
 
 const galleryItems = await getGalleryItems();
 ---

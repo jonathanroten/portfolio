@@ -1,6 +1,6 @@
 import {defineArrayMember, defineField, defineType} from 'sanity'
 import {ImagesIcon} from '@sanity/icons/Images'
-import {aspectRatios} from './galleryItem'
+import {aspectRatios} from '../objects/gallery-item'
 
 /**
  * Images per ratio so none repeats within a 2x2 block of tiles, which fills a typical screen.

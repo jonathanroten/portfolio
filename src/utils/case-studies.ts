@@ -1,4 +1,4 @@
-import { getCaseStudyDocuments } from "./sanity.ts";
+import { getCaseStudyDocuments } from "@/sanity/lib/queries.ts";
 
 /** Labels for the Studio's `engagement` values. */
 const engagements = { freelance: "Freelance", agency: "Agency" };

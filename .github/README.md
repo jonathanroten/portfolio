@@ -17,12 +17,12 @@ The source for my portfolio site: a static Astro site built on Lumos for Astro, 
 
 The site is the repository root. Read `LUMOS.md` before adding pages, components or styles.
 
-| Folder                | What's in it                                                                                                                                                 |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `src/components`      | Lumos library components plus the site's own, such as `interactive/ImageTrail.astro` (the home hero) and `content/GalleryInfinite.astro` (the Stuff gallery) |
-| `src/utils/sanity.ts` | Every Sanity query, and the image URL helper                                                                                                                 |
-| `worker`              | The contact form Worker                                                                                                                                      |
-| `sanity`              | The Sanity Studio: schemas in `schemaTypes`, sidebar in `structure`                                                                                          |
+| Folder           | What's in it                                                                                                                                                 |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `src/components` | Lumos library components plus the site's own, such as `interactive/ImageTrail.astro` (the home hero) and `content/GalleryInfinite.astro` (the Stuff gallery) |
+| `src/sanity/lib` | The Sanity queries (`queries.ts`) and the image URL helper (`image.ts`)                                                                                      |
+| `worker`         | The contact form Worker                                                                                                                                      |
+| `sanity`         | The Sanity Studio: schemas in `schemaTypes` (`documents`, `objects`), sidebar in `structure`                                                                 |
 
 ## License
 

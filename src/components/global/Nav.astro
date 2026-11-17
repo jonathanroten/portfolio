@@ -6,7 +6,7 @@ import LiveClock from "@/components/utility/LiveClock.astro";
 import logo from "@/assets/logo/logomark-stroke.svg";
 import arrow from "@/assets/icons/arrow-full.svg";
 import { SITE_NAME } from "@/consts.ts";
-import { getDescription, getSiteSettings } from "@/utils/sanity.ts";
+import { getDescription, getSiteSettings } from "@/sanity/lib/queries.ts";
 
 const { navigation, socialLinks } = await getSiteSettings();
 const description = await getDescription();
