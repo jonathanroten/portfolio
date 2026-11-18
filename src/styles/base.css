@@ -87,11 +87,11 @@
   --page-ease: var(--ease-out-soft);
   --page-cover-ease: var(--ease-in-out);
   --page-next-pace: 1.5;
-  --page-next-duration: calc(var(--page-duration-slow) * var(--page-next-pace));
+  --page-next-glide: calc(var(--page-duration) * var(--page-next-pace));
   --page-curtain-cover: var(--page-duration);
   --page-curtain-hold: var(--page-stagger);
   --page-curtain-lift: var(--page-duration-slow);
-  --page-reveal: calc(var(--page-curtain-cover) + var(--page-curtain-hold) + var(--page-curtain-lift) / 2);
+  --page-reveal: calc(var(--page-curtain-cover) + var(--page-curtain-hold) + var(--page-curtain-lift) / 2 + var(--page-stagger));
   --page-reveal-duration: var(--duration-7);
   --page-reveal-ease: var(--ease-out-soft);
   --page-reveal-opacity: 0.001;

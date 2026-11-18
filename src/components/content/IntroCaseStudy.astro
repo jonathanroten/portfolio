@@ -135,10 +135,9 @@ const image = await slotContent(Astro.slots);
     }
 
     :active-view-transition-type(case-study-next) {
-      --_next-step: calc(var(--page-stagger) * var(--page-next-pace));
-      --_next-reveal: calc(var(--_next-step) * 5);
+      --_next-reveal: calc(var(--page-next-glide) * 0.75 + var(--page-stagger));
       @media (width >= 48rem) {
-        --_next-reveal: calc(var(--_next-step) * 3);
+        --_next-reveal: calc(var(--page-next-glide) / 2 + var(--page-stagger));
       }
       &::view-transition-new(case-study-text),
       &::view-transition-new(case-study-meta),
