@@ -86,6 +86,9 @@
   --page-curtain-hold: var(--page-stagger);
   --page-curtain-lift: var(--page-duration-slow);
   --page-reveal: calc(var(--page-curtain-cover) + var(--page-curtain-hold) + var(--page-curtain-lift) / 2 + var(--page-stagger));
+  @media not ((hover: hover) and (pointer: fine)) {
+    --page-reveal: calc(var(--page-curtain-cover) + var(--page-curtain-hold));
+  }
   --page-reveal-duration: var(--duration-7);
   --page-reveal-ease: var(--ease-out-soft);
   --page-reveal-opacity: 0.001;
@@ -292,12 +295,6 @@
   --section-space-nav-overlap: clamp(var(--section-space-nav-overlap-min) / 16 * 1rem, ((var(--section-space-nav-overlap-min) - ((var(--section-space-nav-overlap-max) - var(--section-space-nav-overlap-min)) / (var(--viewport-max) - var(--viewport-min)) * var(--viewport-min))) / 16 * 1rem + ((var(--section-space-nav-overlap-max) - var(--section-space-nav-overlap-min)) / (var(--viewport-max) - var(--viewport-min))) * 100vw), var(--section-space-nav-overlap-max) / 16 * 1rem);
   --section-space-nav-overlap-min: 160;
   --section-space-nav-overlap-max: 224;
-}
-
-@media not ((hover: hover) and (pointer: fine)) {
-  :root {
-    --page-reveal: calc(var(--page-curtain-cover) + var(--page-curtain-hold));
-  }
 }
 
 /* Color themes */
