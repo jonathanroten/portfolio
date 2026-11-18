@@ -1,11 +1,9 @@
 <script>
   import Lenis from "lenis";
+  import { duration } from "@/utils/duration.ts";
 
   const root = document.documentElement;
-  const time = getComputedStyle(root).getPropertyValue(
-    "--smooth-scroll-duration",
-  );
-  const seconds = parseFloat(time) / (time.trim().endsWith("ms") ? 1000 : 1);
+  const seconds = duration("--duration-8") / 1000;
 
   const locked = () =>
     ["hidden", "clip"].includes(getComputedStyle(root).overflowY);

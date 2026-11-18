@@ -29,6 +29,8 @@ const { render = true, class: className, ...rest } = Astro.props;
 )}
 
 <script>
+  import { duration } from "@/utils/duration.ts";
+
   const cursor = document.querySelector<HTMLElement>(".cursor_wrap");
   const dot = cursor?.querySelector<HTMLElement>(".cursor_dot");
   const tag = cursor?.querySelector<HTMLElement>(".cursor_tag");
@@ -44,11 +46,6 @@ const { render = true, class: className, ...rest } = Astro.props;
       '[data-cursor=""], :is(a[href], button:not(:disabled), summary, [role=button]):not([data-cursor], [data-cursor-free], [aria-current="page"])';
     const lockShape = ":scope > svg:only-child, :scope.link > .button_text";
     const axes = ["x", "y", "w", "h", "labelX", "labelY"] as const;
-
-    const duration = (token: string) => {
-      const time = getComputedStyle(root).getPropertyValue(token).trim();
-      return parseFloat(time) * (time.endsWith("ms") ? 1 : 1000);
-    };
 
     const length = (token: string) => {
       cursor.style.width = `var(${token})`;

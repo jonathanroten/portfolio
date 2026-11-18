@@ -73,13 +73,6 @@
   --open-ease-smooth: var(--ease-out);
   --close-ease-smooth: var(--ease-in-out);
 
-  /* Theme motion */
-  --theme-duration: var(--duration-4);
-  --theme-ease: var(--ease-standard);
-
-  /* Scroll motion */
-  --smooth-scroll-duration: var(--duration-8);
-
   /* Page motion */
   --page-duration: var(--duration-5);
   --page-duration-slow: var(--duration-6);
