@@ -85,6 +85,7 @@ const images: GalleryImage[] = items.map((item) => {
     loadMotionShader,
     onPlainImagesChange,
     prefersPlainImages,
+    uploadGap,
   } from "@/utils/motion-shader-loader.ts";
 
   const config = {
@@ -116,7 +117,7 @@ const images: GalleryImage[] = items.map((item) => {
     click: { distance: 8, time: 400 },
     seatDistance: 32,
     revealWait: 3000,
-    uploadGap: 32,
+    uploadGap,
     motion: {
       smoothing: 50,
       minSpeed: 8,

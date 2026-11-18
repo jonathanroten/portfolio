@@ -101,6 +101,7 @@ const sizes = [
     loadMotionShader,
     onPlainImagesChange,
     prefersPlainImages,
+    uploadGap,
   } from "@/utils/motion-shader-loader.ts";
 
   const config = {
@@ -108,7 +109,7 @@ const sizes = [
     life: duration("--duration-5"),
     flipMs: duration("--duration-7"),
     introFlipMs: 167,
-    uploadGap: 32,
+    uploadGap,
     motion: {
       smoothing: 50,
       pause: 100,

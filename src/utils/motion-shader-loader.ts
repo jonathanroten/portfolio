@@ -4,6 +4,9 @@ const plainQueries = [
   "(forced-colors: active)",
 ].map((query) => window.matchMedia(query));
 
+/** Milliseconds between texture uploads. */
+export const uploadGap = 32;
+
 /** Whether the visitor's settings ask for plain images, with no motion effect. */
 export const prefersPlainImages = () =>
   plainQueries.some((query) => query.matches);
