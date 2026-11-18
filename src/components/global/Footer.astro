@@ -7,8 +7,6 @@ import Paragraph from "@/components/typography/Paragraph.astro";
 import Button from "@/components/Button.astro";
 import ButtonWrapper from "@/components/wrapper/ButtonWrapper.astro";
 import FooterItem from "@/components/global/FooterItem.astro";
-import webflowCertificate from "@/assets/documents/webflow.pdf";
-import javascriptCertificate from "@/assets/documents/javascript.pdf";
 import { SITE_NAME } from "@/consts.ts";
 import { getServices } from "@/sanity/lib/queries.ts";
 
@@ -59,6 +57,13 @@ const { render = true } = Astro.props;
             { label: "MullenLowe: June 2010 – Aug 2012" },
           ]}
         />
+        <FooterItem
+          heading="Education"
+          variant="default"
+          text={
+            "Appalachian State University, 2010<br/>BS, Communication<br/>Summa Cum Laude"
+          }
+        />
         {services.length > 0 && (
           <FooterItem
             heading="Services"
@@ -67,11 +72,17 @@ const { render = true } = Astro.props;
           />
         )}
         <FooterItem
-          heading="Education"
-          variant="default"
-          text={
-            "Appalachian State University, 2010<br/>BS, Communication<br/>Summa Cum Laude"
-          }
+          heading="Stack"
+          variant="inline"
+          maxWidth={26}
+          items={[
+            { label: "Astro" },
+            { label: "Claude Code" },
+            { label: "Cloudflare" },
+            { label: "Figma" },
+            { label: "Lumos" },
+            { label: "Sanity" },
+          ]}
         />
         <FooterItem
           heading="Profile"
@@ -83,18 +94,7 @@ const { render = true } = Astro.props;
           ]}
         />
         <FooterItem
-          heading="Certifications"
-          variant="stacked"
-          items={[
-            { label: "Webflow Practitioner", href: webflowCertificate },
-            {
-              label: "Javascript Masterclass",
-              href: javascriptCertificate,
-            },
-          ]}
-        />
-        <FooterItem
-          heading="Additional Info"
+          heading="Information"
           variant="stacked"
           items={[
             {
