@@ -87,7 +87,6 @@
   --page-duration: var(--duration-5);
   --page-duration-slow: var(--duration-6);
   --page-stagger: var(--duration-1);
-  --page-travel: 10vh;
   --page-ease: var(--ease-out);
   --page-next-pace: 1.5;
   --page-next-duration: calc(var(--page-duration-slow) * var(--page-next-pace));
