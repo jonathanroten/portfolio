@@ -293,6 +293,12 @@
   --section-space-nav-overlap-max: 224;
 }
 
+@media not ((hover: hover) and (pointer: fine)) {
+  :root {
+    --page-reveal: calc(var(--page-curtain-cover) + var(--page-curtain-hold));
+  }
+}
+
 /* Color themes */
 :root,
 .theme-light,
