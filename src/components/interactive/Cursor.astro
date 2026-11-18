@@ -220,10 +220,8 @@ const { render = true, class: className, ...rest } = Astro.props;
         const shown = cursor.classList.contains("is-labelled");
         tag.classList.toggle("is-shown", shown);
         tag.classList.toggle("is-disabled", state === "disabled");
-        tag.classList.toggle(
-          "is-link",
-          marked.matches("a[href]:not([data-cursor-arrow='none'])"),
-        );
+        tag.classList.toggle("is-link", marked.matches("a[href]"));
+        tag.classList.toggle("is-down", marked.dataset.cursorArrow === "down");
         const canRoll = shown && !reduce.matches;
         if (canRoll && current && current !== marked) {
           const later =
@@ -432,6 +430,9 @@ const { render = true, class: className, ...rest } = Astro.props;
       display: none;
       .cursor_tag.is-link & {
         display: block;
+      }
+      .cursor_tag.is-down & {
+        rotate: 90deg;
       }
     }
 
