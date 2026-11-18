@@ -23,7 +23,7 @@
   justify-content: center;
   position: relative;
   &.full-height {
-    min-height: calc(100svh - var(--nav-total-height));
+    min-height: var(--full-height);
   }
   &.fill > .container {
     width: 100%;
