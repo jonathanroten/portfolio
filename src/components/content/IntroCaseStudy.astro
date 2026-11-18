@@ -144,8 +144,8 @@ const image = await slotContent(Astro.slots);
       &::view-transition-new(case-study-text),
       &::view-transition-new(case-study-meta),
       &::view-transition-new(case-study-image) {
-        animation: page-reveal var(--page-reveal-duration)
-          var(--page-reveal-ease) var(--_next-reveal) both;
+        animation: page-reveal var(--page-reveal-duration) var(--page-ease)
+          var(--_next-reveal) both;
       }
       &::view-transition-new(case-study-meta) {
         animation-delay: calc(var(--_next-reveal) + var(--page-stagger));

@@ -90,7 +90,6 @@
     --page-reveal: calc(var(--page-curtain-cover) + var(--page-curtain-hold));
   }
   --page-reveal-duration: var(--duration-7);
-  --page-reveal-ease: var(--ease-out-soft);
   --page-reveal-opacity: 0.001;
   --page-intro-delay: var(--duration-3);
   --page-intro-enter-duration: var(--duration-3);

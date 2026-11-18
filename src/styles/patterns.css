@@ -286,7 +286,7 @@
 
 /* Page reveal */
 :root:is([data-page-arriving], [data-page-intro="play"]) [data-page-reveal] {
-  animation: page-reveal var(--page-reveal-duration) var(--page-reveal-ease) calc(var(--page-reveal) + var(--page-stagger) * var(--_page-step, 0)) both;
+  animation: page-reveal var(--page-reveal-duration) var(--page-ease) calc(var(--page-reveal) + var(--page-stagger) * var(--_page-step, 0)) both;
 }
 
 :root[data-page-intro] {
@@ -299,7 +299,7 @@
 
 [data-page-reveal] {
   @media (prefers-reduced-motion: no-preference) {
-    transition: opacity var(--page-reveal-duration) var(--page-reveal-ease);
+    transition: opacity var(--page-reveal-duration) var(--page-ease);
   }
 }
 
