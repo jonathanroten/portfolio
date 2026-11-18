@@ -25,9 +25,9 @@ const faces = {
 
 /**
  * Width of the widest word in a `.text-accent` heading, in ems of its font
- * size, measured from the font files. Highlighted runs are uppercase in Apfel
- * Grotezk, the rest is Hedvig Letters Serif. Kerning is left out, which errs
- * slightly wide.
+ * size, measured from the font files. Words joined by a non-breaking space
+ * count as one. Highlighted runs are uppercase in Apfel Grotezk, the rest is
+ * Hedvig Letters Serif. Kerning is left out, which errs slightly wide.
  */
 export function widestAccentWord(
   runs: { text: string; highlight: boolean }[],
@@ -37,11 +37,11 @@ export function widestAccentWord(
   for (const { text, highlight } of runs) {
     const { font, scale, tracking } = highlight ? faces.highlight : faces.text;
     for (const char of highlight ? text.toUpperCase() : text) {
-      if (/\s/.test(char)) {
+      if (char !== " " && /\s/.test(char)) {
         word = 0;
         continue;
       }
-      const [glyph] = font.glyphsForString(char);
+      const [glyph] = font.glyphsForString(char === " " ? " " : char);
       word += (glyph.advanceWidth / font.unitsPerEm + tracking) * scale;
       widest = Math.max(widest, word);
     }
