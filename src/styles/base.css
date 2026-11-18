@@ -81,7 +81,6 @@
   --page-cover-ease: var(--ease-in-out);
   --page-next-pace: 1.5;
   --page-next-glide: calc(var(--page-duration) * var(--page-next-pace));
-  --page-next-travel: 10vh;
   --page-curtain-cover: var(--page-duration);
   --page-curtain-hold: var(--page-stagger);
   --page-curtain-lift: var(--page-duration-slow);
