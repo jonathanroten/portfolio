@@ -78,10 +78,7 @@
   --theme-ease: var(--ease-standard);
 
   /* Scroll motion */
-  --scroll-duration: var(--duration-5);
-  --scroll-ease: var(--ease-in-out);
   --smooth-scroll-duration: var(--duration-8);
-  --smooth-scroll-ease: var(--ease-out);
 
   /* Page motion */
   --page-duration: var(--duration-5);
