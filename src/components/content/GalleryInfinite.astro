@@ -945,7 +945,7 @@ const images: GalleryImage[] = items.map((item) => {
         opacity: 1;
         pointer-events: auto;
         @media (prefers-reduced-motion: no-preference) {
-          animation: page-reveal var(--page-reveal-duration)
+          animation: gallery-infinite-reveal var(--page-reveal-duration)
             var(--page-reveal-ease)
             max(
               0ms,
@@ -1084,6 +1084,12 @@ const images: GalleryImage[] = items.map((item) => {
     :root:has(.gallery-infinite_wrap.is-ready) {
       overflow: hidden;
       overscroll-behavior: none;
+    }
+
+    @keyframes gallery-infinite-reveal {
+      from {
+        opacity: var(--page-reveal-opacity);
+      }
     }
   }
 </style>
