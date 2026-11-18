@@ -877,21 +877,7 @@ const images: GalleryImage[] = items.map((item) => {
       Promise.race([
         Promise.allSettled(firstLoads),
         new Promise((resolve) => setTimeout(resolve, config.revealWait)),
-      ])
-        .then(() => new Promise((resolve) => requestAnimationFrame(resolve)))
-        .then(() => document.activeViewTransition?.ready.catch(() => {}))
-        .then(() => {
-          const arriving = Number(
-            document.documentElement.dataset.pageArriving,
-          );
-          if (arriving) {
-            gallery.style.setProperty(
-              "--_reveal-elapsed",
-              `${performance.now() - arriving}ms`,
-            );
-          }
-          gallery.classList.add("is-revealed");
-        });
+      ]).then(() => gallery.classList.add("is-revealed"));
     };
 
     new ResizeObserver(resize).observe(gallery);
@@ -926,10 +912,6 @@ const images: GalleryImage[] = items.map((item) => {
   @layer components {
     .gallery-infinite_wrap {
       --_leaving: calc(var(--open-duration) * 0.5);
-      --_reveal-start: calc(
-        var(--page-curtain-cover) + var(--page-curtain-hold) +
-          var(--page-curtain-lift) * 0.3
-      );
       --_focus-inset-block: var(--nav-total-height);
       --_focus-inset-inline: var(--site-margin);
       position: absolute;
@@ -944,16 +926,6 @@ const images: GalleryImage[] = items.map((item) => {
       &.is-revealed {
         opacity: 1;
         pointer-events: auto;
-        @media (prefers-reduced-motion: no-preference) {
-          animation: gallery-infinite-reveal var(--page-reveal-duration)
-            var(--page-reveal-ease)
-            max(
-              0ms,
-              var(--_reveal-start) -
-                var(--_reveal-elapsed, var(--_reveal-start))
-            )
-            backwards;
-        }
       }
       &::before {
         content: "";
@@ -1084,12 +1056,6 @@ const images: GalleryImage[] = items.map((item) => {
     :root:has(.gallery-infinite_wrap.is-ready) {
       overflow: hidden;
       overscroll-behavior: none;
-    }
-
-    @keyframes gallery-infinite-reveal {
-      from {
-        opacity: var(--page-reveal-opacity);
-      }
     }
   }
 </style>

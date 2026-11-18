@@ -71,7 +71,7 @@
       transition.ready.then(
         () => {
           const root = document.documentElement;
-          root.dataset.pageArriving = String(performance.now());
+          root.dataset.pageArriving = "";
           const reveals = document
             .getAnimations()
             .filter((animation) =>
