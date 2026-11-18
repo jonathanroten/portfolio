@@ -204,7 +204,7 @@ const total = String(items.length).padStart(2, "0");
           grid-template-columns: repeat(2, minmax(0, 1fr));
         }
         :is(.feature-case-study_info, .feature-case-study_gallery) {
-          min-height: calc(100svh - var(--nav-total-height));
+          min-height: var(--full-height);
         }
         .feature-case-study_info {
           justify-content: end;

@@ -122,13 +122,6 @@ const image = await slotContent(Astro.slots);
         grid-column: 1 / -1;
         margin-top: var(--site-gutter);
       }
-      :root[data-page-arriving] & {
-        .intro-case-study_image {
-          animation-name: intro-case-study-rise;
-          animation-duration: var(--page-duration-slow);
-          animation-timing-function: var(--page-ease);
-        }
-      }
       @media (width >= 48rem) {
         .intro-case-study_text {
           text-wrap: pretty;
@@ -142,30 +135,32 @@ const image = await slotContent(Astro.slots);
     }
 
     :active-view-transition-type(case-study-next) {
-      --_next-step: calc(var(--page-stagger) * var(--page-next-pace));
-      --_next-reveal: calc(var(--_next-step) * 5);
+      --_next-reveal: calc(var(--page-next-glide) * 0.75 + var(--page-stagger));
+      --_next-travel: 10vh;
+      --_next-image-reveal: intro-case-study-rise;
       @media (width >= 48rem) {
-        --_next-reveal: calc(var(--_next-step) * 3);
+        --_next-reveal: calc(var(--page-next-glide) / 2 + var(--page-stagger));
+        --_next-image-reveal: page-reveal;
       }
       &::view-transition-new(case-study-text),
-      &::view-transition-new(case-study-meta) {
-        animation: page-reveal var(--page-reveal-duration)
-          var(--page-reveal-ease) var(--_next-reveal) both;
+      &::view-transition-new(case-study-meta),
+      &::view-transition-new(case-study-image) {
+        animation: page-reveal var(--page-reveal-duration) var(--page-ease)
+          var(--_next-reveal) both;
       }
       &::view-transition-new(case-study-meta) {
-        animation-delay: calc(var(--_next-reveal) + var(--_next-step));
+        animation-delay: calc(var(--_next-reveal) + var(--page-stagger));
       }
       &::view-transition-new(case-study-image) {
-        animation: intro-case-study-rise var(--page-next-duration)
-          var(--page-ease) calc(var(--_next-reveal) + var(--_next-step) * 2)
-          both;
+        animation-name: var(--_next-image-reveal);
+        animation-delay: calc(var(--_next-reveal) + var(--page-stagger) * 2);
       }
     }
 
     @keyframes intro-case-study-rise {
       from {
-        opacity: 0;
-        translate: 0 var(--page-travel);
+        opacity: var(--page-reveal-opacity);
+        translate: 0 var(--_next-travel);
       }
     }
   }

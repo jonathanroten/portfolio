@@ -23,7 +23,7 @@
   justify-content: center;
   position: relative;
   &.full-height {
-    min-height: calc(100svh - var(--nav-total-height));
+    min-height: var(--full-height);
   }
   &.fill > .container {
     width: 100%;
@@ -197,6 +197,12 @@
   font-size: 0.625em;
 }
 
+.icon-label {
+  display: flex;
+  gap: 0.25em;
+  white-space: nowrap;
+}
+
 /* Lists */
 .list-inline {
   display: flex;
@@ -280,7 +286,7 @@
 
 /* Page reveal */
 :root:is([data-page-arriving], [data-page-intro="play"]) [data-page-reveal] {
-  animation: page-reveal var(--page-reveal-duration) var(--page-reveal-ease) calc(var(--page-reveal) + var(--page-stagger) * var(--_page-step, 0)) both;
+  animation: page-reveal var(--page-reveal-duration) var(--page-ease) calc(var(--page-reveal) + var(--page-stagger) * var(--_page-step, 0)) both;
 }
 
 :root[data-page-intro] {
@@ -293,7 +299,7 @@
 
 [data-page-reveal] {
   @media (prefers-reduced-motion: no-preference) {
-    transition: opacity var(--page-reveal-duration) var(--page-reveal-ease);
+    transition: opacity var(--page-reveal-duration) var(--page-ease);
   }
 }
 

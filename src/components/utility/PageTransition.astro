@@ -71,7 +71,7 @@
       transition.ready.then(
         () => {
           const root = document.documentElement;
-          root.dataset.pageArriving = String(performance.now());
+          root.dataset.pageArriving = "";
           const reveals = document
             .getAnimations()
             .filter((animation) =>
@@ -114,7 +114,7 @@
       }
       &::view-transition-new(root) {
         animation: page-transition-fade-in var(--page-curtain-cover)
-          var(--close-ease-smooth) both;
+          var(--page-cover-ease) both;
         @media (hover: hover) and (pointer: fine) {
           animation-name: page-transition-wipe;
         }
@@ -123,7 +123,9 @@
 
     :active-view-transition-type(case-study-next) {
       &::view-transition-group(*) {
-        animation-duration: var(--page-next-duration);
+        animation-duration: calc(
+          var(--page-duration-slow) * var(--page-next-pace)
+        );
         animation-timing-function: var(--page-ease);
       }
       &::view-transition-old(root) {
@@ -136,7 +138,7 @@
       }
       &::view-transition-group(case-study-number),
       &::view-transition-group(case-study-title) {
-        animation-duration: calc(var(--page-duration) * var(--page-next-pace));
+        animation-duration: var(--page-next-glide);
       }
       &::view-transition-old(case-study-number),
       &::view-transition-new(case-study-number),

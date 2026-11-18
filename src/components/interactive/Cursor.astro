@@ -19,7 +19,7 @@ const { render = true, class: className, ...rest } = Astro.props;
     <div class="cursor_corner" />
     <div class="cursor_corner" />
     <div class="cursor_dot" />
-    <div class="cursor_tag text-style-h6">
+    <div class="cursor_tag text-style-h6 icon-label">
       <span class="cursor_label" />
       <span class="cursor_chevron icon-inline">
         <Icon src={arrow} variant="small" />
@@ -29,6 +29,8 @@ const { render = true, class: className, ...rest } = Astro.props;
 )}
 
 <script>
+  import { duration } from "@/utils/duration.ts";
+
   const cursor = document.querySelector<HTMLElement>(".cursor_wrap");
   const dot = cursor?.querySelector<HTMLElement>(".cursor_dot");
   const tag = cursor?.querySelector<HTMLElement>(".cursor_tag");
@@ -44,11 +46,6 @@ const { render = true, class: className, ...rest } = Astro.props;
       '[data-cursor=""], :is(a[href], button:not(:disabled), summary, [role=button]):not([data-cursor], [data-cursor-free], [aria-current="page"])';
     const lockShape = ":scope > svg:only-child, :scope.link > .button_text";
     const axes = ["x", "y", "w", "h", "labelX", "labelY"] as const;
-
-    const duration = (token: string) => {
-      const time = getComputedStyle(root).getPropertyValue(token).trim();
-      return parseFloat(time) * (time.endsWith("ms") ? 1 : 1000);
-    };
 
     const length = (token: string) => {
       cursor.style.width = `var(${token})`;
@@ -210,14 +207,9 @@ const { render = true, class: className, ...rest } = Astro.props;
       const state = target?.closest<HTMLElement>("[data-cursor-state]")?.dataset
         .cursorState;
       const grabbing = state === "grabbing";
-      const nearest = grabbing
+      const marked = grabbing
         ? null
-        : target?.closest<HTMLElement>(
-            '[data-cursor]:not([data-cursor=""]), [data-cursor-unlabelled]',
-          );
-      const marked = nearest?.hasAttribute("data-cursor-unlabelled")
-        ? null
-        : nearest;
+        : target?.closest<HTMLElement>('[data-cursor]:not([data-cursor=""])');
       const label = marked?.dataset.cursor ?? "";
       const native = target?.closest(nativeCursor);
       lock = state || native ? null : (target?.closest(lockable) ?? null);
@@ -225,7 +217,7 @@ const { render = true, class: className, ...rest } = Astro.props;
         const shown = cursor.classList.contains("is-labelled");
         tag.classList.toggle("is-shown", shown);
         tag.classList.toggle("is-disabled", state === "disabled");
-        tag.classList.toggle("is-link", !lock && marked.matches("a[href]"));
+        tag.classList.toggle("is-link", marked.matches("a[href]"));
         tag.classList.toggle("is-down", marked.dataset.cursorArrow === "down");
         const canRoll = shown && !reduce.matches;
         if (canRoll && current && current !== marked) {
@@ -369,8 +361,8 @@ const { render = true, class: className, ...rest } = Astro.props;
       left: 0;
       width: calc(var(--space-1) * 0.75);
       height: calc(var(--space-1) * 0.75);
-      border-top: var(--border-width-medium) solid var(--cursor-background);
-      border-left: var(--border-width-medium) solid var(--cursor-background);
+      border-top: var(--border-width-medium) solid var(--cursor);
+      border-left: var(--border-width-medium) solid var(--cursor);
       border-top-left-radius: calc(var(--radius-xsmall) / 2);
       transform-origin: 0 0;
       &:nth-child(2) {
@@ -391,7 +383,7 @@ const { render = true, class: className, ...rest } = Astro.props;
       width: var(--_dot);
       height: var(--_dot);
       border-radius: var(--radius-round);
-      background-color: var(--cursor-background);
+      background-color: var(--cursor);
       transition: scale var(--hover-duration-slow) var(--hover-ease);
       .cursor_wrap.is-grabbing & {
         scale: 0.75;
@@ -403,10 +395,7 @@ const { render = true, class: className, ...rest } = Astro.props;
       position: absolute;
       bottom: 100%;
       left: 0;
-      display: flex;
-      gap: 0.25em;
-      color: var(--cursor-text);
-      white-space: nowrap;
+      color: var(--cursor);
       transform-origin: left center;
       scale: 0.9;
       opacity: 0;
@@ -422,7 +411,7 @@ const { render = true, class: className, ...rest } = Astro.props;
         --_color-duration: var(--hover-duration-slow);
       }
       &.is-disabled {
-        color: color-mix(in lab, var(--light-100) 20%, transparent);
+        color: var(--text-2);
       }
     }
 
