@@ -29,18 +29,27 @@ type Props = Base &
         /** Body text. Supports inline markup. */
         text?: string;
         items?: never;
+        maxWidth?: never;
       }
     | {
         variant: "inline" | "stacked";
         text?: never;
         /** List items. */
         items?: FooterListItem[];
+        /**
+         * Maximum line length in characters.
+         *
+         * @min 1
+         * @int
+         */
+        maxWidth?: number;
       }
   );
 
 type AllProps = Base & {
   text?: string;
   items?: FooterListItem[];
+  maxWidth?: number;
 };
 
 const {
@@ -49,6 +58,7 @@ const {
   variant = "default",
   text,
   items,
+  maxWidth,
   headingTag = "h3",
   class: className,
   ...rest
@@ -62,6 +72,11 @@ if (import.meta.env.DEV && render) {
   if (variant === "default" && items) {
     console.warn(
       '[lumos] <FooterItem variant="default"> renders a paragraph, so `items` was dropped. Use the inline or stacked variant to show it.',
+    );
+  }
+  if (variant === "default" && maxWidth) {
+    console.warn(
+      '[lumos] <FooterItem variant="default"> renders a paragraph, so `maxWidth` was dropped. Use the inline or stacked variant to cap a list.',
     );
   }
   if (variant !== "default" && text) {
@@ -95,7 +110,10 @@ if (import.meta.env.DEV && render) {
           </Paragraph>
         )}
         {hasList && (
-          <ul class="footer-item_list list-inline fade-siblings">
+          <ul
+            class="footer-item_list list-inline fade-siblings"
+            style={maxWidth ? `--_mw: ${maxWidth}ch;` : undefined}
+          >
             {items!.map((item) => (
               <li class="text-style-main">
                 {item.href ? (
@@ -138,6 +156,7 @@ if (import.meta.env.DEV && render) {
     }
 
     .footer-item_list {
+      max-width: var(--_mw, none);
       list-style: none;
       .stacked & {
         flex-direction: column;

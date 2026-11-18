@@ -31,11 +31,11 @@ export async function getGalleryItems(): Promise<
 }
 
 const SERVICES_QUERY = defineQuery(
-  `*[_type == "service" && defined(title)] | order(title asc).title`,
+  `*[_type == "service" && defined(title)] | order(orderRank, title asc).title`,
 );
 
 const CASE_STUDIES_QUERY =
-  defineQuery(`*[_type == "caseStudy" && defined(slug.current)] | order(orderRank) {
+  defineQuery(`*[_type == "caseStudy" && defined(slug.current)] | order(orderRank, title asc) {
   title,
   "slug": slug.current,
   "services": services[defined(@->title)]->title,
@@ -65,9 +65,10 @@ export function getCaseStudyDocuments(): Promise<CASE_STUDIES_QUERY_RESULT> {
 let servicesRequest: Promise<string[]> | undefined;
 
 /**
- * Titles of every service, A-Z. Memoized in builds: the footer calls this on
- * every page of the static build, so it only hits Sanity once. Not memoized in
- * dev, where a long-lived server would keep serving stale services.
+ * Titles of every service, in Studio order. Memoized in builds: the footer
+ * calls this on every page of the static build, so it only hits Sanity once.
+ * Not memoized in dev, where a long-lived server would keep serving stale
+ * services.
  */
 export function getServices(): Promise<string[]> {
   if (import.meta.env.DEV) return sanityClient.fetch(SERVICES_QUERY);

@@ -9,10 +9,13 @@ export const structure: StructureResolver = (S, context) =>
     .items([
       S.listItem().singleton('homePage'),
       S.divider(),
-      S.listItem()
-        .title('Services')
-        .icon(UlistIcon)
-        .child(S.documentTypeList('service').title('Services')),
+      orderableDocumentListDeskItem({
+        type: 'service',
+        title: 'Services',
+        icon: UlistIcon,
+        S,
+        context,
+      }),
       orderableDocumentListDeskItem({
         type: 'caseStudy',
         title: 'Case Studies',

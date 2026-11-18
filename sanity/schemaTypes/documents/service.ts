@@ -1,5 +1,6 @@
 import {defineField, defineType} from 'sanity'
 import {UlistIcon} from '@sanity/icons/Ulist'
+import {orderRankField} from '@sanity/orderable-document-list'
 
 export const service = defineType({
   name: 'service',
@@ -8,18 +9,12 @@ export const service = defineType({
   description:
     'A service you offer. Case studies and the site footer reference these, so renaming one here updates it everywhere.',
   fields: [
+    orderRankField({type: 'service'}),
     defineField({
       name: 'title',
       type: 'string',
       validation: (rule) => rule.required(),
     }),
-  ],
-  orderings: [
-    {
-      title: 'Title (A-Z)',
-      name: 'titleAsc',
-      by: [{field: 'title', direction: 'asc'}],
-    },
   ],
   preview: {
     select: {title: 'title'},
