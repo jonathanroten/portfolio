@@ -802,12 +802,12 @@ const sizes = [
       &.is-intro {
         @media (prefers-reduced-motion: no-preference) {
           animation:
-            image-trail-intro-in var(--open-duration-slow) var(--open-ease)
-              var(--page-intro-delay) both,
+            image-trail-intro-in var(--page-intro-enter-duration)
+              var(--page-ease) var(--page-intro-delay) both,
             image-trail-intro-flip var(--page-intro-flip) linear
               var(--page-intro-delay) forwards,
             image-trail-intro-out var(--page-intro-exit-duration)
-              var(--close-ease-smooth) var(--page-intro-exit) forwards;
+              var(--page-cover-ease) var(--page-intro-exit) forwards;
         }
       }
 
