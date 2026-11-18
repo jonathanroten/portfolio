@@ -227,7 +227,7 @@ const { render = true, class: className, ...rest } = Astro.props;
         tag.classList.toggle("is-disabled", state === "disabled");
         tag.classList.toggle(
           "is-link",
-          !lock && marked.matches("a[href]:not([data-cursor-arrow='none'])"),
+          marked.matches("a[href]:not([data-cursor-arrow='none'])"),
         );
         const canRoll = shown && !reduce.matches;
         if (canRoll && current && current !== marked) {
