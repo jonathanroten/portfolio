@@ -126,6 +126,7 @@ export type Service = {
   _createdAt: string;
   _updatedAt: string;
   _rev: string;
+  orderRank?: string;
   title: string;
 };
 
@@ -328,12 +329,12 @@ export type GALLERY_QUERY_RESULT = Array<{
 
 // Source: ../src/sanity/lib/queries.ts
 // Variable: SERVICES_QUERY
-// Query: *[_type == "service" && defined(title)] | order(title asc).title
+// Query: *[_type == "service" && defined(title)] | order(orderRank, title asc).title
 export type SERVICES_QUERY_RESULT = Array<string>;
 
 // Source: ../src/sanity/lib/queries.ts
 // Variable: CASE_STUDIES_QUERY
-// Query: *[_type == "caseStudy" && defined(slug.current)] | order(orderRank) {  title,  "slug": slug.current,  "services": services[defined(@->title)]->title,  description,  featureGallery[defined(asset)] { alt, asset, hotspot, crop, "layout": coalesce(layout, "default") },  engagement,  "heroImage": select(defined(heroImage.asset) => heroImage { alt, asset, hotspot, crop }, null),  brief,  briefGallery[defined(asset)] { alt, asset, hotspot, crop, "layout": coalesce(layout, "default") },  approach,  approachGallery[defined(asset)] { alt, asset, hotspot, crop, "layout": coalesce(layout, "default") }}
+// Query: *[_type == "caseStudy" && defined(slug.current)] | order(orderRank, title asc) {  title,  "slug": slug.current,  "services": services[defined(@->title)]->title,  description,  featureGallery[defined(asset)] { alt, asset, hotspot, crop, "layout": coalesce(layout, "default") },  engagement,  "heroImage": select(defined(heroImage.asset) => heroImage { alt, asset, hotspot, crop }, null),  brief,  briefGallery[defined(asset)] { alt, asset, hotspot, crop, "layout": coalesce(layout, "default") },  approach,  approachGallery[defined(asset)] { alt, asset, hotspot, crop, "layout": coalesce(layout, "default") }}
 export type CASE_STUDIES_QUERY_RESULT = Array<{
   title: string;
   slug: string;
@@ -403,8 +404,8 @@ declare global {
   interface SanityQueries {
     "*[_id == \"homePage\"][0].heroImages[defined(asset)] { asset, hotspot, crop }": HERO_IMAGES_QUERY_RESULT;
     "*[_id == \"gallery\"][0].items[defined(asset)] { alt, aspectRatio, asset, hotspot, crop, \"services\": services[defined(@->title)]->title }": GALLERY_QUERY_RESULT;
-    "*[_type == \"service\" && defined(title)] | order(title asc).title": SERVICES_QUERY_RESULT;
-    "*[_type == \"caseStudy\" && defined(slug.current)] | order(orderRank) {\n  title,\n  \"slug\": slug.current,\n  \"services\": services[defined(@->title)]->title,\n  description,\n  featureGallery[defined(asset)] { alt, asset, hotspot, crop, \"layout\": coalesce(layout, \"default\") },\n  engagement,\n  \"heroImage\": select(defined(heroImage.asset) => heroImage { alt, asset, hotspot, crop }, null),\n  brief,\n  briefGallery[defined(asset)] { alt, asset, hotspot, crop, \"layout\": coalesce(layout, \"default\") },\n  approach,\n  approachGallery[defined(asset)] { alt, asset, hotspot, crop, \"layout\": coalesce(layout, \"default\") }\n}": CASE_STUDIES_QUERY_RESULT;
+    "*[_type == \"service\" && defined(title)] | order(orderRank, title asc).title": SERVICES_QUERY_RESULT;
+    "*[_type == \"caseStudy\" && defined(slug.current)] | order(orderRank, title asc) {\n  title,\n  \"slug\": slug.current,\n  \"services\": services[defined(@->title)]->title,\n  description,\n  featureGallery[defined(asset)] { alt, asset, hotspot, crop, \"layout\": coalesce(layout, \"default\") },\n  engagement,\n  \"heroImage\": select(defined(heroImage.asset) => heroImage { alt, asset, hotspot, crop }, null),\n  brief,\n  briefGallery[defined(asset)] { alt, asset, hotspot, crop, \"layout\": coalesce(layout, \"default\") },\n  approach,\n  approachGallery[defined(asset)] { alt, asset, hotspot, crop, \"layout\": coalesce(layout, \"default\") }\n}": CASE_STUDIES_QUERY_RESULT;
     "*[_id == \"siteSettings\"][0] {\n  \"navigation\": navigation[defined(label) && defined(href)] { label, href },\n  \"socialLinks\": socialLinks[defined(label) && defined(url)] { label, url },\n  seoDescription\n}": SITE_SETTINGS_QUERY_RESULT;
     "*[_id == \"homePage\"][0].description[0].children[defined(text)] {\n  text,\n  \"highlight\": \"highlight\" in coalesce(marks, [])\n}": DESCRIPTION_QUERY_RESULT;
   }
