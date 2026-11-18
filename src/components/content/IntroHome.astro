@@ -27,13 +27,19 @@ const fit = Math.max(widestAccentWord(greeting), widestAccentWord(runs));
     style={`--_fit: ${fit.toFixed(3)}`}
     {...rest}
   >
-    <p class="intro-home_greeting text-style-h2 text-accent">
+    <p
+      class="intro-home_greeting text-style-h2 text-accent"
+      data-page-reveal="0"
+    >
       {greeting.map((run) =>
         run.highlight ? <span>{run.text}</span> : run.text,
       )}
     </p>
     {runs.length > 0 && (
-      <p class="intro-home_description text-style-h2 text-accent">
+      <p
+        class="intro-home_description text-style-h2 text-accent"
+        data-page-reveal="1"
+      >
         {runs.map((run) =>
           run.highlight ? <span>{run.text}</span> : run.text,
         )}
