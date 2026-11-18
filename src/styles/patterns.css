@@ -197,6 +197,12 @@
   font-size: 0.625em;
 }
 
+.icon-label {
+  display: flex;
+  gap: 0.25em;
+  white-space: nowrap;
+}
+
 /* Lists */
 .list-inline {
   display: flex;

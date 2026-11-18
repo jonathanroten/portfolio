@@ -50,7 +50,10 @@ const {
           {heading}
         </span>
       </span>
-      <span class="next-case-study_hint text-style-h6" aria-hidden="true">
+      <span
+        class="next-case-study_hint text-style-h6 icon-label"
+        aria-hidden="true"
+      >
         Next
         <span class="next-case-study_chevron icon-inline">
           <Icon src={arrow} variant="small" />
@@ -96,10 +99,7 @@ const {
         transition: color var(--hover-duration-slow) var(--hover-ease);
       }
       .next-case-study_hint {
-        display: flex;
-        gap: 0.25em;
         margin-left: auto;
-        white-space: nowrap;
       }
       .next-case-study_chevron {
         rotate: 90deg;
