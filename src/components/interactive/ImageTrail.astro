@@ -382,7 +382,12 @@ const sizes = [
         window.clearInterval(flipTimer);
         flipTimer = null;
       }
-      if (playing) flipTimer = window.setInterval(advance, config.flipMs);
+      if (playing) {
+        flipTimer = window.setInterval(
+          advance,
+          Math.max(config.flipMs, config.introFlipMs),
+        );
+      }
     };
 
     const showImages = (points: { x: number; y: number; age: number }[]) => {

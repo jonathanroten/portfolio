@@ -1,7 +1,8 @@
-/** Reads a duration token from the root element, in milliseconds. */
+/** Reads a duration token from the root element, in milliseconds, or 0 when it doesn't parse. */
 export function duration(token: string): number {
   const time = getComputedStyle(document.documentElement)
     .getPropertyValue(token)
     .trim();
-  return parseFloat(time) * (time.endsWith("ms") ? 1 : 1000);
+  const ms = parseFloat(time) * (time.endsWith("ms") ? 1 : 1000);
+  return Number.isFinite(ms) ? ms : 0;
 }
