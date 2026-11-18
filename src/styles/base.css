@@ -334,7 +334,7 @@
   --link-border: var(--brand-500);
   --link-text-hover: var(--text);
 
-  --cursor-background: var(--brand-500);
+  --cursor: var(--brand-500);
 }
 
 .theme-dark,
@@ -371,7 +371,7 @@
   --link-border: var(--text);
   --link-text-hover: var(--text);
 
-  --cursor-background: var(--brand-500);
+  --cursor: var(--brand-500);
 }
 
 .theme-brand {
@@ -407,7 +407,7 @@
   --link-border: var(--text);
   --link-text-hover: var(--text);
 
-  --cursor-background: var(--dark-900);
+  --cursor: var(--dark-900);
 }
 
 :root,

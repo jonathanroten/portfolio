@@ -361,8 +361,8 @@ const { render = true, class: className, ...rest } = Astro.props;
       left: 0;
       width: calc(var(--space-1) * 0.75);
       height: calc(var(--space-1) * 0.75);
-      border-top: var(--border-width-medium) solid var(--cursor-background);
-      border-left: var(--border-width-medium) solid var(--cursor-background);
+      border-top: var(--border-width-medium) solid var(--cursor);
+      border-left: var(--border-width-medium) solid var(--cursor);
       border-top-left-radius: calc(var(--radius-xsmall) / 2);
       transform-origin: 0 0;
       &:nth-child(2) {
@@ -383,7 +383,7 @@ const { render = true, class: className, ...rest } = Astro.props;
       width: var(--_dot);
       height: var(--_dot);
       border-radius: var(--radius-round);
-      background-color: var(--cursor-background);
+      background-color: var(--cursor);
       transition: scale var(--hover-duration-slow) var(--hover-ease);
       .cursor_wrap.is-grabbing & {
         scale: 0.75;
@@ -395,7 +395,7 @@ const { render = true, class: className, ...rest } = Astro.props;
       position: absolute;
       bottom: 100%;
       left: 0;
-      color: var(--cursor-background);
+      color: var(--cursor);
       transform-origin: left center;
       scale: 0.9;
       opacity: 0;
