@@ -96,6 +96,7 @@ const sizes = [
 
 <script>
   import type { MotionShader } from "@/utils/motion-shader.ts";
+  import { duration } from "@/utils/duration.ts";
   import {
     loadMotionShader,
     onPlainImagesChange,
@@ -104,8 +105,8 @@ const sizes = [
 
   const config = {
     threshold: 24,
-    life: 750,
-    flipMs: 1500,
+    life: duration("--duration-5"),
+    flipMs: duration("--duration-7"),
     introFlipMs: 167,
     uploadGap: 32,
     motion: {
