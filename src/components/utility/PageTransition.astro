@@ -43,9 +43,36 @@
       if (event.persisted) delete document.documentElement.dataset.pageLeaving;
     });
 
+    const waitForReveals = () => {
+      const reveals = document
+        .getAnimations()
+        .filter((animation) =>
+          animation.effect?.target?.matches?.("[data-page-reveal]"),
+        )
+        .map((animation) => animation.finished);
+      return Promise.allSettled(reveals);
+    };
+
+    let firstReveal = true;
+    const revealOnLoad = () => {
+      const root = document.documentElement;
+      const type = performance.getEntriesByType("navigation")[0]?.type;
+      if (type === "back_forward" || "pageIntro" in root.dataset) return;
+      if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      root.dataset.pageArriving = "load";
+      waitForReveals().then(() => {
+        delete root.dataset.pageArriving;
+      });
+    };
+
     addEventListener("pagereveal", (event) => {
       const transition = event.viewTransition;
-      if (!transition) return;
+      const isFirst = firstReveal;
+      firstReveal = false;
+      if (!transition) {
+        if (isFirst) revealOnLoad();
+        return;
+      }
       const activation = window.navigation?.activation;
       const isNewVisit = activation
         ? ["push", "replace"].includes(activation.navigationType)
@@ -72,13 +99,7 @@
         () => {
           const root = document.documentElement;
           root.dataset.pageArriving = "";
-          const reveals = document
-            .getAnimations()
-            .filter((animation) =>
-              animation.effect?.target?.matches?.("[data-page-reveal]"),
-            )
-            .map((animation) => animation.finished);
-          Promise.allSettled([lifted, ...reveals]).then(() => {
+          Promise.all([lifted, waitForReveals()]).then(() => {
             delete root.dataset.pageArriving;
           });
         },

@@ -100,6 +100,7 @@
   @media not ((hover: hover) and (pointer: fine)) {
     --page-reveal: calc(var(--page-curtain-cover) + var(--page-curtain-hold));
   }
+  --page-load-reveal: var(--page-stagger);
   --page-reveal-duration: var(--duration-7);
   --page-reveal-opacity: 0.001;
   --page-intro-delay: var(--duration-3);

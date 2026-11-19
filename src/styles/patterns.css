@@ -289,6 +289,10 @@
   animation: page-reveal var(--page-reveal-duration) var(--page-ease) calc(var(--page-reveal) + var(--page-stagger) * var(--_page-step, 0)) both;
 }
 
+:root[data-page-arriving="load"] {
+  --page-reveal: var(--page-load-reveal);
+}
+
 :root[data-page-intro] {
   --page-reveal: var(--page-intro-reveal);
 }
