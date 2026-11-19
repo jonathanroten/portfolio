@@ -727,8 +727,9 @@ const sizes = [
     observer.observe(items[0]);
     if (nav) observer.observe(nav);
     new IntersectionObserver(
-      ([entry]) => {
-        inView = entry.intersectionRatio >= config.flipInView;
+      (entries) => {
+        const { intersectionRatio } = entries[entries.length - 1];
+        inView = intersectionRatio >= config.flipInView;
         if (currentFlip) setPlaying(playing);
       },
       { threshold: config.flipInView },
