@@ -24,7 +24,7 @@ const {
   ...rest
 } = Astro.props;
 
-const trailQuery = "(width >= 64rem) and (hover: hover) and (pointer: fine)";
+const trailQuery = "(width >= 48rem) and (hover: hover) and (pointer: fine)";
 const introWaitMs = 2500;
 const trailWidth = "18.75rem";
 
@@ -761,7 +761,7 @@ const sizes = [
       z-index: 1;
       pointer-events: none;
 
-      @media (width >= 64rem) and (hover: hover) and (pointer: fine) {
+      @media (width >= 48rem) and (hover: hover) and (pointer: fine) {
         &[data-page-reveal]:not(.is-intro) {
           opacity: 1;
           animation: none;
