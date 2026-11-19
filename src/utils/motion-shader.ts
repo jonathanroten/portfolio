@@ -132,6 +132,9 @@ export type MotionShaderMotion = {
 /**
  * Draws images on a canvas with WebGL, one texture per source image. `context`
  * is created by the caller, so it can check for WebGL before downloading three.
+ * Gives images a speed-reactive blur, colour split, lag, and bend. Load it
+ * through `loadMotionShader`, not directly. Used by GalleryInfinite and
+ * ImageTrail.
  */
 export function createMotionShader(
   canvas: HTMLCanvasElement,

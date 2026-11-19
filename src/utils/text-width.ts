@@ -27,7 +27,9 @@ const faces = {
  * Width of the widest word in a `.text-accent` heading, in ems of its font
  * size, measured from the font files. Words joined by a non-breaking space
  * count as one. Highlighted runs are uppercase in Apfel Grotezk, the rest is
- * Hedvig Letters Serif. Kerning is left out, which errs slightly wide.
+ * Hedvig Letters Serif. Kerning is left out, which errs slightly wide. Runs at
+ * build time, so the heading can size itself to fit its longest word without a
+ * layout shift. Used by IntroHome.
  */
 export function widestAccentWord(
   runs: { text: string; highlight: boolean }[],
