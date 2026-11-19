@@ -201,13 +201,15 @@ const sizes = [
     const measure = () => {
       const area = scope.getBoundingClientRect();
       const box = trail.getBoundingClientRect();
+      const [, shift = "0"] = getComputedStyle(trail).translate.split(" ");
+      const top = box.top - (parseFloat(shift) || 0);
       const lift = nav?.offsetHeight ?? 0;
       const inset =
         parseFloat(
           getComputedStyle(trail).getPropertyValue("--_bounds-inset"),
         ) || 0;
       view.left = area.left - box.left;
-      view.top = area.top - lift - box.top;
+      view.top = area.top - lift - top;
       view.width = area.width;
       view.height = area.height + lift;
       origin.x = box.width / 2 - view.left;
@@ -215,7 +217,7 @@ const sizes = [
       itemSize.width = items[0].offsetWidth;
       itemSize.height = items[0].offsetHeight;
       const centerX = box.left + box.width / 2;
-      const centerY = box.top + box.height / 2;
+      const centerY = top + box.height / 2;
       room.left = area.left + inset + itemSize.width / 2 - centerX;
       room.right = area.right - inset - itemSize.width / 2 - centerX;
       room.top = area.top - lift + inset + itemSize.height / 2 - centerY;
