@@ -151,7 +151,7 @@ const total = String(items.length).padStart(2, "0");
       .feature-case-study_info {
         display: flex;
         flex-direction: column;
-        padding: var(--space-8) 0 var(--space-6);
+        padding: var(--section-space-medium) 0 var(--space-6);
       }
       .feature-case-study_title {
         transition: color var(--hover-duration-slow) var(--hover-ease);
@@ -195,6 +195,7 @@ const total = String(items.length).padStart(2, "0");
           min-height: var(--full-height);
         }
         .feature-case-study_info {
+          padding-top: var(--space-8);
           justify-content: end;
           align-self: start;
           position: sticky;
