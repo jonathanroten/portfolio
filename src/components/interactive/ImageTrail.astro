@@ -108,7 +108,7 @@ const sizes = [
     threshold: 24,
     life: duration("--duration-5"),
     flipMs: duration("--duration-7"),
-    flipInView: 0.5,
+    flipVisibility: 0.5,
     introFlipMs: 167,
     uploadGap,
     motion: {
@@ -729,10 +729,10 @@ const sizes = [
     new IntersectionObserver(
       (entries) => {
         const { intersectionRatio } = entries[entries.length - 1];
-        inView = intersectionRatio >= config.flipInView;
+        inView = intersectionRatio >= config.flipVisibility;
         if (currentFlip) setPlaying(playing);
       },
-      { threshold: config.flipInView },
+      { threshold: config.flipVisibility },
     ).observe(items[0]);
     trailQuery.addEventListener("change", startShader);
     onPlainImagesChange(startShader);
