@@ -25,18 +25,30 @@
   --serif-regular: 400;
 
   /* Letter spacing */
-  --letter-spacing-tight: -0.04em;
-  --letter-spacing-normal: 0em;
-  --letter-spacing-wide: 0.02em;
-  --letter-spacing-wider: 0.04em;
-  --letter-spacing-widest: 0.06em;
+  --letter-spacing-1: -0.04em;
+  --letter-spacing-2: 0em;
+  --letter-spacing-3: 0.02em;
+  --letter-spacing-4: 0.04em;
+  --letter-spacing-5: 0.06em;
+  --letter-spacing-tight: var(--letter-spacing-1);
+  --letter-spacing-normal: var(--letter-spacing-2);
+  --letter-spacing-wide: var(--letter-spacing-3);
+  --letter-spacing-wider: var(--letter-spacing-4);
+  --letter-spacing-widest: var(--letter-spacing-5);
 
   /* Line height */
-  --line-height-small: 1.125;
-  --line-height-medium: 1.25;
-  --line-height-large: 1.375;
-  --line-height-huge: 1.5;
-  --line-height-giant: 1.75;
+  --line-height-1: 1.125;
+  --line-height-2: 1.25;
+  --line-height-3: 1.3125;
+  --line-height-4: 1.375;
+  --line-height-5: 1.4375;
+  --line-height-6: 1.5;
+  --line-height-7: 1.75;
+  --line-height-small: var(--line-height-1);
+  --line-height-medium: var(--line-height-2);
+  --line-height-large: var(--line-height-4);
+  --line-height-huge: var(--line-height-6);
+  --line-height-giant: var(--line-height-7);
 
   /* Borders & focus */
   --border-width: 0.0625rem;
