@@ -768,6 +768,11 @@ const sizes = [
         }
       }
 
+      :root[data-page-intro] &[data-page-reveal]:not(.is-intro) {
+        opacity: 1;
+        animation: none;
+      }
+
       /* Trail */
       .image-trail_item {
         opacity: 0;
