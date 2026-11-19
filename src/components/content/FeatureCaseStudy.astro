@@ -118,11 +118,16 @@ const total = String(items.length).padStart(2, "0");
           </Tag>
           <div class="feature-case-study_action">
             {caseStudy.ready ? (
-              <Button element="link" href={href} class="width-full">
+              <Button
+                element="link"
+                href={href}
+                size="large"
+                class="width-full"
+              >
                 View Study<span class="sr-only">: {caseStudy.title}</span>
               </Button>
             ) : (
-              <Button disabled class="width-full">
+              <Button disabled size="large" class="width-full">
                 Coming Soon
               </Button>
             )}
