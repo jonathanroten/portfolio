@@ -60,9 +60,15 @@
       if (type === "back_forward" || "pageIntro" in root.dataset) return;
       if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
       root.dataset.pageArriving = "load";
-      waitForReveals().then(() => {
-        delete root.dataset.pageArriving;
-      });
+      const settle = () =>
+        waitForReveals().then(() => {
+          delete root.dataset.pageArriving;
+        });
+      if (document.readyState === "loading") {
+        addEventListener("DOMContentLoaded", settle, { once: true });
+      } else {
+        settle();
+      }
     };
 
     addEventListener("pagereveal", (event) => {
