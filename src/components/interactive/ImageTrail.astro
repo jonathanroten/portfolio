@@ -749,6 +749,13 @@ const sizes = [
       z-index: 1;
       pointer-events: none;
 
+      @media (width >= 64rem) and (hover: hover) and (pointer: fine) {
+        &[data-page-reveal]:not(.is-intro) {
+          opacity: 1;
+          animation: none;
+        }
+      }
+
       /* Trail */
       .image-trail_item {
         opacity: 0;
