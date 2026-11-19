@@ -1,0 +1,49 @@
+---
+import type { HTMLAttributes } from "astro/types";
+import { galleryCrops, imageUrl } from "@/sanity/lib/image.ts";
+import type { CaseStudy } from "@/utils/case-studies.ts";
+import Img from "@/components/media/Img.astro";
+
+interface Props extends HTMLAttributes<"div"> {
+  /** Set to `false` to omit the component. */
+  render?: boolean;
+  /** Gallery images, in order, as `getCaseStudies` returns them. */
+  images?: CaseStudy["featureGallery"];
+}
+
+const { render = true, images, class: className, ...rest } = Astro.props;
+---
+
+{render && !!images?.length && (
+  <div class:list={["gallery-case-study_wrap", className]} {...rest}>
+    {images.map((image) => {
+      const full = image.layout === "fullWidth";
+      const crop = galleryCrops[image.layout];
+      return (
+        <Img
+          src={imageUrl(image, crop.width, crop.ratio)}
+          alt={image.alt}
+          variant="full-width"
+          width={crop.width}
+          height={Math.round(crop.width / crop.ratio)}
+          class={full ? "grid-column-full" : undefined}
+        />
+      );
+    })}
+  </div>
+)}
+
+<style is:global>
+  @layer components {
+    .gallery-case-study_wrap {
+      width: 100%;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-3);
+      @media (width >= 48rem) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: var(--space-1);
+      }
+    }
+  }
+</style>
