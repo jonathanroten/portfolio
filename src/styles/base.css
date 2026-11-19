@@ -271,6 +271,11 @@
 
   --site-width: calc(100% - var(--site-margin) * 2);
 
+  --gallery-gap: var(--space-3);
+  @media (width >= 48rem) {
+    --gallery-gap: var(--space-1);
+  }
+
   /* Spacing */
   --space-1: clamp(var(--space-1-min) / 16 * 1rem, ((var(--space-1-min) - ((var(--space-1-max) - var(--space-1-min)) / (var(--viewport-max) - var(--viewport-min)) * var(--viewport-min))) / 16 * 1rem + ((var(--space-1-max) - var(--space-1-min)) / (var(--viewport-max) - var(--viewport-min))) * 100vw), var(--space-1-max) / 16 * 1rem);
   --space-1-min: 6;

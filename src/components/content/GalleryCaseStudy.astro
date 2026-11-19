@@ -39,10 +39,9 @@ const { render = true, images, class: className, ...rest } = Astro.props;
       width: 100%;
       display: grid;
       grid-template-columns: minmax(0, 1fr);
-      gap: var(--space-3);
+      gap: var(--gallery-gap);
       @media (width >= 48rem) {
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: var(--space-1);
       }
     }
   }

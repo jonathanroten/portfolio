@@ -168,7 +168,7 @@ const total = String(items.length).padStart(2, "0");
         margin-bottom: var(--space-6);
       }
       .feature-case-study_action {
-        padding-top: var(--space-3);
+        padding-top: var(--gallery-gap);
       }
       @media (hover: hover) and (pointer: fine) {
         a .feature-case-study_title:hover {
@@ -196,14 +196,14 @@ const total = String(items.length).padStart(2, "0");
           top: var(--nav-total-height);
         }
         .feature-case-study_gallery {
-          padding-bottom: var(--space-1);
+          padding-bottom: var(--gallery-gap);
         }
         .feature-case-study_counter {
           display: none;
         }
         .feature-case-study_action {
           grid-column: 2;
-          padding-top: calc(var(--space-3) - var(--space-1));
+          padding-top: 0;
           padding-bottom: var(--space-3);
         }
       }
