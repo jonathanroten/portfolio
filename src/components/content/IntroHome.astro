@@ -19,7 +19,7 @@ const greeting = [
 ];
 const runs = (description?.runs ?? []).map((run) => ({
   ...run,
-  text: run.text.replace(/(^|\s)(\S)\s+/g, "$1$2 "),
+  text: run.text.replace(/(?<=^|\s)(\S)\s+/g, "$1 "),
 }));
 const fit = Math.max(widestAccentWord(greeting), widestAccentWord(runs));
 ---
