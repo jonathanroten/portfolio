@@ -25,18 +25,30 @@
   --serif-regular: 400;
 
   /* Letter spacing */
-  --letter-spacing-tight: -0.04em;
-  --letter-spacing-normal: 0em;
-  --letter-spacing-wide: 0.02em;
-  --letter-spacing-wider: 0.04em;
-  --letter-spacing-widest: 0.06em;
+  --letter-spacing-1: -0.04em;
+  --letter-spacing-2: 0em;
+  --letter-spacing-3: 0.02em;
+  --letter-spacing-4: 0.04em;
+  --letter-spacing-5: 0.06em;
+  --letter-spacing-tight: var(--letter-spacing-1);
+  --letter-spacing-normal: var(--letter-spacing-2);
+  --letter-spacing-wide: var(--letter-spacing-3);
+  --letter-spacing-wider: var(--letter-spacing-4);
+  --letter-spacing-widest: var(--letter-spacing-5);
 
   /* Line height */
-  --line-height-small: 1.125;
-  --line-height-medium: 1.25;
-  --line-height-large: 1.375;
-  --line-height-huge: 1.5;
-  --line-height-giant: 1.75;
+  --line-height-1: 1.125;
+  --line-height-2: 1.25;
+  --line-height-3: 1.3125;
+  --line-height-4: 1.375;
+  --line-height-5: 1.4375;
+  --line-height-6: 1.5;
+  --line-height-7: 1.75;
+  --line-height-small: var(--line-height-1);
+  --line-height-medium: var(--line-height-2);
+  --line-height-large: var(--line-height-4);
+  --line-height-huge: var(--line-height-6);
+  --line-height-giant: var(--line-height-7);
 
   /* Borders & focus */
   --border-width: 0.0625rem;
@@ -88,6 +100,7 @@
   @media not ((hover: hover) and (pointer: fine)) {
     --page-reveal: calc(var(--page-curtain-cover) + var(--page-curtain-hold));
   }
+  --page-load-reveal: var(--page-stagger);
   --page-reveal-duration: var(--duration-7);
   --page-reveal-opacity: 0.001;
   --page-intro-delay: var(--duration-3);
@@ -175,7 +188,10 @@
   --h4: clamp(var(--h4-min) / 16 * 1rem, ((var(--h4-min) - ((var(--h4-max) - var(--h4-min)) / (var(--viewport-max) - var(--viewport-min)) * var(--viewport-min))) / 16 * 1rem + ((var(--h4-max) - var(--h4-min)) / (var(--viewport-max) - var(--viewport-min))) * 100vw), var(--h4-max) / 16 * 1rem);
   --h4-min: 22;
   --h4-max: 28;
-  --h4-line-height: var(--line-height-large);
+  --h4-line-height: var(--line-height-5);
+  @media (width >= 48rem) {
+    --h4-line-height: var(--line-height-large);
+  }
   --h4-letter-spacing: var(--letter-spacing-wide);
   --h4-text-transform: none;
   --h4-margin-top: var(--space-6);
@@ -254,6 +270,11 @@
   --site-gutter-max: 32;
 
   --site-width: calc(100% - var(--site-margin) * 2);
+
+  --gallery-gap: var(--space-3);
+  @media (width >= 48rem) {
+    --gallery-gap: var(--space-1);
+  }
 
   /* Spacing */
   --space-1: clamp(var(--space-1-min) / 16 * 1rem, ((var(--space-1-min) - ((var(--space-1-max) - var(--space-1-min)) / (var(--viewport-max) - var(--viewport-min)) * var(--viewport-min))) / 16 * 1rem + ((var(--space-1-max) - var(--space-1-min)) / (var(--viewport-max) - var(--viewport-min))) * 100vw), var(--space-1-max) / 16 * 1rem);

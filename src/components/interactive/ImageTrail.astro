@@ -108,6 +108,7 @@ const sizes = [
     threshold: 24,
     life: duration("--duration-5"),
     flipMs: duration("--duration-7"),
+    flipVisibility: 0.5,
     introFlipMs: 167,
     uploadGap,
     motion: {
@@ -169,6 +170,7 @@ const sizes = [
       "[data-trail-toggle]",
     );
     let playing = !reducedMotionQuery.matches;
+    let inView = false;
     const places = items.map(() => ({ x: 0, y: 0, order: 0 }));
     const drifts = items.map(() => ({ x: 0, y: 0 }));
     const room = { left: 0, right: 0, top: 0, bottom: 0 };
@@ -199,13 +201,15 @@ const sizes = [
     const measure = () => {
       const area = scope.getBoundingClientRect();
       const box = trail.getBoundingClientRect();
+      const [, shift = "0"] = getComputedStyle(trail).translate.split(" ");
+      const top = box.top - (parseFloat(shift) || 0);
       const lift = nav?.offsetHeight ?? 0;
       const inset =
         parseFloat(
           getComputedStyle(trail).getPropertyValue("--_bounds-inset"),
         ) || 0;
       view.left = area.left - box.left;
-      view.top = area.top - lift - box.top;
+      view.top = area.top - lift - top;
       view.width = area.width;
       view.height = area.height + lift;
       origin.x = box.width / 2 - view.left;
@@ -213,7 +217,7 @@ const sizes = [
       itemSize.width = items[0].offsetWidth;
       itemSize.height = items[0].offsetHeight;
       const centerX = box.left + box.width / 2;
-      const centerY = box.top + box.height / 2;
+      const centerY = top + box.height / 2;
       room.left = area.left + inset + itemSize.width / 2 - centerX;
       room.right = area.right - inset - itemSize.width / 2 - centerX;
       room.top = area.top - lift + inset + itemSize.height / 2 - centerY;
@@ -382,7 +386,7 @@ const sizes = [
         window.clearInterval(flipTimer);
         flipTimer = null;
       }
-      if (playing) {
+      if (playing && inView) {
         flipTimer = window.setInterval(
           advance,
           Math.max(config.flipMs, config.introFlipMs),
@@ -722,6 +726,14 @@ const sizes = [
     observer.observe(trail);
     observer.observe(items[0]);
     if (nav) observer.observe(nav);
+    new IntersectionObserver(
+      (entries) => {
+        const { intersectionRatio } = entries[entries.length - 1];
+        inView = intersectionRatio >= config.flipVisibility;
+        if (currentFlip) setPlaying(playing);
+      },
+      { threshold: config.flipVisibility },
+    ).observe(items[0]);
     trailQuery.addEventListener("change", startShader);
     onPlainImagesChange(startShader);
     if (document.readyState === "complete") startShader();
@@ -748,6 +760,18 @@ const sizes = [
       inset: 0;
       z-index: 1;
       pointer-events: none;
+
+      @media (width >= 64rem) and (hover: hover) and (pointer: fine) {
+        &[data-page-reveal]:not(.is-intro) {
+          opacity: 1;
+          animation: none;
+        }
+      }
+
+      :root[data-page-intro] &[data-page-reveal]:not(.is-intro) {
+        opacity: 1;
+        animation: none;
+      }
 
       /* Trail */
       .image-trail_item {

@@ -18,7 +18,9 @@ export const onPlainImagesChange = (listener: () => void) => {
 
 /**
  * Starts the motion shader on `canvas`. Returns `null` straight away, without
- * downloading three, when the browser can't run WebGL well.
+ * downloading three, when the browser can't run WebGL well. This file holds the
+ * checks and settings around the shader, so the shader itself loads only when
+ * it can run. Used by GalleryInfinite and ImageTrail.
  */
 export const loadMotionShader = (canvas: HTMLCanvasElement) => {
   const context = canvas.getContext("webgl2", {

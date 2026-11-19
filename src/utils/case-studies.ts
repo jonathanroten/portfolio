@@ -16,7 +16,8 @@ const paragraphs = (text: string | null) =>
  * case study is `ready` once it has a Hero Image and its Brief or Approach has
  * text or images; only ready ones get a page. The Studio requires a Hero Image,
  * but documents published before that rule may still lack one, so it can be
- * `null` here.
+ * `null` here. The one place Sanity data is shaped for pages. Used by Home,
+ * FeatureCaseStudy, and the case study page.
  */
 export async function getCaseStudies() {
   const caseStudies = await getCaseStudyDocuments();
