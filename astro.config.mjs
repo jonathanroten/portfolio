@@ -54,7 +54,7 @@ export default defineConfig({
           {
             weight: 500,
             style: "normal",
-            src: ["./src/assets/fonts/dm-mono-medium.ttf"],
+            src: ["./src/assets/fonts/dm-mono-medium.woff2"],
           },
         ],
       },
@@ -68,7 +68,7 @@ export default defineConfig({
           {
             weight: 400,
             style: "normal",
-            src: ["./src/assets/fonts/hedvig-letters-serif_18pt-regular.ttf"],
+            src: ["./src/assets/fonts/hedvig-letters-serif_18pt-regular.woff2"],
           },
         ],
       },

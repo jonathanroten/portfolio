@@ -12,7 +12,7 @@ const loadFont = (file: string) =>
  */
 const faces = {
   text: {
-    font: loadFont("hedvig-letters-serif_18pt-regular.ttf"),
+    font: loadFont("hedvig-letters-serif_18pt-regular.woff2"),
     scale: 1,
     tracking: 0.02,
   },
