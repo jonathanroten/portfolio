@@ -123,6 +123,7 @@ const images: GalleryImage[] = items.map((item) => {
     click: { distance: 8, time: 400 },
     seatDistance: 32,
     revealWait: 3000,
+    priorityImages: 2,
     uploadGap,
     motion: {
       smoothing: 50,
@@ -941,7 +942,9 @@ const images: GalleryImage[] = items.map((item) => {
       const visible = firstImages
         .filter((first) => first.visible)
         .sort((a, b) => b.area - a.area);
-      for (const { image } of visible.slice(0, 2)) image.fetchPriority = "high";
+      for (const { image } of visible.slice(0, config.priorityImages)) {
+        image.fetchPriority = "high";
+      }
       const loads = visible.map(({ image, index }) => show(image, index));
       Promise.race([
         Promise.allSettled(loads),
