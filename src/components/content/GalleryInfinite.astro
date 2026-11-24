@@ -370,7 +370,10 @@ const images: GalleryImage[] = items.map((item) => {
         () => {
           image.classList.add("is-loaded");
           label(image);
-          addSource(index, image);
+          if (image.crossOrigin && !sources.has(index)) {
+            sources.set(index, image);
+            uploadTextures();
+          }
         },
         () => {},
       );
@@ -531,27 +534,23 @@ const images: GalleryImage[] = items.map((item) => {
       const active = shader;
       const next = [...sources].find(([index]) => !active.has(index));
       if (!next) return;
+      const [index, image] = next;
       uploading = true;
-      active.upload(...next);
-      setTimeout(() => {
-        uploading = false;
-        uploadTextures();
-      }, config.uploadGap);
-    };
-
-    const addSource = (index: number, image: HTMLImageElement) => {
-      if (!image.crossOrigin || sources.has(index)) return;
       const source = new Image();
       source.crossOrigin = image.crossOrigin;
       source.src = image.currentSrc;
-      source.decode().then(
-        () => {
-          if (sources.has(index)) return;
-          sources.set(index, source);
-          uploadTextures();
-        },
-        () => {},
-      );
+      source
+        .decode()
+        .then(
+          () => active.upload(index, source),
+          () => sources.delete(index),
+        )
+        .finally(() =>
+          setTimeout(() => {
+            uploading = false;
+            uploadTextures();
+          }, config.uploadGap),
+        );
     };
 
     const startShader = () => {
