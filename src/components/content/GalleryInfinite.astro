@@ -767,8 +767,8 @@ const images: GalleryImage[] = items.map((item) => {
           () => {
             if (focused !== image || image.src === fullSrc) return;
             image.crossOrigin = full.crossOrigin;
-            image.src = fullSrc;
             image.removeAttribute("srcset");
+            image.src = fullSrc;
             image.classList.add("is-loaded");
           },
           () => {},
