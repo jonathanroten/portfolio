@@ -253,6 +253,9 @@ const images: GalleryImage[] = items.map((item) => {
       ]),
     ) as Record<Shape, number>;
 
+    const sizesOf = (shape: Shape) =>
+      `${Math.ceil(widest[shape] * tileSize.width)}px`;
+
     const imageAt = (tx: number, ty: number, shape: Shape, rank: number) => {
       const pool = pools[shape];
       const group = tx + config.rowStep * ty;
@@ -283,6 +286,7 @@ const images: GalleryImage[] = items.map((item) => {
         extent: { x: number; y: number };
         index: number;
         slot: string;
+        shape: Shape;
       }
     >();
     const stacking = new Map<string, number>();
@@ -394,9 +398,9 @@ const images: GalleryImage[] = items.map((item) => {
         const index = imageAt(tx, ty, shape, rank);
         const slot = `${tx},${ty},${place}`;
         const position = { x: tx + anchor.x, y: ty + anchor.y };
-        placed.set(image, { anchor: position, extent, index, slot });
+        placed.set(image, { anchor: position, extent, index, slot, shape });
         image.style.zIndex = String(stacking.get(slot) ?? "");
-        image.sizes = `${Math.ceil(widest[shape] * tileSize.width)}px`;
+        image.sizes = sizesOf(shape);
         if (collecting) {
           firstImages.push({
             image,
@@ -509,6 +513,14 @@ const images: GalleryImage[] = items.map((item) => {
       tileSize.height = (tileSize.width * config.tileHeight) / config.tileWidth;
       gallery.style.setProperty("--_tile-width", `${tileSize.width}px`);
       gallery.style.setProperty("--_tile-height", `${tileSize.height}px`);
+      for (const tile of tiles.values()) {
+        for (const image of tile.children) {
+          const shape = placed.get(image)?.shape;
+          if (!shape || !(image instanceof HTMLImageElement)) continue;
+          const sizes = sizesOf(shape);
+          if (image.sizes !== sizes) image.sizes = sizes;
+        }
+      }
       shader?.resize(viewSize.width, viewSize.height);
       syncFocus();
       syncTiles();
