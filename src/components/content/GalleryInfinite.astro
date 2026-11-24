@@ -949,8 +949,9 @@ const images: GalleryImage[] = items.map((item) => {
       ]).then(() => {
         gallery.classList.add("is-revealed");
         for (const { image, index, visible } of firstImages) {
-          if (!visible) show(image, index);
+          if (!visible && image.isConnected) show(image, index);
         }
+        firstImages.length = 0;
       });
     };
 
