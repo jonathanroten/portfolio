@@ -41,6 +41,7 @@ const images: GalleryImage[] = items.map((item) => {
 
 {render && images.length > 0 && (
   <>
+    <link rel="preconnect" href={new URL(images[0].src).origin} crossorigin />
     <div
       class:list={["gallery-infinite_wrap", className]}
       data-items={JSON.stringify(images)}
@@ -302,7 +303,12 @@ const images: GalleryImage[] = items.map((item) => {
     let seated = false;
     const held = new Set<string>();
     const calm = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const firstLoads: Promise<void>[] = [];
+    const firstImages: {
+      image: HTMLImageElement;
+      index: number;
+      area: number;
+      visible: boolean;
+    }[] = [];
     let collecting = true;
     const viewSize = { width: 0, height: 0 };
     const tileSize = { width: 0, height: 0 };
@@ -358,6 +364,19 @@ const images: GalleryImage[] = items.map((item) => {
       }
     };
 
+    const show = (image: HTMLImageElement, index: number) => {
+      const loaded = loadImage(image, items[index].src, items[index].srcset);
+      loaded.then(
+        () => {
+          image.classList.add("is-loaded");
+          label(image);
+          addSource(index, image);
+        },
+        () => {},
+      );
+      return loaded;
+    };
+
     const createTile = (tx: number, ty: number) => {
       const element = document.createElement("div");
       element.className = "gallery-infinite_tile";
@@ -375,16 +394,14 @@ const images: GalleryImage[] = items.map((item) => {
         placed.set(image, { anchor: position, extent, index, slot });
         image.style.zIndex = String(stacking.get(slot) ?? "");
         image.sizes = `${Math.ceil(widest[shape] * tileSize.width)}px`;
-        const loaded = loadImage(image, items[index].src, items[index].srcset);
-        if (collecting && onScreen(position, extent)) firstLoads.push(loaded);
-        loaded.then(
-          () => {
-            image.classList.add("is-loaded");
-            label(image);
-            addSource(index, image);
-          },
-          () => {},
-        );
+        if (collecting) {
+          firstImages.push({
+            image,
+            index,
+            area: extent.x * extent.y,
+            visible: onScreen(position, extent),
+          });
+        } else show(image, index);
         Object.assign(image.style, style);
         image.style.translate = pushOf(image);
         element.append(image);
@@ -910,10 +927,20 @@ const images: GalleryImage[] = items.map((item) => {
 
     const reveal = () => {
       collecting = false;
+      const visible = firstImages
+        .filter((first) => first.visible)
+        .sort((a, b) => b.area - a.area);
+      for (const { image } of visible.slice(0, 2)) image.fetchPriority = "high";
+      const loads = visible.map(({ image, index }) => show(image, index));
       Promise.race([
-        Promise.allSettled(firstLoads),
+        Promise.allSettled(loads),
         new Promise((resolve) => setTimeout(resolve, config.revealWait)),
-      ]).then(() => gallery.classList.add("is-revealed"));
+      ]).then(() => {
+        gallery.classList.add("is-revealed");
+        for (const { image, index, visible } of firstImages) {
+          if (!visible) show(image, index);
+        }
+      });
     };
 
     new ResizeObserver(resize).observe(gallery);
