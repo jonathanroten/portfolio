@@ -15,6 +15,8 @@ export interface SeoProps {
 /** One gallery image as sent to the browser, cropped and resized for display. */
 export interface GalleryImage {
   src: string;
+  /** The same crop at each size up to `width`, so the browser can pick one for the screen. */
+  srcset: string;
   /** The same crop at a larger size, swapped in when the image is focused. */
   fullSrc: string;
   width: number;

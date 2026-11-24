@@ -22,10 +22,15 @@ const SIZES: Record<
   "3:4": { ratio: 3 / 4, width: 768, fullWidth: 1200 },
 };
 
+const WIDTHS = [240, 320, 400, 480, 640, 800];
+
 const images: GalleryImage[] = items.map((item) => {
   const { ratio, width, fullWidth } = SIZES[item.aspectRatio];
   return {
     src: imageUrl(item, width, ratio),
+    srcset: [...WIDTHS.filter((size) => size < width), width]
+      .map((size) => `${imageUrl(item, size, ratio)} ${size}w`)
+      .join(", "),
     fullSrc: imageUrl(item, fullWidth, ratio),
     width,
     height: Math.round(width / ratio),
@@ -157,8 +162,13 @@ const images: GalleryImage[] = items.map((item) => {
 
   let corsBlocked = false;
 
-  const loadImage = async (image: HTMLImageElement, src: string) => {
+  const loadImage = async (
+    image: HTMLImageElement,
+    src: string,
+    srcset = "",
+  ) => {
     if (!corsBlocked) image.crossOrigin = "anonymous";
+    image.srcset = srcset;
     image.src = src;
     try {
       await image.decode();
@@ -230,6 +240,17 @@ const images: GalleryImage[] = items.map((item) => {
         },
       };
     });
+
+    const widest = Object.fromEntries(
+      shapeNames.map((shape) => [
+        shape,
+        Math.max(
+          ...placements
+            .filter((placement) => placement.shape === shape)
+            .map(({ extent }) => extent.x * 2),
+        ),
+      ]),
+    ) as Record<Shape, number>;
 
     const imageAt = (tx: number, ty: number, shape: Shape, rank: number) => {
       const pool = pools[shape];
@@ -353,16 +374,14 @@ const images: GalleryImage[] = items.map((item) => {
         const position = { x: tx + anchor.x, y: ty + anchor.y };
         placed.set(image, { anchor: position, extent, index, slot });
         image.style.zIndex = String(stacking.get(slot) ?? "");
-        const loaded = loadImage(image, items[index].src);
+        image.sizes = `${Math.ceil(widest[shape] * tileSize.width)}px`;
+        const loaded = loadImage(image, items[index].src, items[index].srcset);
         if (collecting && onScreen(position, extent)) firstLoads.push(loaded);
         loaded.then(
           () => {
             image.classList.add("is-loaded");
             label(image);
-            if (image.crossOrigin && !sources.has(index)) {
-              sources.set(index, image);
-              uploadTextures();
-            }
+            addSource(index, image);
           },
           () => {},
         );
@@ -501,6 +520,21 @@ const images: GalleryImage[] = items.map((item) => {
         uploading = false;
         uploadTextures();
       }, config.uploadGap);
+    };
+
+    const addSource = (index: number, image: HTMLImageElement) => {
+      if (!image.crossOrigin || sources.has(index)) return;
+      const source = new Image();
+      source.crossOrigin = image.crossOrigin;
+      source.src = image.currentSrc;
+      source.decode().then(
+        () => {
+          if (sources.has(index)) return;
+          sources.set(index, source);
+          uploadTextures();
+        },
+        () => {},
+      );
     };
 
     const startShader = () => {
@@ -706,6 +740,7 @@ const images: GalleryImage[] = items.map((item) => {
             if (focused !== image || image.src === fullSrc) return;
             image.crossOrigin = full.crossOrigin;
             image.src = fullSrc;
+            image.removeAttribute("srcset");
             image.classList.add("is-loaded");
           },
           () => {},
