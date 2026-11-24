@@ -68,13 +68,14 @@ const { render = true } = Astro.props;
           <FooterItem
             heading="Services"
             variant="inline"
+            maxWidth={36}
             items={services.map((label) => ({ label }))}
           />
         )}
         <FooterItem
           heading="Stack"
           variant="inline"
-          maxWidth={26}
+          maxWidth={32}
           items={[
             { label: "Astro" },
             { label: "Claude Code" },
@@ -82,6 +83,7 @@ const { render = true } = Astro.props;
             { label: "Figma" },
             { label: "Lumos" },
             { label: "Sanity" },
+            { label: "Stacki" },
           ]}
         />
         <FooterItem
