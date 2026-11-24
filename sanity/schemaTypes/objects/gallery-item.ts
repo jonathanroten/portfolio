@@ -1,4 +1,5 @@
 import {defineArrayMember, defineField, defineType} from 'sanity'
+import {GalleryItemPreview} from '../components/GalleryItemPreview'
 
 /** The shapes of the gallery's frames. An item's ratio picks both its crop and the frames it fills. */
 export const aspectRatios = [
@@ -12,6 +13,7 @@ export const galleryItem = defineType({
   title: 'Gallery Item',
   type: 'image',
   options: {hotspot: true},
+  components: {preview: GalleryItemPreview},
   fields: [
     defineField({
       name: 'alt',
@@ -45,6 +47,6 @@ export const galleryItem = defineType({
     }),
   ],
   preview: {
-    select: {title: 'alt', subtitle: 'aspectRatio', media: 'asset'},
+    select: {title: 'alt', aspectRatio: 'aspectRatio', media: 'asset'},
   },
 })
