@@ -22,10 +22,15 @@ const SIZES: Record<
   "3:4": { ratio: 3 / 4, width: 768, fullWidth: 1200 },
 };
 
+const WIDTHS = [240, 320, 400, 480, 640, 800];
+
 const images: GalleryImage[] = items.map((item) => {
   const { ratio, width, fullWidth } = SIZES[item.aspectRatio];
   return {
     src: imageUrl(item, width, ratio),
+    srcset: [...WIDTHS.filter((size) => size < width), width]
+      .map((size) => `${imageUrl(item, size, ratio)} ${size}w`)
+      .join(", "),
     fullSrc: imageUrl(item, fullWidth, ratio),
     width,
     height: Math.round(width / ratio),
@@ -36,6 +41,7 @@ const images: GalleryImage[] = items.map((item) => {
 
 {render && images.length > 0 && (
   <>
+    <link rel="preconnect" href={new URL(images[0].src).origin} crossorigin />
     <div
       class:list={["gallery-infinite_wrap", className]}
       data-items={JSON.stringify(images)}
@@ -117,6 +123,7 @@ const images: GalleryImage[] = items.map((item) => {
     click: { distance: 8, time: 400 },
     seatDistance: 32,
     revealWait: 3000,
+    priorityImages: 2,
     uploadGap,
     motion: {
       smoothing: 50,
@@ -157,8 +164,13 @@ const images: GalleryImage[] = items.map((item) => {
 
   let corsBlocked = false;
 
-  const loadImage = async (image: HTMLImageElement, src: string) => {
+  const loadImage = async (
+    image: HTMLImageElement,
+    src: string,
+    srcset = "",
+  ) => {
     if (!corsBlocked) image.crossOrigin = "anonymous";
+    image.srcset = srcset;
     image.src = src;
     try {
       await image.decode();
@@ -231,6 +243,20 @@ const images: GalleryImage[] = items.map((item) => {
       };
     });
 
+    const widest = Object.fromEntries(
+      shapeNames.map((shape) => [
+        shape,
+        Math.max(
+          ...placements
+            .filter((placement) => placement.shape === shape)
+            .map(({ extent }) => extent.x * 2),
+        ),
+      ]),
+    ) as Record<Shape, number>;
+
+    const sizesOf = (shape: Shape) =>
+      `${Math.ceil(widest[shape] * tileSize.width)}px`;
+
     const imageAt = (tx: number, ty: number, shape: Shape, rank: number) => {
       const pool = pools[shape];
       const group = tx + config.rowStep * ty;
@@ -261,6 +287,7 @@ const images: GalleryImage[] = items.map((item) => {
         extent: { x: number; y: number };
         index: number;
         slot: string;
+        shape: Shape;
       }
     >();
     const stacking = new Map<string, number>();
@@ -281,7 +308,12 @@ const images: GalleryImage[] = items.map((item) => {
     let seated = false;
     const held = new Set<string>();
     const calm = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const firstLoads: Promise<void>[] = [];
+    const firstImages: {
+      image: HTMLImageElement;
+      index: number;
+      area: number;
+      visible: boolean;
+    }[] = [];
     let collecting = true;
     const viewSize = { width: 0, height: 0 };
     const tileSize = { width: 0, height: 0 };
@@ -337,6 +369,22 @@ const images: GalleryImage[] = items.map((item) => {
       }
     };
 
+    const show = (image: HTMLImageElement, index: number) => {
+      const loaded = loadImage(image, items[index].src, items[index].srcset);
+      loaded.then(
+        () => {
+          image.classList.add("is-loaded");
+          label(image);
+          if (image.crossOrigin && !sources.has(index)) {
+            sources.set(index, image);
+            uploadTextures();
+          }
+        },
+        () => {},
+      );
+      return loaded;
+    };
+
     const createTile = (tx: number, ty: number) => {
       const element = document.createElement("div");
       element.className = "gallery-infinite_tile";
@@ -351,21 +399,17 @@ const images: GalleryImage[] = items.map((item) => {
         const index = imageAt(tx, ty, shape, rank);
         const slot = `${tx},${ty},${place}`;
         const position = { x: tx + anchor.x, y: ty + anchor.y };
-        placed.set(image, { anchor: position, extent, index, slot });
+        placed.set(image, { anchor: position, extent, index, slot, shape });
         image.style.zIndex = String(stacking.get(slot) ?? "");
-        const loaded = loadImage(image, items[index].src);
-        if (collecting && onScreen(position, extent)) firstLoads.push(loaded);
-        loaded.then(
-          () => {
-            image.classList.add("is-loaded");
-            label(image);
-            if (image.crossOrigin && !sources.has(index)) {
-              sources.set(index, image);
-              uploadTextures();
-            }
-          },
-          () => {},
-        );
+        image.sizes = sizesOf(shape);
+        if (collecting) {
+          firstImages.push({
+            image,
+            index,
+            area: extent.x * extent.y,
+            visible: onScreen(position, extent),
+          });
+        } else show(image, index);
         Object.assign(image.style, style);
         image.style.translate = pushOf(image);
         element.append(image);
@@ -470,6 +514,14 @@ const images: GalleryImage[] = items.map((item) => {
       tileSize.height = (tileSize.width * config.tileHeight) / config.tileWidth;
       gallery.style.setProperty("--_tile-width", `${tileSize.width}px`);
       gallery.style.setProperty("--_tile-height", `${tileSize.height}px`);
+      for (const tile of tiles.values()) {
+        for (const image of tile.children) {
+          const shape = placed.get(image)?.shape;
+          if (!shape || !(image instanceof HTMLImageElement)) continue;
+          const sizes = sizesOf(shape);
+          if (image.sizes !== sizes) image.sizes = sizes;
+        }
+      }
       shader?.resize(viewSize.width, viewSize.height);
       syncFocus();
       syncTiles();
@@ -495,12 +547,23 @@ const images: GalleryImage[] = items.map((item) => {
       const active = shader;
       const next = [...sources].find(([index]) => !active.has(index));
       if (!next) return;
+      const [index, image] = next;
       uploading = true;
-      active.upload(...next);
-      setTimeout(() => {
-        uploading = false;
-        uploadTextures();
-      }, config.uploadGap);
+      const source = new Image();
+      source.crossOrigin = image.crossOrigin;
+      source.src = image.currentSrc;
+      source
+        .decode()
+        .then(
+          () => active.upload(index, source),
+          () => sources.delete(index),
+        )
+        .finally(() =>
+          setTimeout(() => {
+            uploading = false;
+            uploadTextures();
+          }, config.uploadGap),
+        );
     };
 
     const startShader = () => {
@@ -705,6 +768,7 @@ const images: GalleryImage[] = items.map((item) => {
           () => {
             if (focused !== image || image.src === fullSrc) return;
             image.crossOrigin = full.crossOrigin;
+            image.removeAttribute("srcset");
             image.src = fullSrc;
             image.classList.add("is-loaded");
           },
@@ -875,10 +939,23 @@ const images: GalleryImage[] = items.map((item) => {
 
     const reveal = () => {
       collecting = false;
+      const visible = firstImages
+        .filter((first) => first.visible)
+        .sort((a, b) => b.area - a.area);
+      for (const { image } of visible.slice(0, config.priorityImages)) {
+        image.fetchPriority = "high";
+      }
+      const loads = visible.map(({ image, index }) => show(image, index));
       Promise.race([
-        Promise.allSettled(firstLoads),
+        Promise.allSettled(loads),
         new Promise((resolve) => setTimeout(resolve, config.revealWait)),
-      ]).then(() => gallery.classList.add("is-revealed"));
+      ]).then(() => {
+        gallery.classList.add("is-revealed");
+        for (const { image, index, visible } of firstImages) {
+          if (!visible && image.isConnected) show(image, index);
+        }
+        firstImages.length = 0;
+      });
     };
 
     new ResizeObserver(resize).observe(gallery);
