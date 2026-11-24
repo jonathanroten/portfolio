@@ -1,6 +1,5 @@
 import {defineArrayMember, defineField, defineType} from 'sanity'
 import {ImagesIcon} from '@sanity/icons/Images'
-import {aspectRatios} from '../objects/gallery-item'
 
 /**
  * Images per ratio so none repeats within a 2x2 block of tiles, which fills a typical screen.
@@ -17,20 +16,9 @@ export const gallery = defineType({
       name: 'items',
       title: 'Gallery Items',
       type: 'array',
-      description: 'Drop multiple images here at once. Drag to reorder.',
+      description: `Add several images at once and drag to reorder. Use at least ${MIN_PER_RATIO} per ratio to avoid visible repeats.`,
       of: [defineArrayMember({type: 'galleryItem'})],
       options: {layout: 'grid'},
-      validation: (rule) =>
-        rule
-          .custom<{aspectRatio?: string}[]>((items = []) =>
-            aspectRatios.some(
-              ({value}) =>
-                items.filter((item) => item.aspectRatio === value).length < MIN_PER_RATIO,
-            )
-              ? `Aim for ${MIN_PER_RATIO} images per ratio to avoid repeats on screen.`
-              : true,
-          )
-          .warning(),
     }),
   ],
   preview: {
