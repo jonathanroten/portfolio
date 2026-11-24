@@ -1,12 +1,25 @@
-import {defineArrayMember, defineField, defineType} from 'sanity'
+import {defineArrayMember, defineField, defineType, type ImageValue} from 'sanity'
+import {getImageDimensions} from '@sanity/asset-utils'
 import {GalleryItemPreview} from '../components/GalleryItemPreview'
 
-/** The shapes of the gallery's frames. An item's ratio picks both its crop and the frames it fills. */
-export const aspectRatios = [
-  {title: 'Square (1:1)', value: '1:1'},
-  {title: 'Wide (16:9)', value: '16:9'},
-  {title: 'Tall (3:4)', value: '3:4'},
-]
+/**
+ * The shapes of the gallery's frames. An item's ratio picks both its crop and the frames it fills.
+ * `minWidth` is the widest the site shows that ratio (`SIZES` in GalleryInfinite), so the smallest
+ * upload that stays sharp. `shape` (width over height) and `minHeight` follow from `value` and `minWidth`.
+ */
+const aspectRatios = [
+  {title: 'Square (1:1)', value: '1:1', minWidth: 1200},
+  {title: 'Wide (16:9)', value: '16:9', minWidth: 1800},
+  {title: 'Tall (3:4)', value: '3:4', minWidth: 1200},
+].map((frame) => {
+  const [across, down] = frame.value.split(':').map(Number)
+  const shape = across / down
+  return {...frame, shape, minHeight: Math.ceil(frame.minWidth / shape)}
+})
+
+const minSizes = aspectRatios
+  .map(({value, minWidth, minHeight}) => `${value} (${minWidth} × ${minHeight})`)
+  .join(', ')
 
 export const galleryItem = defineType({
   name: 'galleryItem',
@@ -27,10 +40,9 @@ export const galleryItem = defineType({
       name: 'aspectRatio',
       title: 'Aspect Ratio',
       type: 'string',
-      description:
-        'The shape the image is cropped to, around its hotspot. It also decides which frames in the gallery the image can fill.',
+      description: `Minimum sizes: ${minSizes}`,
       options: {
-        list: aspectRatios,
+        list: aspectRatios.map(({title, value}) => ({title, value})),
         layout: 'radio',
         direction: 'horizontal',
       },
@@ -46,6 +58,21 @@ export const galleryItem = defineType({
       validation: (rule) => rule.required().unique(),
     }),
   ],
+  validation: (rule) =>
+    rule
+      .custom<ImageValue & {aspectRatio?: string}>((item) => {
+        const frame = aspectRatios.find(({value}) => value === item?.aspectRatio)
+        if (!item?.asset?._ref || !frame) return true
+        const {width, height} = getImageDimensions(item.asset._ref)
+        const {top = 0, bottom = 0, left = 0, right = 0} = item.crop ?? {}
+        const croppedWidth = Math.round(
+          Math.min(width * (1 - left - right), height * (1 - top - bottom) * frame.shape),
+        )
+        return croppedWidth < frame.minWidth
+          ? `Too small for ${frame.value}: ${croppedWidth} px wide after cropping. Needs a minimum size of ${frame.minWidth} × ${frame.minHeight} px.`
+          : true
+      })
+      .warning(),
   preview: {
     select: {title: 'alt', aspectRatio: 'aspectRatio', media: 'asset'},
   },
