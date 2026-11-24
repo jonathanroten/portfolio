@@ -207,10 +207,7 @@
 .list-inline {
   display: flex;
   flex-wrap: wrap;
-  gap: 0 0.5ch;
-  @supports (text-box: trim-both cap alphabetic) {
-    row-gap: calc(1lh - 1cap);
-  }
+  gap: var(--trim-row-gap) 0.5ch;
   li:not(:last-child)::after {
     content: ",";
   }

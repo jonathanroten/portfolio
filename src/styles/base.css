@@ -711,3 +711,10 @@ p,
 [class*="text-style-"] {
   text-box: trim-both cap alphabetic;
 }
+
+:root {
+  --trim-row-gap: 0;
+  @supports (text-box: trim-both cap alphabetic) {
+    --trim-row-gap: calc(1lh - 1cap);
+  }
+}
