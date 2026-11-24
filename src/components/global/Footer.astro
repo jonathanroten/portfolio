@@ -8,10 +8,11 @@ import Button from "@/components/Button.astro";
 import ButtonWrapper from "@/components/wrapper/ButtonWrapper.astro";
 import FooterItem from "@/components/global/FooterItem.astro";
 import { SITE_NAME } from "@/consts.ts";
-import { getServices } from "@/sanity/lib/queries.ts";
+import { getServices, getSiteSettings } from "@/sanity/lib/queries.ts";
 
 const currentYear = new Date().getFullYear();
 const services = await getServices();
+const { socialLinks } = await getSiteSettings();
 
 interface Props {
   /** Set to `false` to omit the component. */
@@ -95,17 +96,21 @@ const { render = true } = Astro.props;
             { label: "Go-To Karaoke: Kiss From A Rose" },
           ]}
         />
-        <FooterItem
-          heading="Information"
-          variant="stacked"
-          items={[
-            {
-              label: "Follow Me On Instagram",
-              href: "https://www.instagram.com/jonathan.roten",
-            },
-            { label: `© ${currentYear} Copyright. All Rights Reserved.` },
-          ]}
-        />
+        <div class="footer_elsewhere">
+          {socialLinks.length > 0 && (
+            <FooterItem
+              heading="Elsewhere"
+              variant="inline"
+              items={socialLinks.map(({ label, url }) => ({
+                label,
+                href: url,
+              }))}
+            />
+          )}
+          <small class="text-style-main" role="listitem">
+            © {currentYear} Copyright. All Rights Reserved.
+          </small>
+        </div>
       </Grid>
 
       <div class="footer_bottom">
@@ -145,6 +150,12 @@ const { render = true } = Astro.props;
     .footer_logo {
       display: block;
       width: 100%;
+    }
+
+    .footer_elsewhere {
+      display: flex;
+      flex-direction: column;
+      row-gap: var(--trim-row-gap);
     }
 
     .footer_intro {
