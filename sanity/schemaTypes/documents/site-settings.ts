@@ -44,7 +44,8 @@ export const siteSettings = defineType({
     defineField({
       name: 'socialLinks',
       type: 'array',
-      description: 'Shown in the mobile menu. Each opens in a new tab. Drag to reorder.',
+      description:
+        'Shown in the mobile menu and the footer. Each opens in a new tab. Drag to reorder.',
       of: [
         defineArrayMember({
           name: 'socialLink',
