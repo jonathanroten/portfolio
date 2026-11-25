@@ -32,18 +32,13 @@
   --letter-spacing-widest: 0.06em;
 
   /* Line height */
-  --line-height-1: 1.125;
-  --line-height-2: 1.25;
-  --line-height-3: 1.3125;
-  --line-height-4: 1.375;
-  --line-height-5: 1.4375;
-  --line-height-6: 1.5;
-  --line-height-7: 1.75;
-  --line-height-small: var(--line-height-1);
-  --line-height-medium: var(--line-height-2);
-  --line-height-large: var(--line-height-4);
-  --line-height-huge: var(--line-height-6);
-  --line-height-giant: var(--line-height-7);
+  --line-height-small: 1.125;
+  --line-height-medium: 1.25;
+  --line-height-medium-large: 1.3125;
+  --line-height-large: 1.375;
+  --line-height-large-huge: 1.4375;
+  --line-height-huge: 1.5;
+  --line-height-giant: 1.75;
 
   /* Borders & focus */
   --border-width: 0.0625rem;
@@ -183,7 +178,7 @@
   --h4: clamp(var(--h4-min) / 16 * 1rem, ((var(--h4-min) - ((var(--h4-max) - var(--h4-min)) / (var(--viewport-max) - var(--viewport-min)) * var(--viewport-min))) / 16 * 1rem + ((var(--h4-max) - var(--h4-min)) / (var(--viewport-max) - var(--viewport-min))) * 100vw), var(--h4-max) / 16 * 1rem);
   --h4-min: 22;
   --h4-max: 28;
-  --h4-line-height: var(--line-height-5);
+  --h4-line-height: var(--line-height-large-huge);
   @media (width >= 48rem) {
     --h4-line-height: var(--line-height-large);
   }
