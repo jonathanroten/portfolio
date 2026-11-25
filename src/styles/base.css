@@ -34,11 +34,9 @@
   /* Line height */
   --line-height-small: 1.125;
   --line-height-medium: 1.25;
-  --line-height-medium-large: 1.3125;
   --line-height-large: 1.375;
   --line-height-large-huge: 1.4375;
   --line-height-huge: 1.5;
-  --line-height-giant: 1.75;
 
   /* Borders & focus */
   --border-width: 0.0625rem;
