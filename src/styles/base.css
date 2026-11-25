@@ -35,7 +35,7 @@
   --line-height-small: 1.125;
   --line-height-medium: 1.25;
   --line-height-large: 1.375;
-  --line-height-large-huge: 1.4375;
+  --line-height-xlarge: 1.4375;
   --line-height-huge: 1.5;
 
   /* Borders & focus */
@@ -176,7 +176,7 @@
   --h4: clamp(var(--h4-min) / 16 * 1rem, ((var(--h4-min) - ((var(--h4-max) - var(--h4-min)) / (var(--viewport-max) - var(--viewport-min)) * var(--viewport-min))) / 16 * 1rem + ((var(--h4-max) - var(--h4-min)) / (var(--viewport-max) - var(--viewport-min))) * 100vw), var(--h4-max) / 16 * 1rem);
   --h4-min: 22;
   --h4-max: 28;
-  --h4-line-height: var(--line-height-large-huge);
+  --h4-line-height: var(--line-height-xlarge);
   @media (width >= 48rem) {
     --h4-line-height: var(--line-height-large);
   }
