@@ -25,16 +25,11 @@
   --serif-regular: 400;
 
   /* Letter spacing */
-  --letter-spacing-1: -0.04em;
-  --letter-spacing-2: 0em;
-  --letter-spacing-3: 0.02em;
-  --letter-spacing-4: 0.04em;
-  --letter-spacing-5: 0.06em;
-  --letter-spacing-tight: var(--letter-spacing-1);
-  --letter-spacing-normal: var(--letter-spacing-2);
-  --letter-spacing-wide: var(--letter-spacing-3);
-  --letter-spacing-wider: var(--letter-spacing-4);
-  --letter-spacing-widest: var(--letter-spacing-5);
+  --letter-spacing-tight: -0.04em;
+  --letter-spacing-normal: 0em;
+  --letter-spacing-wide: 0.02em;
+  --letter-spacing-wider: 0.04em;
+  --letter-spacing-widest: 0.06em;
 
   /* Line height */
   --line-height-1: 1.125;
