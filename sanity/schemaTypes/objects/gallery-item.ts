@@ -61,7 +61,7 @@ export const galleryItem = defineType({
       name: 'video',
       type: 'file',
       description:
-        "Optional. A loop of the screen only, played over the still when it's selected. MP4 (H.264), no sound, under 3 MB. Wide 1600 × 900, Tall 600 × 1300.",
+        "Optional. A loop of the screen only, played over the still when it's selected. MP4 (H.264), no sound, under 3 MB. Wide 1920 × 1024, Tall 720 × 1560, matching the screen in the still.",
       options: {accept: 'video/mp4'},
       hidden: ({parent}) => parent?.aspectRatio === '1:1',
     }),
