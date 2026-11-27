@@ -96,6 +96,13 @@ export type ServiceReference = {
   [internalGroqTypeReferenceTo]?: "service";
 };
 
+export type SanityFileAssetReference = {
+  _ref: string;
+  _type: "reference";
+  _weak?: boolean;
+  [internalGroqTypeReferenceTo]?: "sanity.fileAsset";
+};
+
 export type GalleryItem = {
   _type: "galleryItem";
   asset?: SanityImageAssetReference;
@@ -107,6 +114,11 @@ export type GalleryItem = {
   services: Array<{
     _key: string;
   } & ServiceReference>;
+  video?: {
+    asset?: SanityFileAssetReference;
+    media?: unknown;
+    _type: "file";
+  };
 };
 
 export type Gallery = {
@@ -304,7 +316,7 @@ export type Geopoint = {
   alt?: number;
 };
 
-export type AllSanitySchemaTypes = SiteSettings | SanityImageAssetReference | HomePage | SanityImageCrop | SanityImageHotspot | ServiceReference | GalleryItem | Gallery | Service | CaseStudyImage | CaseStudy | Slug | MediaFolderReference | MediaFolder | MediaTag | SanityImagePaletteSwatch | SanityImagePalette | SanityImageDimensions | SanityImageMetadata | SanityFileAsset | SanityAssetSourceData | SanityImageAsset | Geopoint;
+export type AllSanitySchemaTypes = SiteSettings | SanityImageAssetReference | HomePage | SanityImageCrop | SanityImageHotspot | ServiceReference | SanityFileAssetReference | GalleryItem | Gallery | Service | CaseStudyImage | CaseStudy | Slug | MediaFolderReference | MediaFolder | MediaTag | SanityImagePaletteSwatch | SanityImagePalette | SanityImageDimensions | SanityImageMetadata | SanityFileAsset | SanityAssetSourceData | SanityImageAsset | Geopoint;
 
 // Source: ../src/sanity/lib/queries.ts
 // Variable: HERO_IMAGES_QUERY
@@ -317,7 +329,7 @@ export type HERO_IMAGES_QUERY_RESULT = Array<{
 
 // Source: ../src/sanity/lib/queries.ts
 // Variable: GALLERY_QUERY
-// Query: *[_id == "gallery"][0].items[defined(asset)] { alt, aspectRatio, asset, hotspot, crop, "services": services[defined(@->title)]->title }
+// Query: *[_id == "gallery"][0].items[defined(asset)] { alt, aspectRatio, asset, hotspot, crop, "services": services[defined(@->title)]->title, "video": video.asset->url }
 export type GALLERY_QUERY_RESULT = Array<{
   alt: string;
   aspectRatio: "1:1" | "16:9" | "3:4";
@@ -325,6 +337,7 @@ export type GALLERY_QUERY_RESULT = Array<{
   hotspot: SanityImageHotspot | null;
   crop: SanityImageCrop | null;
   services: Array<string>;
+  video: string | null;
 }> | null;
 
 // Source: ../src/sanity/lib/queries.ts
@@ -403,7 +416,7 @@ export type DESCRIPTION_QUERY_RESULT = Array<{
 declare global {
   interface SanityQueries {
     "*[_id == \"homePage\"][0].heroImages[defined(asset)] { asset, hotspot, crop }": HERO_IMAGES_QUERY_RESULT;
-    "*[_id == \"gallery\"][0].items[defined(asset)] { alt, aspectRatio, asset, hotspot, crop, \"services\": services[defined(@->title)]->title }": GALLERY_QUERY_RESULT;
+    "*[_id == \"gallery\"][0].items[defined(asset)] { alt, aspectRatio, asset, hotspot, crop, \"services\": services[defined(@->title)]->title, \"video\": video.asset->url }": GALLERY_QUERY_RESULT;
     "*[_type == \"service\" && defined(title)] | order(orderRank, title asc).title": SERVICES_QUERY_RESULT;
     "*[_type == \"caseStudy\" && defined(slug.current)] | order(orderRank, title asc) {\n  title,\n  \"slug\": slug.current,\n  \"services\": services[defined(@->title)]->title,\n  description,\n  featureGallery[defined(asset)] { alt, asset, hotspot, crop, \"layout\": coalesce(layout, \"default\") },\n  engagement,\n  \"heroImage\": select(defined(heroImage.asset) => heroImage { alt, asset, hotspot, crop }, null),\n  brief,\n  briefGallery[defined(asset)] { alt, asset, hotspot, crop, \"layout\": coalesce(layout, \"default\") },\n  approach,\n  approachGallery[defined(asset)] { alt, asset, hotspot, crop, \"layout\": coalesce(layout, \"default\") }\n}": CASE_STUDIES_QUERY_RESULT;
     "*[_id == \"siteSettings\"][0] {\n  \"navigation\": navigation[defined(label) && defined(href)] { label, href },\n  \"socialLinks\": socialLinks[defined(label) && defined(url)] { label, url },\n  seoDescription\n}": SITE_SETTINGS_QUERY_RESULT;

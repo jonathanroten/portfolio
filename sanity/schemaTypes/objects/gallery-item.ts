@@ -57,14 +57,25 @@ export const galleryItem = defineType({
       of: [defineArrayMember({type: 'reference', to: [{type: 'service'}]})],
       validation: (rule) => rule.required().unique(),
     }),
+    defineField({
+      name: 'video',
+      type: 'file',
+      description:
+        "Optional. A loop of the screen only, played over the still when it's selected. MP4 (H.264), no sound, under 3 MB. Wide 1600 × 900, Tall 600 × 1300.",
+      options: {accept: 'video/mp4'},
+      hidden: ({parent}) => parent?.aspectRatio === '1:1',
+    }),
   ],
   validation: (rule) =>
     rule
-      .custom<ImageValue & {aspectRatio?: string}>((item) => {
+      .custom<ImageValue & {aspectRatio?: string; video?: {asset?: unknown}}>((item) => {
         const frame = aspectRatios.find(({value}) => value === item?.aspectRatio)
         if (!item?.asset?._ref || !frame) return true
         const {width, height} = getImageDimensions(item.asset._ref)
         const {top = 0, bottom = 0, left = 0, right = 0} = item.crop ?? {}
+        if (item.video?.asset && (top || bottom || left || right || Math.abs(width / height - frame.shape) > 0.001)) {
+          return `The video is placed on the uncropped still, so the image must be exactly ${frame.value} with no crop.`
+        }
         const croppedWidth = Math.round(
           Math.min(width * (1 - left - right), height * (1 - top - bottom) * frame.shape),
         )
