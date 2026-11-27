@@ -121,15 +121,20 @@ const images: GalleryImage[] = items.map((item) => {
       { x: 1140, y: 830, w: 240, h: 320 },
     ],
     shapes: { wide: 16 / 9, square: 1, tall: 3 / 4 },
-    screens: {
-      wide: { still: [1920, 1080], x: 160, y: 90, w: 1600, h: 900, radius: 0 },
+    devices: {
+      wide: {
+        width: 1920,
+        height: 1080,
+        body: { x: 0, y: 0, w: 1920, h: 1080 },
+        screen: { x: 0, y: 56, w: 1920, h: 1024 },
+        radius: 0,
+      },
       tall: {
-        still: [1200, 1600],
-        x: 300,
-        y: 150,
-        w: 600,
-        h: 1300,
-        radius: 72,
+        width: 1200,
+        height: 1600,
+        body: { x: 220, y: 0, w: 760, h: 1600 },
+        screen: { x: 240, y: 20, w: 720, h: 1560 },
+        radius: 100,
       },
     },
     rowStep: 2,
@@ -165,8 +170,11 @@ const images: GalleryImage[] = items.map((item) => {
 
   type Shape = keyof typeof config.shapes;
 
-  const screens: Partial<Record<Shape, typeof config.screens.wide>> =
-    config.screens;
+  type Device = typeof config.devices.wide;
+
+  const devices: Partial<Record<Shape, Device>> = config.devices;
+
+  const percent = (part: number, whole: number) => `${(part / whole) * 100}%`;
 
   const drawReach =
     config.motion.blur * (0.5 + config.motion.lag) +
@@ -768,17 +776,29 @@ const images: GalleryImage[] = items.map((item) => {
       video.load();
     };
 
-    const playVideo = (index: number, shape: Shape) => {
-      const src = items[index].video;
-      const screen = screens[shape];
-      if (!video || !src || !screen || calm.matches) return;
-      const [stillWidth, stillHeight] = screen.still;
+    const alignCaption = (device?: Device) => {
+      const { width = 1, height = 1 } = device ?? {};
+      const { x = 0, y = 0, w = width, h = height } = device?.body ?? {};
+      caption.box?.style.setProperty("--_body-left", percent(x, width));
+      caption.box?.style.setProperty(
+        "--_body-right",
+        percent(width - x - w, width),
+      );
+      caption.box?.style.setProperty(
+        "--_body-bottom",
+        percent(height - y - h, height),
+      );
+    };
+
+    const playVideo = (src: string, device: Device) => {
+      if (!video || calm.matches) return;
+      const { width, height, screen, radius } = device;
       Object.assign(video.style, {
-        left: `${(screen.x / stillWidth) * 100}%`,
-        top: `${(screen.y / stillHeight) * 100}%`,
-        width: `${(screen.w / stillWidth) * 100}%`,
-        height: `${(screen.h / stillHeight) * 100}%`,
-        borderRadius: `${(screen.radius / screen.w) * 100}% / ${(screen.radius / screen.h) * 100}%`,
+        left: percent(screen.x, width),
+        top: percent(screen.y, height),
+        width: percent(screen.w, width),
+        height: percent(screen.h, height),
+        borderRadius: `${percent(radius, screen.w)} / ${percent(radius, screen.h)}`,
       });
       video.muted = true;
       video.src = src;
@@ -810,19 +830,21 @@ const images: GalleryImage[] = items.map((item) => {
       const { anchor, index, slot, shape } = place;
       focused = image;
       relabel();
-      const { services, fullSrc } = items[index];
+      const { services, fullSrc, video: src } = items[index];
+      const device = src ? devices[shape] : undefined;
       for (const animation of caption.box?.getAnimations() ?? []) {
         animation.finish();
       }
       if (caption.index)
         caption.index.textContent = String(index + 1).padStart(2, "0");
       if (caption.service) caption.service.textContent = services.join("\n");
+      alignCaption(device);
       syncFocus();
       stacked += 1;
       stacking.set(slot, stacked);
       image.style.zIndex = String(stacked);
       image.classList.add("is-focus");
-      playVideo(index, shape);
+      if (src && device) playVideo(src, device);
       if (image.src !== fullSrc) {
         const full = new Image();
         loadImage(full, fullSrc).then(
@@ -1142,6 +1164,9 @@ const images: GalleryImage[] = items.map((item) => {
     }
 
     .gallery-infinite_focus {
+      --_body-left: 0%;
+      --_body-right: 0%;
+      --_body-bottom: 0%;
       position: absolute;
       top: 50%;
       left: 50%;
@@ -1171,8 +1196,8 @@ const images: GalleryImage[] = items.map((item) => {
 
     .gallery-infinite_details {
       position: absolute;
-      top: 100%;
-      inset-inline: 0;
+      top: calc(100% - var(--_body-bottom));
+      inset-inline: var(--_body-left) var(--_body-right);
       display: flex;
       justify-content: space-between;
       align-items: start;
