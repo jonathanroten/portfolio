@@ -336,6 +336,7 @@ const images: GalleryImage[] = items.map((item) => {
       ".gallery-infinite_video",
     );
     let focused: HTMLElement | null = null;
+    let framed: HTMLElement | null = null;
     let clearing: {
       x: number;
       y: number;
@@ -530,12 +531,23 @@ const images: GalleryImage[] = items.map((item) => {
         halfHeight: (height * scale) / 2 + room,
       };
       syncPush();
+      followFocus();
+    };
+
+    const followFocus = () => {
+      const anchor = framed && placed.get(framed)?.anchor;
+      if (!anchor || !caption.box) return;
+      const x = (anchor.x - center.x) * tileSize.width;
+      const y = (anchor.y - center.y) * tileSize.height;
+      caption.box.style.translate = `calc(-50% + ${x}px) calc(-50% + ${y}px)`;
     };
 
     const seat = (image: HTMLElement) => {
       seated = true;
       afterAnimations(image).then(() => {
-        if (focused === image) gallery.classList.add("is-seated");
+        if (focused !== image) return;
+        gallery.classList.add("is-seated");
+        if (video?.hasAttribute("src")) video.play().catch(() => {});
       });
     };
 
@@ -746,6 +758,7 @@ const images: GalleryImage[] = items.map((item) => {
       center.x += (target.x - center.x) * blend;
       center.y += (target.y - center.y) * blend;
       syncTiles();
+      followFocus();
       syncDrawing(elapsed);
       gallery.dispatchEvent(new Event("cursor-refresh", { bubbles: true }));
       const pending = Math.hypot(
@@ -801,8 +814,10 @@ const images: GalleryImage[] = items.map((item) => {
         borderRadius: `${percent(radius, screen.w)} / ${percent(radius, screen.h)}`,
       });
       video.muted = true;
+      video.preload = "auto";
       video.src = src;
       video.play().catch(() => {});
+      video.pause();
     };
 
     video?.addEventListener("playing", () => {
@@ -829,6 +844,7 @@ const images: GalleryImage[] = items.map((item) => {
       if (!place) return;
       const { anchor, index, slot, shape } = place;
       focused = image;
+      framed = image;
       relabel();
       const { services, fullSrc, video: src } = items[index];
       const device = src ? devices[shape] : undefined;
