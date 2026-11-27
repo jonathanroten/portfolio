@@ -2,6 +2,7 @@
 import type { HTMLAttributes } from "astro/types";
 import type { GalleryImage } from "@/types.ts";
 import { imageUrl } from "@/sanity/lib/image.ts";
+import { videoPath } from "@/sanity/lib/video.ts";
 import type { getGalleryItems } from "@/sanity/lib/queries.ts";
 
 interface Props extends HTMLAttributes<"div"> {
@@ -35,6 +36,7 @@ const images: GalleryImage[] = items.map((item) => {
     width,
     height: Math.round(width / ratio),
     services: item.services ?? [],
+    video: item.video ? videoPath(item.video) : undefined,
   };
 });
 ---
@@ -57,7 +59,17 @@ const images: GalleryImage[] = items.map((item) => {
         ))}
       </ul>
       <canvas class="gallery-infinite_canvas" aria-hidden="true" />
-      <div class="gallery-infinite_caption">
+      <div class="gallery-infinite_focus">
+        <video
+          class="gallery-infinite_video"
+          muted
+          loop
+          playsinline
+          preload="none"
+          disablepictureinpicture
+          disableRemotePlayback
+          aria-hidden="true"
+        />
         <div class="gallery-infinite_details" aria-live="polite">
           <p class="gallery-infinite_service text-style-small text-transform-uppercase" />
           <p class="gallery-infinite_index text-style-small text-transform-uppercase" />
@@ -109,6 +121,17 @@ const images: GalleryImage[] = items.map((item) => {
       { x: 1140, y: 830, w: 240, h: 320 },
     ],
     shapes: { wide: 16 / 9, square: 1, tall: 3 / 4 },
+    screens: {
+      wide: { still: [1920, 1080], x: 160, y: 90, w: 1600, h: 900, radius: 0 },
+      tall: {
+        still: [1200, 1600],
+        x: 300,
+        y: 150,
+        w: 600,
+        h: 1300,
+        radius: 72,
+      },
+    },
     rowStep: 2,
     tileMinRem: 56,
     tileMaxRem: 100,
@@ -141,6 +164,9 @@ const images: GalleryImage[] = items.map((item) => {
   };
 
   type Shape = keyof typeof config.shapes;
+
+  const screens: Partial<Record<Shape, typeof config.screens.wide>> =
+    config.screens;
 
   const drawReach =
     config.motion.blur * (0.5 + config.motion.lag) +
@@ -293,11 +319,14 @@ const images: GalleryImage[] = items.map((item) => {
     const stacking = new Map<string, number>();
     let stacked = 0;
     const caption = {
-      box: gallery.querySelector<HTMLElement>(".gallery-infinite_caption"),
+      box: gallery.querySelector<HTMLElement>(".gallery-infinite_focus"),
       details: gallery.querySelector<HTMLElement>(".gallery-infinite_details"),
       index: gallery.querySelector<HTMLElement>(".gallery-infinite_index"),
       service: gallery.querySelector<HTMLElement>(".gallery-infinite_service"),
     };
+    const video = gallery.querySelector<HTMLVideoElement>(
+      ".gallery-infinite_video",
+    );
     let focused: HTMLElement | null = null;
     let clearing: {
       x: number;
@@ -392,7 +421,7 @@ const images: GalleryImage[] = items.map((item) => {
       for (const [place, placement] of placements.entries()) {
         const { shape, rank, anchor, extent, style } = placement;
         const image = new Image();
-        image.className = "image gallery-infinite_image";
+        image.className = "image transparent gallery-infinite_image";
         image.alt = "";
         image.decoding = "async";
         image.draggable = false;
@@ -456,8 +485,9 @@ const images: GalleryImage[] = items.map((item) => {
 
     const syncFocus = () => {
       if (!focused) return;
-      const width = focused.offsetWidth;
-      const height = focused.offsetHeight;
+      const size = getComputedStyle(focused);
+      const width = parseFloat(size.width);
+      const height = parseFloat(size.height);
       const style = getComputedStyle(gallery);
       const roomWidth =
         viewSize.width -
@@ -730,7 +760,37 @@ const images: GalleryImage[] = items.map((item) => {
       frame = requestAnimationFrame(step);
     };
 
+    const stopVideo = () => {
+      if (!video?.hasAttribute("src")) return;
+      video.pause();
+      video.classList.remove("is-playing");
+      video.removeAttribute("src");
+      video.load();
+    };
+
+    const playVideo = (index: number, shape: Shape) => {
+      const src = items[index].video;
+      const screen = screens[shape];
+      if (!video || !src || !screen || calm.matches) return;
+      const [stillWidth, stillHeight] = screen.still;
+      Object.assign(video.style, {
+        left: `${(screen.x / stillWidth) * 100}%`,
+        top: `${(screen.y / stillHeight) * 100}%`,
+        width: `${(screen.w / stillWidth) * 100}%`,
+        height: `${(screen.h / stillHeight) * 100}%`,
+        borderRadius: `${(screen.radius / screen.w) * 100}% / ${(screen.radius / screen.h) * 100}%`,
+      });
+      video.muted = true;
+      video.src = src;
+      video.play().catch(() => {});
+    };
+
+    video?.addEventListener("playing", () => {
+      if (video.hasAttribute("src")) video.classList.add("is-playing");
+    });
+
     const unfocus = () => {
+      stopVideo();
       const image = focused;
       if (image) {
         image.classList.replace("is-focus", "is-leaving");
@@ -747,7 +807,7 @@ const images: GalleryImage[] = items.map((item) => {
     const focusOn = (image: HTMLImageElement) => {
       const place = placed.get(image);
       if (!place) return;
-      const { anchor, index, slot } = place;
+      const { anchor, index, slot, shape } = place;
       focused = image;
       relabel();
       const { services, fullSrc } = items[index];
@@ -762,6 +822,7 @@ const images: GalleryImage[] = items.map((item) => {
       stacking.set(slot, stacked);
       image.style.zIndex = String(stacked);
       image.classList.add("is-focus");
+      playVideo(index, shape);
       if (image.src !== fullSrc) {
         const full = new Image();
         loadImage(full, fullSrc).then(
@@ -1080,7 +1141,7 @@ const images: GalleryImage[] = items.map((item) => {
       }
     }
 
-    .gallery-infinite_caption {
+    .gallery-infinite_focus {
       position: absolute;
       top: 50%;
       left: 50%;
@@ -1095,6 +1156,16 @@ const images: GalleryImage[] = items.map((item) => {
       .gallery-infinite_wrap.is-seated & {
         opacity: 1;
         transition-duration: var(--open-duration);
+      }
+    }
+
+    .gallery-infinite_video {
+      position: absolute;
+      object-fit: cover;
+      opacity: 0;
+      .gallery-infinite_wrap.is-seated &.is-playing {
+        opacity: 1;
+        transition: opacity var(--open-duration) var(--open-ease);
       }
     }
 
