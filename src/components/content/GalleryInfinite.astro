@@ -325,8 +325,10 @@ const images: GalleryImage[] = items.map((item) => {
     >();
     const stacking = new Map<string, number>();
     let stacked = 0;
+    const focusBox = gallery.querySelector<HTMLElement>(
+      ".gallery-infinite_focus",
+    );
     const caption = {
-      box: gallery.querySelector<HTMLElement>(".gallery-infinite_focus"),
       details: gallery.querySelector<HTMLElement>(".gallery-infinite_details"),
       index: gallery.querySelector<HTMLElement>(".gallery-infinite_index"),
       service: gallery.querySelector<HTMLElement>(".gallery-infinite_service"),
@@ -516,10 +518,10 @@ const images: GalleryImage[] = items.map((item) => {
       const anchor = placed.get(focused)?.anchor;
       if (!anchor) return;
       const captionRoom =
-        caption.box && caption.details
+        focusBox && caption.details
           ? caption.details.offsetTop +
             caption.details.offsetHeight -
-            caption.box.offsetHeight
+            focusBox.offsetHeight
           : 0;
       const room = captionRoom + config.gapRem * remSize();
       clearing = {
@@ -534,10 +536,10 @@ const images: GalleryImage[] = items.map((item) => {
 
     const followFocus = () => {
       const anchor = framed && placed.get(framed)?.anchor;
-      if (!anchor || !caption.box) return;
+      if (!anchor || !focusBox) return;
       const x = (anchor.x - center.x) * tileSize.width;
       const y = (anchor.y - center.y) * tileSize.height;
-      caption.box.style.translate = `calc(-50% + ${x}px) calc(-50% + ${y}px)`;
+      focusBox.style.translate = `calc(-50% + ${x}px) calc(-50% + ${y}px)`;
     };
 
     const seat = (image: HTMLElement) => {
@@ -788,12 +790,12 @@ const images: GalleryImage[] = items.map((item) => {
     const alignCaption = (device?: Device) => {
       const { width = 1, height = 1 } = device ?? {};
       const { x = 0, y = 0, w = width, h = height } = device?.body ?? {};
-      caption.box?.style.setProperty("--_body-left", percent(x, width));
-      caption.box?.style.setProperty(
+      focusBox?.style.setProperty("--_body-left", percent(x, width));
+      focusBox?.style.setProperty(
         "--_body-right",
         percent(width - x - w, width),
       );
-      caption.box?.style.setProperty(
+      focusBox?.style.setProperty(
         "--_body-bottom",
         percent(height - y - h, height),
       );
@@ -842,7 +844,7 @@ const images: GalleryImage[] = items.map((item) => {
       const { services, fullSrc, video: src } = items[index];
       const device =
         src && itemShapes[index] === shape ? devices[shape] : undefined;
-      for (const animation of caption.box?.getAnimations() ?? []) {
+      for (const animation of focusBox?.getAnimations() ?? []) {
         animation.finish();
       }
       if (caption.index)
