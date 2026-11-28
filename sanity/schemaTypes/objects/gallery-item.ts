@@ -32,23 +32,27 @@ const clipLimit = 25 * 1024 * 1024
 /** The clip size the Video field asks for, so clips start quickly. */
 const clipTarget = 3 * 1000 * 1000
 
-const clipSizes = new Map<string, Promise<number>>()
+const clipSizes = new Map<string, Promise<number | null>>()
 
-/** Size in bytes of an uploaded clip, fetched once per file since a file never changes. */
+/**
+ * Size in bytes of an uploaded clip, or `null` when it can't be read. A known size is fetched once
+ * per file, since a file never changes; an unknown one is tried again next time.
+ */
 const clipSize = (clip: FileValue | undefined, {getClient}: ValidationContext) => {
   const ref = clip?.asset?._ref
   if (!ref) return Promise.resolve(0)
-  const size =
-    clipSizes.get(ref) ??
-    getClient({apiVersion: '2026-11-27'})
-      .fetch<number | null>('*[_id == $ref][0].size', {ref})
-      .then(
-        (bytes) => bytes ?? 0,
-        () => {
-          clipSizes.delete(ref)
-          return 0
-        },
-      )
+  const cached = clipSizes.get(ref)
+  if (cached) return cached
+  const size = getClient({apiVersion: '2026-11-27'})
+    .fetch<number | null>('*[_id == $ref][0].size', {ref})
+    .then(
+      (bytes) => bytes ?? null,
+      () => null,
+    )
+    .then((bytes) => {
+      if (bytes === null) clipSizes.delete(ref)
+      return bytes
+    })
   clipSizes.set(ref, size)
   return size
 }
@@ -110,17 +114,22 @@ export const galleryItem = defineType({
       options: {accept: 'video/mp4'},
       hidden: ({parent, value}) => !value && parent?.aspectRatio === '1:1',
       validation: (rule) => [
-        rule.custom<FileValue>(async (clip, context) =>
-          (await clipSize(clip, context)) > clipLimit
+        rule.custom<FileValue>(async (clip, context) => {
+          const size = await clipSize(clip, context)
+          return size !== null && size > clipLimit
             ? "Over Cloudflare's 25 MiB file limit, so the site can't deploy. Export a smaller clip."
-            : true,
-        ),
+            : true
+        }),
         rule
-          .custom<FileValue>(async (clip, context) =>
-            (await clipSize(clip, context)) > clipTarget
+          .custom<FileValue>(async (clip, context) => {
+            const size = await clipSize(clip, context)
+            if (size === null) {
+              return "Couldn't check this clip's size. Make sure it's under 25 MiB, or the site can't deploy."
+            }
+            return size > clipTarget
               ? 'Over 3 MB. Aim for under 3 MB so the clip starts quickly.'
-              : true,
-          )
+              : true
+          })
           .warning(),
       ],
     }),
