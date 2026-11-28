@@ -223,12 +223,10 @@ const { render = true, overlap = false } = Astro.props;
     }
 
     .nav_logo {
-      height: inherit;
+      height: 4.25rem;
+      aspect-ratio: 163 / 155;
       display: flex;
       align-items: center;
-      > svg {
-        height: 4.25rem;
-      }
       @media (hover: hover) {
         &:hover {
           color: var(--text-2);
@@ -390,10 +388,8 @@ const { render = true, overlap = false } = Astro.props;
       }
 
       .nav_logo {
+        height: inherit;
         transition: color var(--hover-duration-slow) var(--hover-ease);
-        > svg {
-          height: inherit;
-        }
       }
 
       .nav_toggle {
