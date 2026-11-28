@@ -106,10 +106,11 @@ async function serveVideo(request: Request, env: Env): Promise<Response> {
     headers.set("Content-Range", `bytes */${size}`);
     return new Response(null, { status: 416, headers });
   }
+  const length = end - start + 1;
   headers.set("Cache-Control", CACHE_FOREVER);
   headers.set("Content-Range", `bytes ${start}-${end}/${size}`);
-  headers.set("Content-Length", String(end - start + 1));
-  return new Response(head ? null : body.slice(start, end + 1), {
+  headers.set("Content-Length", String(length));
+  return new Response(head ? null : new Uint8Array(body, start, length), {
     status: 206,
     headers,
   });
