@@ -1,4 +1,4 @@
-import {defineArrayMember, defineField, defineType, type ImageValue} from 'sanity'
+import {defineArrayMember, defineField, defineType, type FileValue, type ImageValue} from 'sanity'
 import {getImageDimensions} from '@sanity/asset-utils'
 import {GalleryItemPreview} from '../components/GalleryItemPreview'
 
@@ -16,6 +16,17 @@ const aspectRatios = [
   const shape = across / down
   return {...frame, shape, minHeight: Math.ceil(frame.minWidth / shape)}
 })
+
+type GalleryItemValue = ImageValue & {aspectRatio?: string; video?: FileValue}
+
+/** The item's frame, still size and crop insets, or `null` before an image and ratio are set. */
+const measure = (item?: GalleryItemValue) => {
+  const frame = aspectRatios.find(({value}) => value === item?.aspectRatio)
+  if (!item?.asset?._ref || !frame) return null
+  const {width, height} = getImageDimensions(item.asset._ref)
+  const {top = 0, bottom = 0, left = 0, right = 0} = item.crop ?? {}
+  return {frame, width, height, top, bottom, left, right}
+}
 
 const minSizes = aspectRatios
   .map(({value, minWidth, minHeight}) => `${value} (${minWidth} × ${minHeight})`)
@@ -63,19 +74,30 @@ export const galleryItem = defineType({
       description:
         "Optional. A loop of the screen only, played over the still when it's selected. MP4 (H.264), no sound, under 3 MB. Wide 1920 × 1024, Tall 720 × 1560, matching the screen in the still.",
       options: {accept: 'video/mp4'},
-      hidden: ({parent}) => parent?.aspectRatio === '1:1',
+      hidden: ({parent, value}) => !value && parent?.aspectRatio === '1:1',
     }),
   ],
-  validation: (rule) =>
-    rule
-      .custom<ImageValue & {aspectRatio?: string; video?: {asset?: unknown}}>((item) => {
-        const frame = aspectRatios.find(({value}) => value === item?.aspectRatio)
-        if (!item?.asset?._ref || !frame) return true
-        const {width, height} = getImageDimensions(item.asset._ref)
-        const {top = 0, bottom = 0, left = 0, right = 0} = item.crop ?? {}
-        if (item.video?.asset && (top || bottom || left || right || Math.abs(width / height - frame.shape) > 0.001)) {
-          return `The video is placed on the uncropped still, so the image must be exactly ${frame.value} with no crop.`
+  validation: (rule) => [
+    rule.custom<GalleryItemValue>((item) => {
+      if (!item?.video?.asset) return true
+      if (item.aspectRatio === '1:1') {
+        return {
+          message: 'Square has no screen, so the video never plays. Remove it.',
+          path: ['video'],
         }
+      }
+      const still = measure(item)
+      if (!still) return true
+      const {frame, width, height, top, bottom, left, right} = still
+      return top || bottom || left || right || Math.abs(width / height - frame.shape) > 0.001
+        ? `The video is placed on the uncropped still, so the image must be exactly ${frame.value} with no crop.`
+        : true
+    }),
+    rule
+      .custom<GalleryItemValue>((item) => {
+        const still = measure(item)
+        if (!still) return true
+        const {frame, width, height, top, bottom, left, right} = still
         const croppedWidth = Math.round(
           Math.min(width * (1 - left - right), height * (1 - top - bottom) * frame.shape),
         )
@@ -84,6 +106,7 @@ export const galleryItem = defineType({
           : true
       })
       .warning(),
+  ],
   preview: {
     select: {title: 'alt', aspectRatio: 'aspectRatio', media: 'asset'},
   },
