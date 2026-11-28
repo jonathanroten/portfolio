@@ -93,17 +93,16 @@ async function serveVideo(request: Request, env: Env): Promise<Response> {
     "Accept-Ranges": "bytes",
   });
   const head = request.method === "HEAD";
-  const range = request.headers.get("Range")?.trim();
-  if (!range) {
+  const range = request.headers.get("Range")?.trim() ?? "";
+  const [, from = "", to = ""] = RANGE.exec(range) ?? [];
+  if (!from && !to) {
     headers.set("Cache-Control", CACHE_FOREVER);
     headers.set("Content-Length", String(size));
     return new Response(head ? null : body, { headers });
   }
-  const match = RANGE.exec(range);
-  const [, from = "", to = ""] = match ?? [];
   const start = from ? Number(from) : Math.max(size - Number(to), 0);
   const end = from && to ? Math.min(Number(to), size - 1) : size - 1;
-  if (!match || (!from && !to) || start > end) {
+  if (start > end) {
     headers.set("Content-Range", `bytes */${size}`);
     return new Response(null, { status: 416, headers });
   }
