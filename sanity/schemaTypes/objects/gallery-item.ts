@@ -12,12 +12,14 @@ import {GalleryItemPreview} from '../components/GalleryItemPreview'
 /**
  * The shapes of the gallery's frames. An item's ratio picks both its crop and the frames it fills.
  * `minWidth` is the widest the site shows that ratio (`SIZES` in GalleryInfinite), so the smallest
- * upload that stays sharp. `shape` (width over height) and `minHeight` follow from `value` and `minWidth`.
+ * upload that stays sharp. `clip` is the size of the device screen in the still, so the size a clip
+ * must be (`devices` in GalleryInfinite). `shape` (width over height) and `minHeight` follow from
+ * `value` and `minWidth`.
  */
 const aspectRatios = [
   {title: 'Square (1:1)', value: '1:1', minWidth: 1200},
-  {title: 'Wide (16:9)', value: '16:9', minWidth: 1800},
-  {title: 'Tall (3:4)', value: '3:4', minWidth: 1200},
+  {title: 'Wide (16:9)', value: '16:9', minWidth: 1800, clip: {width: 1920, height: 1024}},
+  {title: 'Tall (3:4)', value: '3:4', minWidth: 1200, clip: {width: 720, height: 1560}},
 ].map((frame) => {
   const [across, down] = frame.value.split(':').map(Number)
   const shape = across / down
@@ -32,29 +34,60 @@ const clipLimit = 25 * 1024 * 1024
 /** The clip size the Video field asks for, so clips start quickly. */
 const clipTarget = 3 * 1000 * 1000
 
-const clipSizes = new Map<string, Promise<number | null>>()
+type ClipAsset = {size: number; url: string}
+
+type ClipFrame = {width: number; height: number}
+
+const clipAssets = new Map<string, Promise<ClipAsset | null>>()
+
+const clipFrames = new Map<string, Promise<ClipFrame | null>>()
 
 /**
- * Size in bytes of an uploaded clip, or `null` when it can't be read. A known size is fetched once
- * per file, since a file never changes; an unknown one is tried again next time.
+ * Size in bytes and URL of an uploaded clip, or `null` when they can't be read. Fetched once per
+ * file, since a file never changes; a failed read is tried again next time.
  */
-const clipSize = (clip: FileValue | undefined, {getClient}: ValidationContext) => {
-  const ref = clip?.asset?._ref
-  if (!ref) return Promise.resolve(0)
-  const cached = clipSizes.get(ref)
+const clipAsset = (ref: string, {getClient}: ValidationContext) => {
+  const cached = clipAssets.get(ref)
   if (cached) return cached
-  const size = getClient({apiVersion: '2026-11-27'})
-    .fetch<number | null>('*[_id == $ref][0].size', {ref})
+  const asset = getClient({apiVersion: '2026-11-27'})
+    .fetch<Partial<ClipAsset> | null>('*[_id == $ref][0]{size, url}', {ref})
     .then(
-      (bytes) => bytes ?? null,
+      (found) => (found?.size && found.url ? {size: found.size, url: found.url} : null),
       () => null,
     )
-    .then((bytes) => {
-      if (bytes === null) clipSizes.delete(ref)
-      return bytes
+    .then((found) => {
+      if (!found) clipAssets.delete(ref)
+      return found
     })
-  clipSizes.set(ref, size)
-  return size
+  clipAssets.set(ref, asset)
+  return asset
+}
+
+/**
+ * Width and height of a clip, read by opening it in the browser, or `null` when it won't open
+ * (often a codec other than H.264). Read once per file, like `clipAsset`.
+ */
+const clipFrame = (url: string) => {
+  const cached = clipFrames.get(url)
+  if (cached) return cached
+  const frame = new Promise<ClipFrame | null>((resolve) => {
+    const video = document.createElement('video')
+    const done = (found: ClipFrame | null) => {
+      video.removeAttribute('src')
+      video.load()
+      resolve(found)
+    }
+    video.preload = 'metadata'
+    video.muted = true
+    video.onloadedmetadata = () => done({width: video.videoWidth, height: video.videoHeight})
+    video.onerror = () => done(null)
+    video.src = url
+  }).then((found) => {
+    if (!found) clipFrames.delete(url)
+    return found
+  })
+  clipFrames.set(url, frame)
+  return frame
 }
 
 /** The item's frame, still size and crop insets, or `null` before an image and ratio are set. */
@@ -68,6 +101,10 @@ const measure = (item?: GalleryItemValue) => {
 
 const minSizes = aspectRatios
   .map(({value, minWidth, minHeight}) => `${value} (${minWidth} × ${minHeight})`)
+  .join(', ')
+
+const clipSizes = aspectRatios
+  .flatMap(({value, clip}) => (clip ? [`${value} (${clip.width} × ${clip.height})`] : []))
   .join(', ')
 
 export const galleryItem = defineType({
@@ -109,24 +146,26 @@ export const galleryItem = defineType({
     defineField({
       name: 'video',
       type: 'file',
-      description:
-        "Optional. A loop of the screen only, played over the still when it's selected. MP4 (H.264), no sound, under 3 MB. Wide 1920 × 1024, Tall 720 × 1560, matching the screen in the still.",
+      description: `Optional. A loop of the screen only, played over the still when it's selected. MP4 (H.264), no sound, under 3 MB. Sizes, matching the screen in the still: ${clipSizes}`,
       options: {accept: 'video/mp4'},
       hidden: ({parent, value}) => !value && parent?.aspectRatio === '1:1',
       validation: (rule) => [
         rule.custom<FileValue>(async (clip, context) => {
-          const size = await clipSize(clip, context)
-          return size !== null && size > clipLimit
+          const ref = clip?.asset?._ref
+          const asset = ref ? await clipAsset(ref, context) : null
+          return asset && asset.size > clipLimit
             ? "Over Cloudflare's 25 MiB file limit, so the site can't deploy. Export a smaller clip."
             : true
         }),
         rule
           .custom<FileValue>(async (clip, context) => {
-            const size = await clipSize(clip, context)
-            if (size === null) {
+            const ref = clip?.asset?._ref
+            if (!ref) return true
+            const asset = await clipAsset(ref, context)
+            if (!asset) {
               return "Couldn't check this clip's size. Make sure it's under 25 MiB, or the site can't deploy."
             }
-            return size > clipTarget
+            return asset.size > clipTarget
               ? 'Over 3 MB. Aim for under 3 MB so the clip starts quickly.'
               : true
           })
@@ -150,6 +189,28 @@ export const galleryItem = defineType({
         ? `The video is placed on the uncropped still, so the image must be exactly ${frame.value} with no crop.`
         : true
     }),
+    rule
+      .custom<GalleryItemValue>(async (item, context) => {
+        const ref = item?.video?.asset?._ref
+        const clip = aspectRatios.find(({value}) => value === item?.aspectRatio)?.clip
+        if (!ref || !clip || context.environment !== 'studio') return true
+        const asset = await clipAsset(ref, context)
+        if (!asset) return true
+        const frame = await clipFrame(asset.url)
+        if (!frame) {
+          return {
+            message: "Couldn't open this clip to check its size. Make sure it's an H.264 MP4.",
+            path: ['video'],
+          }
+        }
+        return frame.width === clip.width && frame.height === clip.height
+          ? true
+          : {
+              message: `This clip is ${frame.width} × ${frame.height}. ${item?.aspectRatio} needs ${clip.width} × ${clip.height} to line up with the screen in the still.`,
+              path: ['video'],
+            }
+      })
+      .warning(),
     rule
       .custom<GalleryItemValue>((item) => {
         const still = measure(item)
