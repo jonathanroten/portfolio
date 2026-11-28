@@ -16,7 +16,7 @@ export const getStaticPaths = (async () => {
   );
 }) satisfies GetStaticPaths;
 
-export const GET: APIRoute = async ({ props }) => {
+export const GET: APIRoute<{ url: string }> = async ({ props }) => {
   const response = await fetch(props.url);
   if (!response.ok) {
     throw new Error(`Video download failed (${response.status}): ${props.url}`);
