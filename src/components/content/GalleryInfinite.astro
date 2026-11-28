@@ -801,7 +801,7 @@ const images: GalleryImage[] = items.map((item) => {
       );
     };
 
-    const playVideo = (src: string, device: Device) => {
+    const loadVideo = (src: string, device: Device) => {
       if (!video || calm.matches) return;
       const { width, height, screen, radius } = device;
       Object.assign(video.style, {
@@ -856,7 +856,7 @@ const images: GalleryImage[] = items.map((item) => {
       stacking.set(slot, stacked);
       image.style.zIndex = String(stacked);
       image.classList.add("is-focus");
-      if (src && device) playVideo(src, device);
+      if (src && device) loadVideo(src, device);
       seat(image);
       if (image.src !== fullSrc) {
         const full = new Image();
