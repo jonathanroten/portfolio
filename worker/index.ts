@@ -1,4 +1,7 @@
 const ENDPOINT = "/api/contact";
+const VIDEOS = "/videos/";
+const RANGE = /^bytes=(\d*)-(\d*)$/;
+const CACHE_FOREVER = "public, max-age=31536000, immutable";
 const ACTION = "talk";
 const SITEVERIFY = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 const TOKEN = "cf-turnstile-response";
@@ -30,6 +33,7 @@ export default {
   async fetch(request, env): Promise<Response> {
     const url = new URL(request.url);
 
+    if (url.pathname.startsWith(VIDEOS)) return serveVideo(request, env);
     if (url.pathname !== ENDPOINT) return reply(404, "Not found");
     if (request.method !== "POST") {
       return reply(405, "Method not allowed", { Allow: "POST" });
@@ -69,6 +73,48 @@ export default {
     return Response.json({ ok: true });
   },
 } satisfies ExportedHandler<Env>;
+
+/**
+ * Serves a gallery clip from the static assets, answering byte-range requests
+ * with 206. Static assets always answer with the whole file, and Safari won't
+ * play video without ranges. Clips are named by a hash of their contents, so
+ * they can be cached for good.
+ */
+async function serveVideo(request: Request, env: Env): Promise<Response> {
+  if (request.method !== "GET" && request.method !== "HEAD") {
+    return reply(405, "Method not allowed", { Allow: "GET, HEAD" });
+  }
+  const asset = await env.ASSETS.fetch(new URL(request.url));
+  if (!asset.ok) return asset;
+  const body = await asset.arrayBuffer();
+  const size = body.byteLength;
+  const headers = new Headers({
+    "Content-Type": "video/mp4",
+    "Accept-Ranges": "bytes",
+  });
+  const head = request.method === "HEAD";
+  const range = request.headers.get("Range")?.trim() ?? "";
+  const [, from = "", to = ""] = RANGE.exec(range) ?? [];
+  if (!from && !to) {
+    headers.set("Cache-Control", CACHE_FOREVER);
+    headers.set("Content-Length", String(size));
+    return new Response(head ? null : body, { headers });
+  }
+  const start = from ? Number(from) : Math.max(size - Number(to), 0);
+  const end = from && to ? Math.min(Number(to), size - 1) : size - 1;
+  if (start > end) {
+    headers.set("Content-Range", `bytes */${size}`);
+    return new Response(null, { status: 416, headers });
+  }
+  const length = end - start + 1;
+  headers.set("Cache-Control", CACHE_FOREVER);
+  headers.set("Content-Range", `bytes ${start}-${end}/${size}`);
+  headers.set("Content-Length", String(length));
+  return new Response(head ? null : new Uint8Array(body, start, length), {
+    status: 206,
+    headers,
+  });
+}
 
 async function verify(
   token: File | string | null,

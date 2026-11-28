@@ -23,4 +23,6 @@ export interface GalleryImage {
   height: number;
   /** Services provided. Empty when the image has none. */
   services: string[];
+  /** Site path of a clip of the screen, played over the still when it's focused. */
+  video?: string;
 }

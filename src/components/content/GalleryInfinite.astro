@@ -2,6 +2,7 @@
 import type { HTMLAttributes } from "astro/types";
 import type { GalleryImage } from "@/types.ts";
 import { imageUrl } from "@/sanity/lib/image.ts";
+import { videoPath } from "@/sanity/lib/video.ts";
 import type { getGalleryItems } from "@/sanity/lib/queries.ts";
 
 interface Props extends HTMLAttributes<"div"> {
@@ -35,6 +36,7 @@ const images: GalleryImage[] = items.map((item) => {
     width,
     height: Math.round(width / ratio),
     services: item.services ?? [],
+    video: item.video ? videoPath(item.video) : undefined,
   };
 });
 ---
@@ -57,7 +59,17 @@ const images: GalleryImage[] = items.map((item) => {
         ))}
       </ul>
       <canvas class="gallery-infinite_canvas" aria-hidden="true" />
-      <div class="gallery-infinite_caption">
+      <div class="gallery-infinite_focus">
+        <video
+          class="gallery-infinite_video"
+          muted
+          loop
+          playsinline
+          preload="auto"
+          disablepictureinpicture
+          disableRemotePlayback
+          aria-hidden="true"
+        />
         <div class="gallery-infinite_details" aria-live="polite">
           <p class="gallery-infinite_service text-style-small text-transform-uppercase" />
           <p class="gallery-infinite_index text-style-small text-transform-uppercase" />
@@ -109,6 +121,22 @@ const images: GalleryImage[] = items.map((item) => {
       { x: 1140, y: 830, w: 240, h: 320 },
     ],
     shapes: { wide: 16 / 9, square: 1, tall: 3 / 4 },
+    devices: {
+      wide: {
+        width: 1920,
+        height: 1080,
+        body: { x: 0, y: 0, w: 1920, h: 1080 },
+        screen: { x: 0, y: 56, w: 1920, h: 1024 },
+        radius: 0,
+      },
+      tall: {
+        width: 1200,
+        height: 1600,
+        body: { x: 220, y: 0, w: 760, h: 1600 },
+        screen: { x: 240, y: 20, w: 720, h: 1560 },
+        radius: 100,
+      },
+    },
     rowStep: 2,
     tileMinRem: 56,
     tileMaxRem: 100,
@@ -121,7 +149,6 @@ const images: GalleryImage[] = items.map((item) => {
     calmEase: 60,
     keySpeed: 1.1,
     click: { distance: 8, time: 400 },
-    seatDistance: 32,
     revealWait: 3000,
     priorityImages: 2,
     uploadGap,
@@ -141,6 +168,12 @@ const images: GalleryImage[] = items.map((item) => {
   };
 
   type Shape = keyof typeof config.shapes;
+
+  type Device = typeof config.devices.wide;
+
+  const devices: Partial<Record<Shape, Device>> = config.devices;
+
+  const percent = (part: number, whole: number) => `${(part / whole) * 100}%`;
 
   const drawReach =
     config.motion.blur * (0.5 + config.motion.lag) +
@@ -235,10 +268,10 @@ const images: GalleryImage[] = items.map((item) => {
           y: frame.h / 2 / config.tileHeight,
         },
         style: {
-          left: `${(frame.x / config.tileWidth) * 100}%`,
-          top: `${(frame.y / config.tileHeight) * 100}%`,
-          width: `${(frame.w / config.tileWidth) * 100}%`,
-          height: `${(frame.h / config.tileHeight) * 100}%`,
+          left: percent(frame.x, config.tileWidth),
+          top: percent(frame.y, config.tileHeight),
+          width: percent(frame.w, config.tileWidth),
+          height: percent(frame.h, config.tileHeight),
         },
       };
     });
@@ -292,20 +325,25 @@ const images: GalleryImage[] = items.map((item) => {
     >();
     const stacking = new Map<string, number>();
     let stacked = 0;
+    const focusBox = gallery.querySelector<HTMLElement>(
+      ".gallery-infinite_focus",
+    );
     const caption = {
-      box: gallery.querySelector<HTMLElement>(".gallery-infinite_caption"),
       details: gallery.querySelector<HTMLElement>(".gallery-infinite_details"),
       index: gallery.querySelector<HTMLElement>(".gallery-infinite_index"),
       service: gallery.querySelector<HTMLElement>(".gallery-infinite_service"),
     };
+    const video = gallery.querySelector<HTMLVideoElement>(
+      ".gallery-infinite_video",
+    );
     let focused: HTMLElement | null = null;
+    let framed: HTMLElement | null = null;
     let clearing: {
       x: number;
       y: number;
       halfWidth: number;
       halfHeight: number;
     } | null = null;
-    let seated = false;
     const held = new Set<string>();
     const calm = window.matchMedia("(prefers-reduced-motion: reduce)");
     const firstImages: {
@@ -392,7 +430,7 @@ const images: GalleryImage[] = items.map((item) => {
       for (const [place, placement] of placements.entries()) {
         const { shape, rank, anchor, extent, style } = placement;
         const image = new Image();
-        image.className = "image gallery-infinite_image";
+        image.className = "image transparent gallery-infinite_image";
         image.alt = "";
         image.decoding = "async";
         image.draggable = false;
@@ -456,8 +494,9 @@ const images: GalleryImage[] = items.map((item) => {
 
     const syncFocus = () => {
       if (!focused) return;
-      const width = focused.offsetWidth;
-      const height = focused.offsetHeight;
+      const size = getComputedStyle(focused);
+      const width = parseFloat(size.width);
+      const height = parseFloat(size.height);
       const style = getComputedStyle(gallery);
       const roomWidth =
         viewSize.width -
@@ -479,10 +518,10 @@ const images: GalleryImage[] = items.map((item) => {
       const anchor = placed.get(focused)?.anchor;
       if (!anchor) return;
       const captionRoom =
-        caption.box && caption.details
+        focusBox && caption.details
           ? caption.details.offsetTop +
             caption.details.offsetHeight -
-            caption.box.offsetHeight
+            focusBox.offsetHeight
           : 0;
       const room = captionRoom + config.gapRem * remSize();
       clearing = {
@@ -492,12 +531,22 @@ const images: GalleryImage[] = items.map((item) => {
         halfHeight: (height * scale) / 2 + room,
       };
       syncPush();
+      followFocus();
+    };
+
+    const followFocus = () => {
+      const anchor = framed && placed.get(framed)?.anchor;
+      if (!anchor || !focusBox) return;
+      const x = (anchor.x - center.x) * tileSize.width;
+      const y = (anchor.y - center.y) * tileSize.height;
+      focusBox.style.translate = `calc(-50% + ${x}px) calc(-50% + ${y}px)`;
     };
 
     const seat = (image: HTMLElement) => {
-      seated = true;
       afterAnimations(image).then(() => {
-        if (focused === image) gallery.classList.add("is-seated");
+        if (focused !== image) return;
+        gallery.classList.add("is-seated");
+        if (video?.hasAttribute("src")) video.play().catch(() => {});
       });
     };
 
@@ -708,13 +757,13 @@ const images: GalleryImage[] = items.map((item) => {
       center.x += (target.x - center.x) * blend;
       center.y += (target.y - center.y) * blend;
       syncTiles();
+      followFocus();
       syncDrawing(elapsed);
       gallery.dispatchEvent(new Event("cursor-refresh", { bubbles: true }));
       const pending = Math.hypot(
         (target.x - center.x) * tileSize.width,
         (target.y - center.y) * tileSize.height,
       );
-      if (focused && !seated && pending < config.seatDistance) seat(focused);
       if (pending < 0.1 && !dragging && !held.size && !drawing) {
         center.x = target.x;
         center.y = target.y;
@@ -730,7 +779,49 @@ const images: GalleryImage[] = items.map((item) => {
       frame = requestAnimationFrame(step);
     };
 
+    const stopVideo = () => {
+      if (!video?.hasAttribute("src")) return;
+      video.pause();
+      video.classList.remove("is-playing");
+      video.removeAttribute("src");
+      video.load();
+    };
+
+    const alignCaption = (device?: Device) => {
+      const { width = 1, height = 1 } = device ?? {};
+      const { x = 0, y = 0, w = width, h = height } = device?.body ?? {};
+      focusBox?.style.setProperty("--_body-left", percent(x, width));
+      focusBox?.style.setProperty(
+        "--_body-right",
+        percent(width - x - w, width),
+      );
+      focusBox?.style.setProperty(
+        "--_body-bottom",
+        percent(height - y - h, height),
+      );
+    };
+
+    const loadVideo = (src: string, device: Device) => {
+      if (!video || calm.matches) return;
+      const { width, height, screen, radius } = device;
+      Object.assign(video.style, {
+        left: percent(screen.x, width),
+        top: percent(screen.y, height),
+        width: percent(screen.w, width),
+        height: percent(screen.h, height),
+        borderRadius: `${percent(radius, screen.w)} / ${percent(radius, screen.h)}`,
+      });
+      video.src = src;
+      video.play().catch(() => {});
+      video.pause();
+    };
+
+    video?.addEventListener("playing", () => {
+      if (video.hasAttribute("src")) video.classList.add("is-playing");
+    });
+
     const unfocus = () => {
+      stopVideo();
       const image = focused;
       if (image) {
         image.classList.replace("is-focus", "is-leaving");
@@ -739,7 +830,6 @@ const images: GalleryImage[] = items.map((item) => {
         syncPush();
       }
       focused = null;
-      seated = false;
       gallery.classList.remove("is-seated");
       if (image) relabel();
     };
@@ -747,21 +837,27 @@ const images: GalleryImage[] = items.map((item) => {
     const focusOn = (image: HTMLImageElement) => {
       const place = placed.get(image);
       if (!place) return;
-      const { anchor, index, slot } = place;
+      const { anchor, index, slot, shape } = place;
       focused = image;
+      framed = image;
       relabel();
-      const { services, fullSrc } = items[index];
-      for (const animation of caption.box?.getAnimations() ?? []) {
+      const { services, fullSrc, video: src } = items[index];
+      const device =
+        src && itemShapes[index] === shape ? devices[shape] : undefined;
+      for (const animation of focusBox?.getAnimations() ?? []) {
         animation.finish();
       }
       if (caption.index)
         caption.index.textContent = String(index + 1).padStart(2, "0");
       if (caption.service) caption.service.textContent = services.join("\n");
+      alignCaption(device);
       syncFocus();
       stacked += 1;
       stacking.set(slot, stacked);
       image.style.zIndex = String(stacked);
       image.classList.add("is-focus");
+      if (src && device) loadVideo(src, device);
+      seat(image);
       if (image.src !== fullSrc) {
         const full = new Image();
         loadImage(full, fullSrc).then(
@@ -1080,7 +1176,10 @@ const images: GalleryImage[] = items.map((item) => {
       }
     }
 
-    .gallery-infinite_caption {
+    .gallery-infinite_focus {
+      --_body-left: 0%;
+      --_body-right: 0%;
+      --_body-bottom: 0%;
       position: absolute;
       top: 50%;
       left: 50%;
@@ -1092,21 +1191,34 @@ const images: GalleryImage[] = items.map((item) => {
       opacity: 0;
       pointer-events: none;
       transition: opacity var(--_leaving) var(--open-ease);
-      .gallery-infinite_wrap.is-seated & {
+      .gallery-infinite_wrap:has(.is-focus) & {
         opacity: 1;
         transition-duration: var(--open-duration);
+        transition-delay: calc(
+          var(--open-duration-slower) - var(--open-duration)
+        );
+      }
+    }
+
+    .gallery-infinite_video {
+      position: absolute;
+      object-fit: cover;
+      opacity: 0;
+      .gallery-infinite_wrap.is-seated &.is-playing {
+        opacity: 1;
+        transition: opacity var(--open-duration) var(--open-ease);
       }
     }
 
     .gallery-infinite_details {
       position: absolute;
-      top: 100%;
-      inset-inline: 0;
+      top: calc(100% - var(--_body-bottom));
+      inset-inline: var(--_body-left) var(--_body-right);
       display: flex;
       justify-content: space-between;
       align-items: start;
       gap: var(--space-4);
-      margin-top: var(--space-3);
+      margin-top: var(--space-4);
     }
 
     .gallery-infinite_service {
