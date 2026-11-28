@@ -1,4 +1,11 @@
-import {defineArrayMember, defineField, defineType, type FileValue, type ImageValue} from 'sanity'
+import {
+  defineArrayMember,
+  defineField,
+  defineType,
+  type FileValue,
+  type ImageValue,
+  type ValidationContext,
+} from 'sanity'
 import {getImageDimensions} from '@sanity/asset-utils'
 import {GalleryItemPreview} from '../components/GalleryItemPreview'
 
@@ -18,6 +25,33 @@ const aspectRatios = [
 })
 
 type GalleryItemValue = ImageValue & {aspectRatio?: string; video?: FileValue}
+
+/** Cloudflare's largest static file. A bigger clip fails the site's deploy. */
+const clipLimit = 25 * 1024 * 1024
+
+/** The clip size the Video field asks for, so clips start quickly. */
+const clipTarget = 3 * 1000 * 1000
+
+const clipSizes = new Map<string, Promise<number>>()
+
+/** Size in bytes of an uploaded clip, fetched once per file since a file never changes. */
+const clipSize = (clip: FileValue | undefined, {getClient}: ValidationContext) => {
+  const ref = clip?.asset?._ref
+  if (!ref) return Promise.resolve(0)
+  const size =
+    clipSizes.get(ref) ??
+    getClient({apiVersion: '2026-11-27'})
+      .fetch<number | null>('*[_id == $ref][0].size', {ref})
+      .then(
+        (bytes) => bytes ?? 0,
+        () => {
+          clipSizes.delete(ref)
+          return 0
+        },
+      )
+  clipSizes.set(ref, size)
+  return size
+}
 
 /** The item's frame, still size and crop insets, or `null` before an image and ratio are set. */
 const measure = (item?: GalleryItemValue) => {
@@ -75,6 +109,20 @@ export const galleryItem = defineType({
         "Optional. A loop of the screen only, played over the still when it's selected. MP4 (H.264), no sound, under 3 MB. Wide 1920 × 1024, Tall 720 × 1560, matching the screen in the still.",
       options: {accept: 'video/mp4'},
       hidden: ({parent, value}) => !value && parent?.aspectRatio === '1:1',
+      validation: (rule) => [
+        rule.custom<FileValue>(async (clip, context) =>
+          (await clipSize(clip, context)) > clipLimit
+            ? "Over Cloudflare's 25 MiB file limit, so the site can't deploy. Export a smaller clip."
+            : true,
+        ),
+        rule
+          .custom<FileValue>(async (clip, context) =>
+            (await clipSize(clip, context)) > clipTarget
+              ? 'Over 3 MB. Aim for under 3 MB so the clip starts quickly.'
+              : true,
+          )
+          .warning(),
+      ],
     }),
   ],
   validation: (rule) => [
