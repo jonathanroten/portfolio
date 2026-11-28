@@ -268,10 +268,10 @@ const images: GalleryImage[] = items.map((item) => {
           y: frame.h / 2 / config.tileHeight,
         },
         style: {
-          left: `${(frame.x / config.tileWidth) * 100}%`,
-          top: `${(frame.y / config.tileHeight) * 100}%`,
-          width: `${(frame.w / config.tileWidth) * 100}%`,
-          height: `${(frame.h / config.tileHeight) * 100}%`,
+          left: percent(frame.x, config.tileWidth),
+          top: percent(frame.y, config.tileHeight),
+          width: percent(frame.w, config.tileWidth),
+          height: percent(frame.h, config.tileHeight),
         },
       };
     });
