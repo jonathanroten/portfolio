@@ -16,6 +16,10 @@ export const getStaticPaths = (async () => {
   );
 }) satisfies GetStaticPaths;
 
+/**
+ * Copies a gallery clip from Sanity into the build at `/videos/`, so Cloudflare
+ * serves the plays instead of Sanity. Used by GalleryInfinite.
+ */
 export const GET: APIRoute<{ url: string }> = async ({ props }) => {
   const response = await fetch(props.url);
   if (!response.ok) {
