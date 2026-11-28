@@ -840,7 +840,8 @@ const images: GalleryImage[] = items.map((item) => {
       framed = image;
       relabel();
       const { services, fullSrc, video: src } = items[index];
-      const device = src ? devices[shape] : undefined;
+      const device =
+        src && itemShapes[index] === shape ? devices[shape] : undefined;
       for (const animation of caption.box?.getAnimations() ?? []) {
         animation.finish();
       }
