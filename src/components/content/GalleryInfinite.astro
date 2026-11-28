@@ -65,7 +65,7 @@ const images: GalleryImage[] = items.map((item) => {
           muted
           loop
           playsinline
-          preload="none"
+          preload="auto"
           disablepictureinpicture
           disableRemotePlayback
           aria-hidden="true"
@@ -809,8 +809,6 @@ const images: GalleryImage[] = items.map((item) => {
         height: percent(screen.h, height),
         borderRadius: `${percent(radius, screen.w)} / ${percent(radius, screen.h)}`,
       });
-      video.muted = true;
-      video.preload = "auto";
       video.src = src;
       video.play().catch(() => {});
       video.pause();
