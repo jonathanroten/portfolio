@@ -20,7 +20,7 @@ The site is the repository root. Read `LUMOS.md` before adding pages, components
 | Folder           | What's in it                                                                                                                                                 |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `src/components` | Lumos library components plus the site's own, such as `interactive/ImageTrail.astro` (the home hero) and `content/GalleryInfinite.astro` (the Stuff gallery) |
-| `src/sanity/lib` | The Sanity queries (`queries.ts`) and the image URL helper (`image.ts`)                                                                                      |
+| `src/sanity/lib` | The Sanity queries (`queries.ts`), the image URL helper (`image.ts`) and the clip path helper (`video.ts`)                                                   |
 | `worker`         | The Worker for the contact form and the gallery clips' byte ranges                                                                                           |
 | `sanity`         | The Sanity Studio: schemas in `schemaTypes` (`documents`, `objects`), sidebar in `structure`                                                                 |
 
