@@ -23,11 +23,21 @@ const GALLERY_QUERY = defineQuery(
   `*[_id == "gallery"][0].items[defined(asset)] { alt, aspectRatio, asset, hotspot, crop, "services": services[defined(@->title)]->title, "video": video.asset->url }`,
 );
 
-/** Images for the infinite gallery, in the order set in the Studio. */
-export async function getGalleryItems(): Promise<
-  NonNullable<GALLERY_QUERY_RESULT>
-> {
-  return (await sanityClient.fetch(GALLERY_QUERY)) ?? [];
+type GalleryItems = NonNullable<GALLERY_QUERY_RESULT>;
+
+const fetchGalleryItems = async (): Promise<GalleryItems> =>
+  (await sanityClient.fetch(GALLERY_QUERY)) ?? [];
+
+let galleryItemsRequest: Promise<GalleryItems> | undefined;
+
+/**
+ * Images for the infinite gallery, in the order set in the Studio. Memoized in
+ * builds like `getServices`, since Stuff and the clip route both call it.
+ */
+export function getGalleryItems(): Promise<GalleryItems> {
+  if (import.meta.env.DEV) return fetchGalleryItems();
+  galleryItemsRequest ??= fetchGalleryItems();
+  return galleryItemsRequest;
 }
 
 const SERVICES_QUERY = defineQuery(
